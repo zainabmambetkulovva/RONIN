@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "Профилим - RONIN",
+    "description": "Жеке кабинет, брониронуулар, чектер жана история"
+  },
+  "title": "Жеке кабинет",
+  "tabs": {
+    "profile": "Профиль",
+    "bookings": "Брониронуулар",
+    "receipts": "Чектер",
+    "history": "История"
+  },
+  "profile": {
+    "title": "Профилим",
+    "personalInfo": "Жеке маалымат",
+    "name": "Аты-жөнү",
+    "phone": "Телефон номери",
+    "email": "Email",
+    "edit": "Өзгөрт",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "updated": "Профиль өзгөрүлдү",
+    "error": "Профилди өзгөрүү сынды",
+    "preferences": "Артык өндүрүүчүлүк",
+    "language": "Тил",
+    "notifications": "Билдирүүлөр",
+    "emailNotifications": "Email'ге билдирүүлөр алам",
+    "pushNotifications": "Push-ке билдирүүлөр алам"
+  },
+  "bookings": {
+    "title": "Брониронуулар",
+    "upcoming": "Келечектүүлөр",
+    "active": "Активдүүлөр",
+    "completed": "Аяктангандар",
+    "cancelled": "Жокко чыгарылгандар",
+    "empty": "Брониронуу жок",
+    "computer": "Компьютер",
+    "date": "Дата",
+    "time": "Убактысы",
+    "tariff": "Тариф",
+    "price": "Баасы",
+    "status": "Туру",
+    "actions": "Аракеттер",
+    "view": "Коц",
+    "cancel": "Жокко чыгар",
+    "receipt": "Чекти коц",
+    "confirmCancel": "Чындап жокко чыгармаксыңар?",
+    "cancelSuccess": "Брониронуу жокко чыгарылды",
+    "cancelError": "Брониронуу жокко чыгарыл сынды",
+    "statuses": {
+      "pending": "Күтүлүүдө",
+      "confirmed": "Расталган",
+      "cancelled": "Жокко чыгарылды",
+      "completed": "Аяктанды",
+      "expired": "Орзосу бүттү"
+    }
+  },
+  "receipts": {
+    "title": "Чектер",
+    "empty": "Чектер жок",
+    "number": "Чек номери",
+    "date": "Дата",
+    "computer": "Компьютер",
+    "amount": "Наркы",
+    "status": "Туру",
+    "download": "Жүктөө",
+    "share": "Бөл",
+    "view": "Чекти коц",
+    "print": "Басып чыгар",
+    "statuses": {
+      "valid": "Жүргүлүүдө",
+      "expired": "Орзосу бүттү"
+    }
+  },
+  "history": {
+    "title": "История",
+    "empty": "История жок",
+    "date": "Дата",
+    "event": "Окуя",
+    "details": "Подробнее",
+    "events": {
+      "booking_created": "Брониронуу түзүлдү",
+      "booking_cancelled": "Брониронуу жокко чыгарылды",
+      "payment_made": "Төлөмү жүргүзүлдү",
+      "session_started": "Сессия башталды",
+      "session_ended": "Сессия аяктанды"
+    }
+  },
+  "notifications": {
+    "title": "Билдирүүлөр",
+    "markAllAsRead": "Бардыгын окулганы катары белгилеңиз",
+    "empty": "Билдирүүлөр жок",
+    "time": "убактысы"
+  },
+  "security": {
+    "title": "Коопсуздук",
+    "changePassword": "Пароль өзгөрт",
+    "currentPassword": "Учурдагы пароль",
+    "newPassword": "Жаңы пароль",
+    "confirmPassword": "Пароль белгилеңиз",
+    "update": "Өзгөрт",
+    "passwordChanged": "Пароль өзгөрүлдү",
+    "passwordError": "Пароль өзгөрүү сынды",
+    "logout": "Чыгуу",
+    "sessions": "Активдүү сессиялар",
+    "revokeSession": "Сессияны жокко чыгар"
+  },
+  "actions": {
+    "deleteAccount": "Аккаунтты жок кыл",
+    "deleteAccountWarning": "Бул аракет орзосу бүтүндөй жокко чыгарылат",
+    "confirm": "Макулдаш"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "Мой профиль - RONIN",
+    "description": "Личный кабинет, бронирования, чеки и история"
+  },
+  "title": "Мой профиль",
+  "tabs": {
+    "profile": "Профиль",
+    "bookings": "Бронирования",
+    "receipts": "Чеки",
+    "history": "История"
+  },
+  "profile": {
+    "title": "Мой профиль",
+    "personalInfo": "Личная информация",
+    "name": "Имя и фамилия",
+    "phone": "Номер телефона",
+    "email": "Email",
+    "edit": "Редактировать",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "updated": "Профиль обновлен",
+    "error": "Ошибка при обновлении профиля",
+    "preferences": "Предпочтения",
+    "language": "Язык",
+    "notifications": "Уведомления",
+    "emailNotifications": "Получать уведомления на email",
+    "pushNotifications": "Получать push-уведомления"
+  },
+  "bookings": {
+    "title": "Бронирования",
+    "upcoming": "Предстоящие",
+    "active": "Активные",
+    "completed": "Завершенные",
+    "cancelled": "Отменённые",
+    "empty": "Нет бронирований",
+    "computer": "Компьютер",
+    "date": "Дата",
+    "time": "Время",
+    "tariff": "Тариф",
+    "price": "Цена",
+    "status": "Статус",
+    "actions": "Действия",
+    "view": "Посмотреть",
+    "cancel": "Отменить",
+    "receipt": "Чек",
+    "confirmCancel": "Вы уверены, что хотите отменить?",
+    "cancelSuccess": "Бронирование отменено",
+    "cancelError": "Ошибка при отмене бронирования",
+    "statuses": {
+      "pending": "Ожидание",
+      "confirmed": "Подтверждено",
+      "cancelled": "Отменено",
+      "completed": "Завершено",
+      "expired": "Истекло"
+    }
+  },
+  "receipts": {
+    "title": "Чеки",
+    "empty": "Нет чеков",
+    "number": "Номер чека",
+    "date": "Дата",
+    "computer": "Компьютер",
+    "amount": "Сумма",
+    "status": "Статус",
+    "download": "Скачать",
+    "share": "Поделиться",
+    "view": "Посмотреть чек",
+    "print": "Печать",
+    "statuses": {
+      "valid": "Действителен",
+      "expired": "Истекший"
+    }
+  },
+  "history": {
+    "title": "История",
+    "empty": "История пуста",
+    "date": "Дата",
+    "event": "События",
+    "details": "Подробнее",
+    "events": {
+      "booking_created": "Бронирование создано",
+      "booking_cancelled": "Бронирование отменено",
+      "payment_made": "Оплата произведена",
+      "session_started": "Сессия начата",
+      "session_ended": "Сессия завершена"
+    }
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "markAllAsRead": "Отметить все как прочитанные",
+    "empty": "Уведомлений нет",
+    "time": "времени"
+  },
+  "security": {
+    "title": "Безопасность",
+    "changePassword": "Изменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "update": "Обновить",
+    "passwordChanged": "Пароль изменен",
+    "passwordError": "Ошибка при изменении пароля",
+    "logout": "Выход",
+    "sessions": "Активные сессии",
+    "revokeSession": "Завершить сессию"
+  },
+  "actions": {
+    "deleteAccount": "Удалить аккаунт",
+    "deleteAccountWarning": "Это действие полностью удалит ваш аккаунт",
+    "confirm": "Подтвердить"
+  }
+}

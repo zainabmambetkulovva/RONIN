@@ -1,0 +1,251 @@
+{
+  "app": {
+    "name": "RONIN",
+    "tagline": "Компьютерный клуб",
+    "description": "Современный компьютерный клуб в Бишкеке"
+  },
+  "navigation": {
+    "home": "Главная",
+    "browse": "Компьютеры",
+    "booking": "Бронирование",
+    "profile": "Профиль",
+    "admin": "Админ-панель",
+    "logout": "Выход",
+    "language": "Язык"
+  },
+  "auth": {
+    "login": "Вход",
+    "signup": "Регистрация",
+    "email": "Email",
+    "phone": "Номер телефона",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "forgotPassword": "Забыли пароль?",
+    "rememberMe": "Запомнить меня",
+    "loginTitle": "Вход в систему",
+    "signupTitle": "Создать новый аккаунт",
+    "otp": "OTP код",
+    "otpSent": "OTP код отправлен на ваш телефон",
+    "verifyOtp": "Подтвердить OTP",
+    "sending": "Отправка...",
+    "verify": "Подтвердить",
+    "verifying": "Проверка...",
+    "loginSuccess": "Вы вошли в систему",
+    "loginError": "Ошибка входа",
+    "signupSuccess": "Аккаунт создан",
+    "signupError": "Ошибка при создании аккаунта",
+    "invalidPhone": "Неверный номер телефона",
+    "invalidEmail": "Неверный email",
+    "passwordTooShort": "Пароль должен быть более надежным",
+    "passwordMismatch": "Пароли не совпадают"
+  },
+  "buttons": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "add": "Добавить",
+    "close": "Закрыть",
+    "submit": "Отправить",
+    "back": "Назад",
+    "next": "Далее",
+    "previous": "Назад",
+    "retry": "Повторить",
+    "tryAgain": "Попробовать снова",
+    "loading": "Загрузка...",
+    "viewMore": "Показать больше",
+    "seeAll": "Посмотреть все",
+    "download": "Скачать",
+    "share": "Поделиться",
+    "print": "Печать"
+  },
+  "status": {
+    "success": "Успешно",
+    "error": "Ошибка",
+    "warning": "Предупреждение",
+    "info": "Информация",
+    "loading": "Загрузка...",
+    "pending": "Ожидание",
+    "confirmed": "Подтверждено",
+    "cancelled": "Отменено",
+    "completed": "Завершено",
+    "expired": "Истекло",
+    "active": "Активно",
+    "inactive": "Неактивно",
+    "available": "Доступно",
+    "unavailable": "Недоступно",
+    "online": "В сети",
+    "offline": "Не в сети"
+  },
+  "messages": {
+    "welcome": "Добро пожаловать",
+    "goodbye": "До свидания",
+    "loading": "Загрузка...",
+    "noData": "Нет данных",
+    "noResults": "Результатов не найдено",
+    "error": "Произошла ошибка",
+    "networkError": "Ошибка сети",
+    "tryAgain": "Пожалуйста, попробуйте снова",
+    "confirmDelete": "Вы уверены, что хотите удалить?",
+    "confirmAction": "Вы уверены, что хотите выполнить это действие?",
+    "saved": "Сохранено",
+    "updated": "Обновлено",
+    "deleted": "Удалено",
+    "created": "Создано"
+  },
+  "validation": {
+    "required": "Это поле обязательно",
+    "email": "Введите корректный email",
+    "phone": "Введите корректный номер телефона",
+    "minLength": "Минимум {min} символов",
+    "maxLength": "Максимум {max} символов",
+    "min": "Минимум {min}",
+    "max": "Максимум {max}",
+    "pattern": "Введите корректный формат",
+    "unique": "Это значение уже используется"
+  },
+  "time": {
+    "now": "Прямо сейчас",
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "tomorrow": "Завтра",
+    "thisWeek": "На этой неделе",
+    "thisMonth": "В этом месяце",
+    "thisYear": "В этом году",
+    "ago": "назад",
+    "in": "через",
+    "minute": "минута",
+    "minutes": "минут",
+    "hour": "час",
+    "hours": "часов",
+    "day": "день",
+    "days": "дней",
+    "week": "неделя",
+    "weeks": "недель",
+    "month": "месяц",
+    "months": "месяцев",
+    "year": "год",
+    "years": "лет"
+  },
+  "formats": {
+    "dateShort": "dd.MM.yyyy",
+    "dateLong": "d MMMM yyyy",
+    "timeShort": "HH:mm",
+    "timeLong": "HH:mm:ss",
+    "dateTime": "dd.MM.yyyy HH:mm",
+    "dateTimeLong": "d MMMM yyyy HH:mm"
+  },
+  "currency": {
+    "symbol": "сом",
+    "code": "KGS",
+    "name": "Киргизский сом"
+  },
+  "payment": {
+    "method": "Способ оплаты",
+    "methods": {
+      "electronic_wallet": "Электронный кошелек",
+      "cash": "Наличные"
+    },
+    "status": "Статус",
+    "statuses": {
+      "pending": "Ожидание",
+      "paid": "Оплачено",
+      "failed": "Ошибка",
+      "refunded": "Возвращено"
+    },
+    "total": "Итого",
+    "amount": "Сумма",
+    "fee": "Комиссия",
+    "discount": "Скидка",
+    "subtotal": "Промежуточный итог"
+  },
+  "computer": {
+    "status": "Статус",
+    "statuses": {
+      "available": "Доступен",
+      "playing": "Играет",
+      "maintenance": "Обслуживание"
+    },
+    "category": "Категория",
+    "specifications": "Характеристики",
+    "number": "Номер",
+    "price": "Цена",
+    "perHour": "в час",
+    "features": "Функции"
+  },
+  "tariff": {
+    "hourly": "Почасовый",
+    "package": "Пакет",
+    "night": "Ночной",
+    "morning": "Утренний",
+    "duration": "Продолжительность",
+    "price": "Цена",
+    "popular": "Популярно"
+  },
+  "booking": {
+    "title": "Бронирование",
+    "number": "Номер бронирования",
+    "status": "Статус",
+    "statuses": {
+      "pending": "Ожидание",
+      "confirmed": "Подтверждено",
+      "cancelled": "Отменено",
+      "completed": "Завершено",
+      "expired": "Истекло"
+    },
+    "date": "Дата",
+    "time": "Время",
+    "startTime": "Время начала",
+    "endTime": "Время окончания",
+    "duration": "Продолжительность",
+    "computer": "Компьютер",
+    "tariff": "Тариф",
+    "price": "Цена",
+    "total": "Итого"
+  },
+  "user": {
+    "profile": "Профиль",
+    "name": "Имя и фамилия",
+    "email": "Email",
+    "phone": "Телефон",
+    "role": "Роль",
+    "roles": {
+      "client": "Клиент",
+      "manager": "Менеджер",
+      "admin": "Администратор"
+    },
+    "status": "Статус",
+    "statuses": {
+      "active": "Активен",
+      "blocked": "Заблокирован",
+      "deleted": "Удален"
+    },
+    "joined": "Присоединился",
+    "lastLogin": "Последний вход",
+    "bookings": "Бронирования",
+    "totalSpent": "Всего потрачено"
+  },
+  "errors": {
+    "404": "Не найдено",
+    "500": "Ошибка сервера",
+    "unauthorized": "Требуется авторизация",
+    "forbidden": "Доступ запрещен",
+    "notFound": "Не найдено",
+    "serverError": "Ошибка сервера",
+    "networkError": "Ошибка сети",
+    "timeoutError": "Время ожидания истекло",
+    "validationError": "Ошибка валидации"
+  },
+  "footer": {
+    "about": "О нас",
+    "contact": "Контакты",
+    "privacy": "Политика конфиденциальности",
+    "terms": "Условия использования",
+    "copyright": "© 2026 RONIN. Все права защищены.",
+    "followUs": "Следите за нами",
+    "address": "Бишкек, Кыргызстан",
+    "phone": "+996 (555) 123-456",
+    "email": "info@ronin.kg"
+  }
+}

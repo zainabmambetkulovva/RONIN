@@ -1,0 +1,251 @@
+{
+  "app": {
+    "name": "RONIN",
+    "tagline": "Компьютердик клуб",
+    "description": "Заманбап компьютердик клуб Бишкекте"
+  },
+  "navigation": {
+    "home": "Башкы баракы",
+    "browse": "Компьютерлерди манип",
+    "booking": "Брониро",
+    "profile": "Профилим",
+    "admin": "Админ панель",
+    "logout": "Чыгуу",
+    "language": "Тил"
+  },
+  "auth": {
+    "login": "Кирүү",
+    "signup": "Катталуу",
+    "email": "Email",
+    "phone": "Телефон номери",
+    "password": "Пароль",
+    "confirmPassword": "Пароль белгилеңиз",
+    "forgotPassword": "Пароль унуттум",
+    "rememberMe": "Мени эсте сакта",
+    "loginTitle": "Системага кирүү",
+    "signupTitle": "Жаңы аккаунт түзүү",
+    "otp": "OTP коду",
+    "otpSent": "OTP кодун телефонуңузга жөнөттүм",
+    "verifyOtp": "OTP коду таланта",
+    "sending": "Жөнөтүлүүдө...",
+    "verify": "Таланта",
+    "verifying": "Таланта...",
+    "loginSuccess": "Системага кирдиңиз",
+    "loginError": "Кирүү катасы",
+    "signupSuccess": "Аккаунт түзүлдү",
+    "signupError": "Аккаунт түзүү катасы",
+    "invalidPhone": "Телефон номери туура эмес",
+    "invalidEmail": "Email туура эмес",
+    "passwordTooShort": "Пароль түшүнүк болушу керек",
+    "passwordMismatch": "Пароллер дал келбейт"
+  },
+  "buttons": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "confirm": "Макулдаш",
+    "delete": "Жок кыл",
+    "edit": "Өзгөрт",
+    "add": "Кош",
+    "close": "Жабуу",
+    "submit": "Жөнөт",
+    "back": "Артка",
+    "next": "Кийин",
+    "previous": "Мурдуну",
+    "retry": "Кайра аракет",
+    "tryAgain": "Кайра аракет кыл",
+    "loading": "Жүктөлүүдө...",
+    "viewMore": "Көпүрөк коц",
+    "seeAll": "Бардыгын коц",
+    "download": "Жүктөө",
+    "share": "Бөл",
+    "print": "Басып чыгар"
+  },
+  "status": {
+    "success": "Ийгиликтүү",
+    "error": "Ката",
+    "warning": "Эскертүү",
+    "info": "Маалымат",
+    "loading": "Жүктөлүүдө...",
+    "pending": "Күтүлүүдө",
+    "confirmed": "Расталган",
+    "cancelled": "Жокко чыгарылды",
+    "completed": "Аяктанды",
+    "expired": "Орзосу бүттү",
+    "active": "Активдүү",
+    "inactive": "Активдүү эмес",
+    "available": "Жеткиликтүү",
+    "unavailable": "Жеткиликтүүсүз",
+    "online": "Сокку",
+    "offline": "Сокку эмес"
+  },
+  "messages": {
+    "welcome": "Кош келдиңиз",
+    "goodbye": "Жакшы сапар",
+    "loading": "Жүктөлүүдө...",
+    "noData": "Маалымат жок",
+    "noResults": "Жок табылган",
+    "error": "Ката орун алды",
+    "networkError": "Тармак катасы",
+    "tryAgain": "Кайра аракет кылыңыз",
+    "confirmDelete": "Чынапты жокко чыгармаксыңар?",
+    "confirmAction": "Аракетти расталайсыңар?",
+    "saved": "Сохранено",
+    "updated": "Өзгөрүлдү",
+    "deleted": "Жокко чыгарылды",
+    "created": "Түзүлдү"
+  },
+  "validation": {
+    "required": "Бул талаа кажетүү",
+    "email": "Туура Email киргизиңиз",
+    "phone": "Туура телефон номерин киргизиңиз",
+    "minLength": "Минимум {min} символ",
+    "maxLength": "Максимум {max} символ",
+    "min": "Минимум {min}",
+    "max": "Максимум {max}",
+    "pattern": "Туура формат киргизиңиз",
+    "unique": "Бул маани ошону менен уже колдонулган"
+  },
+  "time": {
+    "now": "Азыр",
+    "today": "Бүгүн",
+    "yesterday": "Кечээ",
+    "tomorrow": "Эртеӱ",
+    "thisWeek": "Бул аптада",
+    "thisMonth": "Бул айда",
+    "thisYear": "Бул жылы",
+    "ago": "мурун",
+    "in": "ичинде",
+    "minute": "минута",
+    "minutes": "минут",
+    "hour": "саат",
+    "hours": "саат",
+    "day": "күн",
+    "days": "күн",
+    "week": "апта",
+    "weeks": "апта",
+    "month": "ай",
+    "months": "ай",
+    "year": "жыл",
+    "years": "жыл"
+  },
+  "formats": {
+    "dateShort": "dd.MM.yyyy",
+    "dateLong": "d MMMM yyyy",
+    "timeShort": "HH:mm",
+    "timeLong": "HH:mm:ss",
+    "dateTime": "dd.MM.yyyy HH:mm",
+    "dateTimeLong": "d MMMM yyyy HH:mm"
+  },
+  "currency": {
+    "symbol": "сом",
+    "code": "KGS",
+    "name": "Сом"
+  },
+  "payment": {
+    "method": "Төлөө ыкмасы",
+    "methods": {
+      "electronic_wallet": "Электрондук кошонок",
+      "cash": "Акча"
+    },
+    "status": "Туру",
+    "statuses": {
+      "pending": "Күтүлүүдө",
+      "paid": "Төлөндүрүлдү",
+      "failed": "Сынды",
+      "refunded": "Кайтарылды"
+    },
+    "total": "Жалпы",
+    "amount": "Сумма",
+    "fee": "Комиссия",
+    "discount": "Скидка",
+    "subtotal": "Субжалпы"
+  },
+  "computer": {
+    "status": "Туру",
+    "statuses": {
+      "available": "Жеткиликтүү",
+      "playing": "Ойноого",
+      "maintenance": "Бак"
+    },
+    "category": "Категориясы",
+    "specifications": "Спектификациялар",
+    "number": "Номери",
+    "price": "Баасы",
+    "perHour": "сааттык",
+    "features": "Мүмкүнчүлүктөрү"
+  },
+  "tariff": {
+    "hourly": "Сааттык",
+    "package": "Пакет",
+    "night": "Түндүк",
+    "morning": "Таңдык",
+    "duration": "Узактыгы",
+    "price": "Баасы",
+    "popular": "Популярдык"
+  },
+  "booking": {
+    "title": "Брониронуу",
+    "number": "Брониронуу номери",
+    "status": "Туру",
+    "statuses": {
+      "pending": "Күтүлүүдө",
+      "confirmed": "Расталган",
+      "cancelled": "Жокко чыгарылды",
+      "completed": "Аяктанды",
+      "expired": "Орзосу бүттү"
+    },
+    "date": "Дата",
+    "time": "Убактысы",
+    "startTime": "Башталуу убактысы",
+    "endTime": "Чыгуу убактысы",
+    "duration": "Узактыгы",
+    "computer": "Компьютер",
+    "tariff": "Тариф",
+    "price": "Баасы",
+    "total": "Жалпы"
+  },
+  "user": {
+    "profile": "Профиль",
+    "name": "Аты-жөнү",
+    "email": "Email",
+    "phone": "Телефон",
+    "role": "Ролу",
+    "roles": {
+      "client": "Клиент",
+      "manager": "Менеджер",
+      "admin": "Администратор"
+    },
+    "status": "Туру",
+    "statuses": {
+      "active": "Активдүү",
+      "blocked": "Блокировано",
+      "deleted": "Жокко чыгарылды"
+    },
+    "joined": "Катталган",
+    "lastLogin": "Акыркы кирүүсү",
+    "bookings": "Брониронуулар",
+    "totalSpent": "Жалпы хырдалган"
+  },
+  "errors": {
+    "404": "Табылган жок",
+    "500": "Сервер катасы",
+    "unauthorized": "Авторизация керек",
+    "forbidden": "Жол жок",
+    "notFound": "Табылган жок",
+    "serverError": "Сервер катасы",
+    "networkError": "Тармак катасы",
+    "timeoutError": "Убакыт бүттү",
+    "validationError": "Таланта катасы"
+  },
+  "footer": {
+    "about": "Биз жөнүндө",
+    "contact": "Байланышы",
+    "privacy": "Жоксоо саясаты",
+    "terms": "Пайдалануу шарттары",
+    "copyright": "© 2026 RONIN. Бардык укуктар сакталган.",
+    "followUs": "Биз менен байланышкалык",
+    "address": "Бишкек, Кыргызстан",
+    "phone": "+996 (555) 123-456",
+    "email": "info@ronin.kg"
+  }
+}

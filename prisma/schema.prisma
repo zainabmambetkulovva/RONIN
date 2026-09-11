@@ -1,0 +1,453 @@
+// ─────────────────────────────────────────────────────────────────
+// RONIN — Prisma Schema
+// Проект: Компьютерный клуб RONIN, Бишкек
+// База данных: PostgreSQL (Neon)
+// ─────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  client
+  manager
+  admin
+}
+
+enum UserStatus {
+  active
+  blocked
+  deleted
+}
+
+enum OtpType {
+  registration
+  login
+}
+
+enum ComputerStatus {
+  available
+  maintenance
+  // "playing" — не хранится здесь, определяется активной gaming_session
+}
+
+enum TariffType {
+  hourly
+  package
+  night
+  morning
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  expired
+}
+
+enum PaymentMethod {
+  electronic_wallet
+  cash
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum GamingSessionStatus {
+  active
+  completed
+  expired
+}
+
+enum AiProvider {
+  openai
+  gemini
+}
+
+enum AiRole {
+  user
+  assistant
+}
+
+enum ContentType {
+  banner
+  text
+  image
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 1. USERS
+// Клиенты, менеджеры, администраторы
+// ─────────────────────────────────────────────────────────────────
+
+model User {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @db.VarChar(100)
+  phone     String     @unique @db.VarChar(20)
+  email     String?    @unique @db.VarChar(255)
+  role      UserRole   @default(client)
+  status    UserStatus @default(active)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  otpCodes             OtpCode[]
+  sessions             Session[]
+  bookings             Booking[]
+  notifications        Notification[]
+  aiChats              AiChat[]
+  content              Content[]
+  auditLogs            AuditLog[]
+  gamingSessionsStarted GamingSession[] @relation("StartedBy")
+  bookingStatusChanges  BookingStatusHistory[] @relation("ChangedBy")
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 2. OTP_CODES
+// Одноразовые коды для регистрации и входа
+// ─────────────────────────────────────────────────────────────────
+
+model OtpCode {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @map("user_id") @db.Uuid
+  destination String   @db.VarChar(255)
+  codeHash    String   @map("code_hash") @db.VarChar(255)
+  type        OtpType
+  expiresAt   DateTime @map("expires_at")
+  attempts    Int      @default(0)
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([destination])
+  @@map("otp_codes")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 3. SESSIONS
+// Активные пользовательские сессии (JWT / токены)
+// ─────────────────────────────────────────────────────────────────
+
+model Session {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @map("token_hash") @db.VarChar(255)
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 4. COMPUTER_CATEGORIES
+// Comfort | Standard | Premium | Ronin Rooms
+// ─────────────────────────────────────────────────────────────────
+
+model ComputerCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(100)
+  description String   @db.Text
+  imageUrl    String?  @map("image_url") @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  computers Computer[]
+  tariffs   Tariff[]
+
+  @@map("computer_categories")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 5. COMPUTERS
+// 96 компьютеров клуба
+// ─────────────────────────────────────────────────────────────────
+
+model Computer {
+  id             String         @id @default(uuid()) @db.Uuid
+  categoryId     String         @map("category_id") @db.Uuid
+  number         Int            @unique
+  specifications Json           // { cpu, gpu, ram, monitor, etc. }
+  imageUrl       String?        @map("image_url") @db.Text
+  status         ComputerStatus @default(available)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  category        ComputerCategory @relation(fields: [categoryId], references: [id])
+  bookings        Booking[]
+  gamingSessions  GamingSession[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("computers")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 6. TARIFFS
+// Тарифы: почасовые, пакетные, ночные, утренние
+// ─────────────────────────────────────────────────────────────────
+
+model Tariff {
+  id              String     @id @default(uuid()) @db.Uuid
+  categoryId      String     @map("category_id") @db.Uuid
+  name            String     @db.VarChar(100)
+  durationMinutes Int        @map("duration_minutes")
+  price           Decimal    @db.Decimal(10, 2)
+  type            TariffType
+  isActive        Boolean    @default(true) @map("is_active")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  category ComputerCategory @relation(fields: [categoryId], references: [id])
+  bookings Booking[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("tariffs")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 7. BOOKINGS
+// Основная таблица бронирований
+// ─────────────────────────────────────────────────────────────────
+
+model Booking {
+  id              String        @id @default(uuid()) @db.Uuid
+  bookingNumber   String        @unique @map("booking_number") @db.VarChar(30)
+  userId          String        @map("user_id") @db.Uuid
+  computerId      String        @map("computer_id") @db.Uuid
+  tariffId        String        @map("tariff_id") @db.Uuid
+  startAt         DateTime      @map("start_at")
+  endAt           DateTime      @map("end_at")
+  durationMinutes Int           @map("duration_minutes")
+  // Цена фиксируется на момент создания — изменение тарифа не влияет
+  price           Decimal       @db.Decimal(10, 2)
+  status          BookingStatus @default(pending)
+  qrToken         String        @unique @map("qr_token") @db.VarChar(255)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user           User                   @relation(fields: [userId], references: [id])
+  computer       Computer               @relation(fields: [computerId], references: [id])
+  tariff         Tariff                 @relation(fields: [tariffId], references: [id])
+  payments       Payment[]
+  gamingSessions GamingSession[]
+  statusHistory  BookingStatusHistory[]
+
+  @@index([userId])
+  @@index([computerId])
+  @@index([status])
+  @@index([startAt, endAt])
+  @@map("bookings")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 8. PAYMENTS
+// Оплаты бронирований
+// ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  bookingId     String        @map("booking_id") @db.Uuid
+  amount        Decimal       @db.Decimal(10, 2)
+  method        PaymentMethod
+  status        PaymentStatus @default(pending)
+  provider      String?       @db.VarChar(100)
+  transactionId String?       @map("transaction_id") @db.VarChar(255)
+  paidAt        DateTime?     @map("paid_at")
+  refundedAt    DateTime?     @map("refunded_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@index([status])
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 9. GAMING_SESSIONS
+// Игровые сессии — запускаются менеджером при приходе клиента
+// ─────────────────────────────────────────────────────────────────
+
+model GamingSession {
+  id         String              @id @default(uuid()) @db.Uuid
+  bookingId  String              @map("booking_id") @db.Uuid
+  computerId String              @map("computer_id") @db.Uuid
+  startedBy  String              @map("started_by") @db.Uuid
+  startedAt  DateTime            @map("started_at")
+  endedAt    DateTime?           @map("ended_at")
+  status     GamingSessionStatus @default(active)
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  booking  Booking  @relation(fields: [bookingId], references: [id])
+  computer Computer @relation(fields: [computerId], references: [id])
+  manager  User     @relation("StartedBy", fields: [startedBy], references: [id])
+
+  @@index([bookingId])
+  @@index([computerId])
+  @@index([status])
+  @@map("gaming_sessions")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 10. BOOKING_STATUS_HISTORY
+// Аудит изменений статуса бронирования
+// pending → confirmed → completed | cancelled
+// ─────────────────────────────────────────────────────────────────
+
+model BookingStatusHistory {
+  id        String         @id @default(uuid()) @db.Uuid
+  bookingId String         @map("booking_id") @db.Uuid
+  oldStatus BookingStatus? @map("old_status")
+  newStatus BookingStatus  @map("new_status")
+  changedBy String         @map("changed_by") @db.Uuid
+  reason    String?        @db.Text
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation("ChangedBy", fields: [changedBy], references: [id])
+
+  @@index([bookingId])
+  @@map("booking_status_history")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 11. NOTIFICATIONS
+// Push/in-app уведомления пользователей
+// ─────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String   @db.VarChar(50)
+  title     String   @db.VarChar(255)
+  message   String   @db.Text
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 12. AI_CHATS
+// Чаты с AI-помощником (OpenAI / Gemini)
+// ─────────────────────────────────────────────────────────────────
+
+model AiChat {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  provider  AiProvider
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  user     User        @relation(fields: [userId], references: [id])
+  messages AiMessage[]
+
+  @@index([userId])
+  @@map("ai_chats")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 13. AI_MESSAGES
+// Сообщения внутри AI-чата
+// ─────────────────────────────────────────────────────────────────
+
+model AiMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  chatId    String   @map("chat_id") @db.Uuid
+  role      AiRole
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  chat AiChat @relation(fields: [chatId], references: [id])
+
+  @@index([chatId])
+  @@map("ai_messages")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 14. CONTENT
+// Управляемый контент сайта: баннеры, тексты, изображения
+// ─────────────────────────────────────────────────────────────────
+
+model Content {
+  id          String      @id @default(uuid()) @db.Uuid
+  type        ContentType
+  title       String?     @db.VarChar(255)
+  description String?     @db.Text
+  imageUrl    String?     @map("image_url") @db.Text
+  isActive    Boolean     @default(true) @map("is_active")
+  createdBy   String      @map("created_by") @db.Uuid
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  author User @relation(fields: [createdBy], references: [id])
+
+  @@index([type])
+  @@index([isActive])
+  @@map("content")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 15. AUDIT_LOGS
+// История важных действий менеджеров и администраторов
+// ─────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   String?  @map("entity_id") @db.Uuid
+  oldData    Json?    @map("old_data")
+  newData    Json?    @map("new_data")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
