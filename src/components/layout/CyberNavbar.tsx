@@ -53,7 +53,7 @@ export function CyberNavbar() {
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons — ВОЗВРАЩЕНЫ */}
           <div className="hidden md:flex items-center gap-3">
             <a
               href="/login"

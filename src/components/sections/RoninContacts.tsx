@@ -91,9 +91,9 @@ export function RoninContacts() {
                 {
                   icon: Phone,
                   label: "Телефон",
-                  value: "+996 700 000 000",
+                  value: "+996 501 004 700",
                   sub: "Звони с 10:00 до 02:00",
-                  href: "tel:+996700000000",
+                  href: "tel:+996501004700",
                 },
                 {
                   icon: Send,
@@ -112,9 +112,9 @@ export function RoninContacts() {
                 {
                   icon: MapPin,
                   label: "Адрес",
-                  value: "г. Бишкек, ул. Турусбекова 56",
+                  value: "г. Бишкек, ул. Горького 130, 2 этаж",
                   sub: "Удобное расположение в центре города",
-                  href: "https://maps.google.com",
+                  href: "https://2gis.kg/bishkek/geo/70000001083373538",
                 },
               ].map((c, i) => {
                 const Icon = c.icon;
@@ -127,7 +127,7 @@ export function RoninContacts() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={inView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
-                    className="card-sweep flex items-center gap-4 p-4 rounded-xl group transition-all duration-300 hover:-translate-y-0.5"
+                    className="card-sweep flex items-center gap-4 p-5 rounded-xl group transition-all duration-300 hover:-translate-y-0.5"
                     style={{
                       background: "rgba(7,7,26,0.8)",
                       border: "1px solid rgba(59,130,246,0.15)",
@@ -143,11 +143,11 @@ export function RoninContacts() {
                       <Icon className="w-5 h-5" style={{ color: "#3b82f6" }} />
                     </div>
                     <div>
-                      <p className="text-gray-400 text-xs mb-0.5">{c.label}</p>
-                      <p className="text-white font-bold text-sm group-hover:text-blue-400 transition-colors">
+                      <p className="text-gray-400 text-sm mb-0.5">{c.label}</p>
+                      <p className="text-white font-bold text-base group-hover:text-blue-400 transition-colors">
                         {c.value}
                       </p>
-                      <p className="text-gray-500 text-xs">{c.sub}</p>
+                      <p className="text-gray-500 text-sm">{c.sub}</p>
                     </div>
                   </motion.a>
                 );
@@ -187,7 +187,7 @@ export function RoninContacts() {
 
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href="tel:+996700000000"
+                  href="tel:+996501004700"
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-white transition-all hover:scale-105"
                   style={{
                     background: "linear-gradient(90deg, #7c3aed, #4f46e5)",
@@ -197,7 +197,7 @@ export function RoninContacts() {
                   <Phone className="w-4 h-4" />
                   <div className="text-left">
                     <div className="text-xs font-black">Позвонить</div>
-                    <div className="text-xs opacity-70">+996 700 000 000</div>
+                    <div className="text-xs opacity-70">+996 501 004 700</div>
                   </div>
                   <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -205,7 +205,7 @@ export function RoninContacts() {
                 </a>
 
                 <a
-                  href="https://wa.me/996700000000"
+                  href="https://wa.me/996501004700"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all hover:scale-105"
@@ -251,13 +251,26 @@ export function RoninContacts() {
             </motion.div>
           </motion.div>
 
-          {/* ── RIGHT — Gaming setup photo ── */}
+          {/* ── RIGHT — Map + Gaming setup photo ── */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative"
+            className="relative space-y-6"
           >
+            {/* 2GIS Map */}
+            <div className="relative rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(99,102,241,0.2)" }}>
+              <iframe
+                src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lat%22%3A42.87661267975688%2C%22lon%22%3A74.60592836141588%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22bishkek%22%7D%2C%22org%22%3A%2270000001083373538%22%7D"
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                className="w-full"
+              />
+            </div>
+
             {/* Top-right decorative text */}
             <div className="absolute -top-2 right-0 text-right z-10">
               <p
@@ -284,7 +297,7 @@ export function RoninContacts() {
 
             {/* Photo */}
             <div
-              className="relative rounded-2xl overflow-hidden mt-16"
+              className="relative rounded-2xl overflow-hidden"
               style={{
                 border: "1px solid rgba(99,102,241,0.2)",
                 boxShadow: "0 0 60px rgba(99,102,241,0.15)",

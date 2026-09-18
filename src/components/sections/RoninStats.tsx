@@ -204,20 +204,7 @@ export function RoninStats() {
           ))}
         </div>
 
-        {/* CTA hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          className="text-center mt-10"
-        >
-          <p className="text-gray-400 text-sm">
-            Узнай тарифы после{" "}
-            <a href="/register" className="text-blue-400 font-bold hover:underline">
-              регистрации
-            </a>
-          </p>
-        </motion.div>
+        {/* CTA hint — УДАЛЕНО */}
       </div>
     </section>
   );
