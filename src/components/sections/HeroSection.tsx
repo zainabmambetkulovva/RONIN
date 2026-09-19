@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function HeroSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image with blur */}
@@ -74,15 +76,7 @@ export function HeroSection() {
             className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight"
           >
             <span className="inline-block ronin-gradient-text neon-text">
-              ИГРАЙ.
-            </span>
-            <br />
-            <span className="inline-block ronin-gradient-text neon-text">
-              ПОБЕЖДАЙ.
-            </span>
-            <br />
-            <span className="inline-block ronin-gradient-text neon-text">
-              ВОЗВРАЩАЙСЯ.
+              {t("hero.title")}
             </span>
           </motion.h1>
 
@@ -90,12 +84,19 @@ export function HeroSection() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto"
+          >
+            {t("hero.subtitle")}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
             className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
           >
-            RONIN — компьютерный клуб с комфортной атмосферой,{" "}
-            <span className="text-ronin-neon font-semibold">мощными ПК</span> и{" "}
-            <span className="text-ronin-neon font-semibold">онлайн-бронированием</span>
+            {t("hero.description")}
           </motion.p>
 
           {/* CTA buttons */}
@@ -106,10 +107,10 @@ export function HeroSection() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
           >
             <Link
-              href="#booking"
+              href="/register"
               className="group relative px-8 py-4 bg-neon-glow rounded-xl font-bold text-lg uppercase tracking-wider overflow-hidden transition-all hover:shadow-neon-blue hover:scale-105"
             >
-              <span className="relative z-10">Забронировать ПК</span>
+              <span className="relative z-10">{t("hero.button")}</span>
               <div className="absolute inset-0 bg-gradient-to-r from-ronin-neon to-ronin-blue-neon opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             
