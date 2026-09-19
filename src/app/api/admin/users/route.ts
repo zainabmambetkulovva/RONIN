@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 // GET - получить всех пользователей
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Add auth check - only admin/manager can access
-    
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -36,15 +32,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - создать пользователя (из админки)
+// POST - создать пользователя
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Add auth check - only admin can create users
-    
     const body = await request.json();
     const { name, email, phone, password, role, status } = body;
 
-    // Validation
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Имя, email и пароль обязательны" },
@@ -59,13 +52,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email: email },
-          phone ? { phone: phone } : {},
-        ],
+          phone ? { phone: phone } : undefined,
+        ].filter(Boolean) as any,
       },
     });
 
@@ -76,10 +68,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         name,

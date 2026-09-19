@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // DELETE - удалить пользователя
 export async function DELETE(
@@ -9,11 +7,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // TODO: Add auth check - only admin can delete users
-    
     const userId = params.id;
 
-    // Check if user exists
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -25,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    // Soft delete - set status to deleted
+    // Soft delete
     await prisma.user.update({
       where: { id: userId },
       data: { status: "deleted" },
@@ -50,8 +45,6 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // TODO: Add auth check
-    
     const userId = params.id;
     const body = await request.json();
     const { name, email, phone, role, status } = body;
@@ -61,7 +54,7 @@ export async function PATCH(
       data: {
         ...(name && { name }),
         ...(email && { email }),
-        ...(phone && { phone }),
+        ...(phone !== undefined && { phone }),
         ...(role && { role }),
         ...(status && { status }),
       },

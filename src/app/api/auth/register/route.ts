@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, email, phone, password } = body;
+
+    console.log("Registration attempt:", { name, email, phone });
 
     // Validation
     if (!name || !email || !password) {
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       where: {
         OR: [
           { email: email },
-          { phone: phone },
-        ],
+          phone ? { phone: phone } : undefined,
+        ].filter(Boolean) as any,
       },
     });
 
@@ -49,9 +49,9 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         email,
-        phone,
+        phone: phone || null,
         password: hashedPassword,
-        role: "client", // По умолчанию все регистрации — клиенты
+        role: "client",
         status: "active",
       },
       select: {
@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log("User created successfully:", user.id);
+
     return NextResponse.json(
       {
         success: true,
@@ -73,9 +75,22 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("Registration error:", error);
+    console.error("Registration error details:", {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+    });
+    
+    // Более детальные ошибки
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Email или телефон уже используется" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Ошибка сервера" },
+      { error: `Ошибка сервера: ${error.message}` },
       { status: 500 }
     );
   }
