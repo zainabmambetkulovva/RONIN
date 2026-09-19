@@ -40,8 +40,8 @@ export function CyberNavbar() {
             </span>
           </a>
 
-          {/* Desktop Nav + Auth */}
-          <div className="hidden lg:flex items-center gap-8 flex-1 justify-end">
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -51,38 +51,38 @@ export function CyberNavbar() {
                 {link.label}
               </a>
             ))}
-            
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3 ml-4 pl-4 border-l border-blue-500/20">
-              <a
-                href="/login"
-                className="px-4 py-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
-              >
-                Войти
-              </a>
-              <a
-                href="/register"
-                className="px-5 py-2 rounded-lg text-sm font-bold text-white uppercase tracking-wider transition-all hover:scale-105"
-                style={{
-                  background: "linear-gradient(90deg, #2563eb, #7c3aed)",
-                  boxShadow: "0 0 16px rgba(99,102,241,0.4)",
-                }}
-              >
-                Регистрация
-              </a>
-            </div>
           </div>
 
-          {/* Mobile toggle */}
+          {/* Auth Buttons — ВСЕГДА ВИДНЫ */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a
+              href="/login"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+            >
+              Войти
+            </a>
+            <a
+              href="/register"
+              className="px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold text-white uppercase tracking-wider transition-all hover:scale-105"
+              style={{
+                background: "linear-gradient(90deg, #2563eb, #7c3aed)",
+                boxShadow: "0 0 16px rgba(99,102,241,0.4)",
+              }}
+            >
+              Регистрация
+            </a>
+          </div>
+
+          {/* Mobile menu toggle */}
           <button
-            className="lg:hidden text-gray-300 hover:text-white"
+            className="lg:hidden text-gray-300 hover:text-white ml-2"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu — ТОЛЬКО навигационные ссылки */}
         {isOpen && (
           <div
             className="lg:hidden py-4 space-y-1"
@@ -98,15 +98,6 @@ export function CyberNavbar() {
                 {link.label}
               </a>
             ))}
-            <div className="pt-3 flex flex-col gap-2">
-              <a href="/login" className="block w-full text-center px-4 py-2 rounded-lg text-sm text-gray-300 border border-blue-500/30">
-                Войти
-              </a>
-              <a href="/register" className="block w-full text-center px-4 py-2 rounded-lg text-sm font-bold text-white uppercase"
-                style={{ background: "linear-gradient(90deg, #2563eb, #7c3aed)" }}>
-                Регистрация
-              </a>
-            </div>
           </div>
         )}
       </div>
