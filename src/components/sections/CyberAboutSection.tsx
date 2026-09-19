@@ -2,10 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CyberAboutSection() {
-  const { t } = useLanguage();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -13,20 +11,20 @@ export function CyberAboutSection() {
 
   const features = [
     {
-      title: t("about.feature1.title"),
-      description: t("about.feature1.desc")
+      title: "Топовое железо",
+      description: "RTX 4090, i9-13900K, 165Hz мониторы"
     },
     {
-      title: t("about.feature2.title"),
-      description: t("about.feature2.desc")
+      title: "24/7 работаем",
+      description: "Круглосуточно без выходных"
     },
     {
-      title: t("about.feature3.title"),
-      description: t("about.feature3.desc")
+      title: "Кибер-атмосфера",
+      description: "RGB подсветка, удобные кресла"
     },
     {
-      title: t("about.feature4.title"),
-      description: t("about.feature4.desc")
+      title: "Выгодные тарифы",
+      description: "От 150₸/час, ночные пакеты"
     }
   ];
   const [ref, inView] = useInView({
@@ -45,12 +43,12 @@ export function CyberAboutSection() {
           <div className="flex items-center gap-3 mb-3 justify-center">
             <div className="h-px w-8" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
             <span className="text-sm font-bold uppercase tracking-[0.25em]" style={{ color: "#60a5fa" }}>
-              {t("about.tag")}
+              О нас
             </span>
             <div className="h-px w-8" style={{ background: "linear-gradient(90deg, #3b82f6, transparent)" }} />
           </div>
           <h2 className="text-3xl md:text-5xl font-black text-white">
-            {t("about.title")}
+            Почему RONIN?
           </h2>
         </motion.div>
 

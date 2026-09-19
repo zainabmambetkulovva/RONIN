@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function HeroSection() {
-  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image with blur */}
@@ -76,7 +74,7 @@ export function HeroSection() {
             className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight"
           >
             <span className="inline-block ronin-gradient-text neon-text">
-              {t("hero.title")}
+              RONIN
             </span>
           </motion.h1>
 
@@ -87,7 +85,7 @@ export function HeroSection() {
             transition={{ delay: 0.4 }}
             className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto"
           >
-            {t("hero.subtitle")}
+            Компьютерный клуб в Бишкеке
           </motion.p>
 
           <motion.p
@@ -96,7 +94,7 @@ export function HeroSection() {
             transition={{ delay: 0.5 }}
             className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
           >
-            {t("hero.description")}
+            Мощные игровые ПК • Комфортная атмосфера • Лучшие тарифы
           </motion.p>
 
           {/* CTA buttons */}
@@ -110,7 +108,7 @@ export function HeroSection() {
               href="/register"
               className="group relative px-8 py-4 bg-neon-glow rounded-xl font-bold text-lg uppercase tracking-wider overflow-hidden transition-all hover:shadow-neon-blue hover:scale-105"
             >
-              <span className="relative z-10">{t("hero.button")}</span>
+              <span className="relative z-10">Забронировать</span>
               <div className="absolute inset-0 bg-gradient-to-r from-ronin-neon to-ronin-blue-neon opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
             

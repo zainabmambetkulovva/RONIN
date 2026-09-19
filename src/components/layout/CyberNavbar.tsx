@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useLanguage();
 
   const navLinks = [
-    { href: "#about", label: t("nav.about") },
-    { href: "#tariffs", label: t("nav.tariffs") },
-    { href: "#games", label: t("nav.games") },
-    { href: "#contacts", label: t("nav.contacts") },
+    { href: "#about", label: "О клубе" },
+    { href: "#tariffs", label: "Тарифы" },
+    { href: "#games", label: "Игры" },
+    { href: "#contacts", label: "Контакты" },
   ];
 
   return (
@@ -54,14 +51,13 @@ export function CyberNavbar() {
             ))}
           </div>
 
-          {/* Auth Buttons + Language Switcher */}
+          {/* Auth Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <LanguageSwitcher />
             <a
               href="/login"
               className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition-colors"
             >
-              {t("nav.login")}
+              Войти
             </a>
             <a
               href="/register"
@@ -71,7 +67,7 @@ export function CyberNavbar() {
                 boxShadow: "0 0 16px rgba(99,102,241,0.4)",
               }}
             >
-              {t("nav.register")}
+              Регистрация
             </a>
           </div>
 
