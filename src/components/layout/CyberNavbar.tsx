@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
     { href: "#about", label: "О клубе" },
+    { href: "#booking-flow", label: "Бронирование" },
+    { href: "#computers", label: "Компьютеры" },
     { href: "#tariffs", label: "Тарифы" },
     { href: "#games", label: "Игры" },
     { href: "#contacts", label: "Контакты" },
@@ -24,7 +27,8 @@ export function CyberNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <a href="#hero" className="flex items-center gap-2 group shrink-0">
+          <a href="#hero" className="flex items-center gap-3 group shrink-0">
+            <img src="/logo.png" alt="RONIN" className="w-10 h-10 object-contain" />
             <span
               className="text-2xl font-black tracking-widest"
               style={{
@@ -51,8 +55,9 @@ export function CyberNavbar() {
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons + Theme */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeSwitcher />
             <a
               href="/login"
               className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition-colors"
