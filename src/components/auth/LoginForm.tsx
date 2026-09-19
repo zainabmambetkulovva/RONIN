@@ -191,24 +191,6 @@ export function LoginForm() {
         </svg>
         Войти через Google
       </button>
-
-      {/* Info box для тестирования */}
-      <div
-        className="p-3 rounded-lg text-xs"
-        style={{
-          background: "rgba(59,130,246,0.05)",
-          border: "1px solid rgba(59,130,246,0.15)",
-        }}
-      >
-        <p className="text-gray-400 mb-1">
-          <strong className="text-blue-400">Тестовые аккаунты:</strong>
-        </p>
-        <ul className="text-gray-500 space-y-0.5">
-          <li>• admin@ronin.kg → Админ панель</li>
-          <li>• manager@ronin.kg → Админ панель</li>
-          <li>• client@example.com → Личный кабинет</li>
-        </ul>
-      </div>
     </form>
   );
 }

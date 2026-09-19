@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AddUserModal } from "./AddUserModal";
 
 interface UsersHeaderProps {
   stats: {
@@ -13,6 +14,11 @@ interface UsersHeaderProps {
 
 export function UsersHeader({ stats }: UsersHeaderProps) {
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const handleSuccess = () => {
+    // TODO: Refresh users list
+    alert("Пользователь успешно создан! Обновите страницу.");
+  };
 
   return (
     <div>
@@ -91,28 +97,12 @@ export function UsersHeader({ stats }: UsersHeaderProps) {
         </div>
       </div>
 
-      {/* TODO: Add modal component */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div
-            className="w-full max-w-md rounded-2xl p-6"
-            style={{
-              background: "linear-gradient(135deg, #0a0a1a, #0f0f2e)",
-              border: "1px solid rgba(59,130,246,0.3)",
-            }}
-          >
-            <h3 className="text-xl font-black text-white mb-4">Добавить пользователя</h3>
-            <p className="text-gray-400 text-sm mb-4">Форма добавления будет реализована далее</p>
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="w-full py-2 rounded-lg text-white font-bold"
-              style={{ background: "rgba(59,130,246,0.2)", border: "1px solid rgba(59,130,246,0.4)" }}
-            >
-              Закрыть
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Add User Modal */}
+      <AddUserModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }
