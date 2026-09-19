@@ -5,16 +5,16 @@ import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 
 const games = [
-  { name: "Counter-Strike", genre: "FPS", image: "/images (6).jpg", accentColor: "#f97316" },
-  { name: "Dota 2", genre: "MOBA", image: "/images (7).jpg", accentColor: "#ef4444" },
-  { name: "GTA V", genre: "Action", image: "/images (8).jpg", accentColor: "#22c55e" },
-  { name: "Cyberpunk 2077", genre: "RPG", image: "/images (9).jpg", accentColor: "#facc15" },
-  { name: "Black Myth: Wukong", genre: "Action RPG", image: "/images (10).jpg", accentColor: "#d97706" },
-  { name: "Counter-Strike 2", genre: "FPS", image: "/Без названия (3).jpg", accentColor: "#f97316" },
-  { name: "Valorant", genre: "Tactical FPS", image: "/Без названия (6).jpg", accentColor: "#f43f5e" },
+  { name: "Counter-Strike 2", genre: "FPS", image: "/images (11).jpg", accentColor: "#f97316" },
+  { name: "Dota 2", genre: "MOBA", image: "/images (12).jpg", accentColor: "#ef4444" },
+  { name: "Valorant", genre: "Tactical FPS", image: "/images (13).jpg", accentColor: "#f43f5e" },
+  { name: "League of Legends", genre: "MOBA", image: "/images (14).jpg", accentColor: "#facc15" },
+  { name: "GTA V", genre: "Action", image: "/Без названия (2).jpg", accentColor: "#22c55e" },
+  { name: "Cyberpunk 2077", genre: "RPG", image: "/Без названия (3).jpg", accentColor: "#fbbf24" },
   { name: "Apex Legends", genre: "Battle Royale", image: "/Без названия (4).jpg", accentColor: "#fb923c" },
-  { name: "Elden Ring", genre: "Action RPG", image: "/Без названия (2).jpg", accentColor: "#eab308" },
-  { name: "Cyberpunk: Liberty", genre: "RPG", image: "/Без названия (5).jpg", accentColor: "#facc15" },
+  { name: "Call of Duty", genre: "FPS", image: "/Без названия (5).jpg", accentColor: "#10b981" },
+  { name: "Fortnite", genre: "Battle Royale", image: "/Без названия (6).jpg", accentColor: "#8b5cf6" },
+  { name: "Minecraft", genre: "Sandbox", image: "/Без названия (7).jpg", accentColor: "#22c55e" },
 ];
 
 export function CyberGames() {
