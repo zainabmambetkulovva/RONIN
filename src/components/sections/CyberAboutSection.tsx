@@ -2,27 +2,33 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-
-const features = [
-  {
-    title: "Комфортные игровые места",
-    description: "Эргономичные кресла и столы для долгих игровых сессий"
-  },
-  {
-    title: "Компьютеры последнего поколения",
-    description: "Современное железо для любых игр"
-  },
-  {
-    title: "Выделить место онлайн",
-    description: "Бронируйте место через сайт за пару кликов"
-  },
-  {
-    title: "Мы находимся в центре города",
-    description: "Удобное расположение с хорошей транспортной доступностью"
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CyberAboutSection() {
+  const { t } = useLanguage();
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  const features = [
+    {
+      title: t("about.feature1.title"),
+      description: t("about.feature1.desc")
+    },
+    {
+      title: t("about.feature2.title"),
+      description: t("about.feature2.desc")
+    },
+    {
+      title: t("about.feature3.title"),
+      description: t("about.feature3.desc")
+    },
+    {
+      title: t("about.feature4.title"),
+      description: t("about.feature4.desc")
+    }
+  ];
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -36,14 +42,16 @@ export function CyberAboutSection() {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-5xl font-black mb-4">
-            <span className="text-white">Мы пространство для</span>{" "}
-            <span className="text-blue-400">любителей игрового мира</span>
+          <div className="flex items-center gap-3 mb-3 justify-center">
+            <div className="h-px w-8" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
+            <span className="text-sm font-bold uppercase tracking-[0.25em]" style={{ color: "#60a5fa" }}>
+              {t("about.tag")}
+            </span>
+            <div className="h-px w-8" style={{ background: "linear-gradient(90deg, #3b82f6, transparent)" }} />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white">
+            {t("about.title")}
           </h2>
-          <p className="text-gray-400 max-w-3xl mx-auto">
-            Наше заведение оборудовано последними технологиями для комфортной игры и работы. 
-            Профессиональная техника и уютная атмосфера создают идеальные условия.
-          </p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
