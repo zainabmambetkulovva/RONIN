@@ -1,4 +1,5 @@
 import { Instagram, Phone, MapPin, MessageCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // WhatsApp SVG Icon
 const WhatsAppIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
@@ -8,6 +9,7 @@ const WhatsAppIcon = ({ className, style }: { className?: string; style?: React.
 );
 
 export function CyberFooter() {
+  const { t } = useLanguage();
   return (
     <footer
       className="border-t"
@@ -32,8 +34,7 @@ export function CyberFooter() {
               RONIN
             </span>
             <p className="text-base text-gray-300 leading-relaxed max-w-xs">
-              Современный компьютерный клуб в Бишкеке.
-              Мощные ПК, комфортная атмосфера и онлайн-бронирование.
+              {t("footer.description")}
             </p>
             <div className="flex gap-3 pt-1">
               {[
@@ -60,15 +61,15 @@ export function CyberFooter() {
 
           {/* Navigation */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-base uppercase tracking-wider">Навигация</h4>
+            <h4 className="text-white font-bold text-base uppercase tracking-wider">{t("footer.navigation")}</h4>
             <ul className="space-y-2.5">
               {[
-                { href: "#hero", label: "Главная" },
-                { href: "#about", label: "О клубе" },
-                { href: "#booking-flow", label: "Бронирование" },
-                { href: "#computers", label: "Компьютеры" },
-                { href: "#games", label: "Игры" },
-                { href: "#contacts", label: "Контакты" },
+                { href: "#hero", label: t("nav.about") },
+                { href: "#about", label: t("nav.about") },
+                { href: "#booking-flow", label: t("nav.booking") },
+                { href: "#computers", label: t("nav.computers") },
+                { href: "#games", label: t("nav.games") },
+                { href: "#contacts", label: t("nav.contacts") },
               ].map((link) => (
                 <li key={link.href}>
                   <a
@@ -84,11 +85,11 @@ export function CyberFooter() {
 
           {/* Contacts */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-base uppercase tracking-wider">Контакты</h4>
+            <h4 className="text-white font-bold text-base uppercase tracking-wider">{t("contacts.title")}</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "#60a5fa" }} />
-                <span className="text-base text-gray-300">г. Бишкек, ул. Горького 130, 2 этаж</span>
+                <span className="text-base text-gray-300">{t("contacts.addressValue")}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-5 h-5 shrink-0" style={{ color: "#60a5fa" }} />
@@ -112,10 +113,10 @@ export function CyberFooter() {
           style={{ borderTop: "1px solid rgba(59,130,246,0.1)" }}
         >
           <p className="text-sm text-gray-500">
-            © 2026 RONIN Cyber Club. Все права защищены.
+            © 2026 RONIN Cyber Club. {t("footer.rights")}
           </p>
           <p className="text-sm text-gray-500">
-            Бишкек, Кыргызстан
+            {t("footer.location")}
           </p>
         </div>
       </div>

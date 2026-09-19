@@ -2,15 +2,17 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-const stats = [
-  { value: "96", label: "КОМПЬЮТЕРОВ" },
-  { value: "144–240", label: "HZ МОНИТОРЫ" },
-  { value: "4", label: "КАТЕГОРИИ ПК" },
-  { value: "24/7", label: "МЫ РАБОТАЕМ" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function RoninHero() {
+  const { t } = useLanguage();
+  
+  const stats = [
+    { value: "96", label: t("stats.computers") },
+    { value: "144–240", label: t("stats.monitors") },
+    { value: "4", label: t("stats.categories") },
+    { value: "24/7", label: t("stats.work") },
+  ];
   return (
     <section
       id="hero"

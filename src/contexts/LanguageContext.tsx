@@ -16,6 +16,8 @@ const translations = {
   ru: {
     // Navbar
     "nav.about": "О клубе",
+    "nav.booking": "Бронирование",
+    "nav.computers": "Компьютеры",
     "nav.tariffs": "Тарифы",
     "nav.games": "Игры",
     "nav.contacts": "Контакты",
@@ -51,7 +53,10 @@ const translations = {
     "booking.step3.desc": "Оплатите и получите QR-код",
 
     // Stats
-    "stats.computers": "Компьютеров",
+    "stats.computers": "КОМПЬЮТЕРОВ",
+    "stats.monitors": "HZ МОНИТОРЫ",
+    "stats.categories": "КАТЕГОРИИ ПК",
+    "stats.work": "МЫ РАБОТАЕМ",
     "stats.clients": "Клиентов",
     "stats.hours": "Часов игры",
     "stats.games": "Игр",
@@ -87,13 +92,18 @@ const translations = {
     "contacts.instagram": "Instagram",
 
     // Footer
+    "footer.description": "Современный компьютерный клуб в Бишкеке. Мощные ПК, комфортная атмосфера и онлайн-бронирование.",
+    "footer.navigation": "Навигация",
     "footer.rights": "Все права защищены",
+    "footer.location": "Бишкек, Кыргызстан",
     "footer.club": "Компьютерный клуб RONIN",
   },
 
   en: {
     // Navbar
     "nav.about": "About",
+    "nav.booking": "Booking",
+    "nav.computers": "Computers",
     "nav.tariffs": "Tariffs",
     "nav.games": "Games",
     "nav.contacts": "Contacts",
@@ -129,7 +139,10 @@ const translations = {
     "booking.step3.desc": "Pay and get QR code",
 
     // Stats
-    "stats.computers": "Computers",
+    "stats.computers": "COMPUTERS",
+    "stats.monitors": "HZ MONITORS",
+    "stats.categories": "PC CATEGORIES",
+    "stats.work": "WE WORK",
     "stats.clients": "Clients",
     "stats.hours": "Gaming Hours",
     "stats.games": "Games",
@@ -165,13 +178,18 @@ const translations = {
     "contacts.instagram": "Instagram",
 
     // Footer
+    "footer.description": "Modern gaming club in Bishkek. Powerful PCs, comfortable atmosphere and online booking.",
+    "footer.navigation": "Navigation",
     "footer.rights": "All rights reserved",
+    "footer.location": "Bishkek, Kyrgyzstan",
     "footer.club": "RONIN Gaming Club",
   },
 
   kg: {
     // Navbar
     "nav.about": "Клуб жөнүндө",
+    "nav.booking": "Брондоо",
+    "nav.computers": "Компьютерлер",
     "nav.tariffs": "Тарифтер",
     "nav.games": "Оюндар",
     "nav.contacts": "Байланыш",
@@ -207,7 +225,10 @@ const translations = {
     "booking.step3.desc": "Төлөп QR код алыңыз",
 
     // Stats
-    "stats.computers": "Компьютерлер",
+    "stats.computers": "КОМПЬЮТЕРЛЕР",
+    "stats.monitors": "HZ МОНИТОРЛОР",
+    "stats.categories": "ПК КАТЕГОРИЯЛАР",
+    "stats.work": "БИЗ ИШТЕЙБИЗ",
     "stats.clients": "Кардарлар",
     "stats.hours": "Оюн сааттары",
     "stats.games": "Оюндар",
@@ -243,7 +264,10 @@ const translations = {
     "contacts.instagram": "Instagram",
 
     // Footer
+    "footer.description": "Бишкектеги заманбап компьютердик клуб. Күчтүү ПКлар, ыңгайлуу атмосфера жана онлайн брондоо.",
+    "footer.navigation": "Навигация",
     "footer.rights": "Бардык укуктар корголгон",
+    "footer.location": "Бишкек, Кыргызстан",
     "footer.club": "RONIN компьютердик клубу",
   },
 };

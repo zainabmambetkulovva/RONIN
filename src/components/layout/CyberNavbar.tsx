@@ -3,17 +3,20 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navLinks = [
-    { href: "#about", label: "О клубе" },
-    { href: "#booking-flow", label: "Бронирование" },
-    { href: "#computers", label: "Компьютеры" },
-    { href: "#tariffs", label: "Тарифы" },
-    { href: "#games", label: "Игры" },
-    { href: "#contacts", label: "Контакты" },
+    { href: "#about", label: t("nav.about") },
+    { href: "#booking-flow", label: t("nav.booking") },
+    { href: "#computers", label: t("nav.computers") },
+    { href: "#tariffs", label: t("nav.tariffs") },
+    { href: "#games", label: t("nav.games") },
+    { href: "#contacts", label: t("nav.contacts") },
   ];
 
   return (
@@ -55,14 +58,15 @@ export function CyberNavbar() {
             ))}
           </div>
 
-          {/* Auth Buttons + Theme */}
+          {/* Language + Theme + Auth Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
             <ThemeSwitcher />
             <a
               href="/login"
               className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition-colors"
             >
-              Войти
+              {t("nav.login")}
             </a>
             <a
               href="/register"
@@ -72,7 +76,7 @@ export function CyberNavbar() {
                 boxShadow: "0 0 16px rgba(99,102,241,0.4)",
               }}
             >
-              Регистрация
+              {t("nav.register")}
             </a>
           </div>
 
