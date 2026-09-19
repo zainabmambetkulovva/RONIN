@@ -21,6 +21,7 @@ export function UsersTable({ users }: UsersTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -50,6 +51,30 @@ export function UsersTable({ users }: UsersTableProps) {
       deleted: { bg: "rgba(107,114,128,0.15)", text: "#6b7280", label: "Удалён" },
     };
     return styles[status as keyof typeof styles] || styles.active;
+  };
+
+  const handleDelete = async (userId: string, userName: string) => {
+    if (!confirm(`Вы уверены что хотите удалить пользователя "${userName}"?`)) {
+      return;
+    }
+
+    setIsDeleting(userId);
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка удаления");
+      }
+
+      alert("Пользователь удалён! Обновите страницу.");
+      window.location.reload();
+    } catch (error) {
+      alert("Ошибка при удалении пользователя");
+      setIsDeleting(null);
+    }
   };
 
   return (
@@ -214,6 +239,7 @@ export function UsersTable({ users }: UsersTableProps) {
                         className="p-2 rounded-lg transition-all hover:bg-blue-500/10"
                         title="Редактировать"
                         style={{ border: "1px solid rgba(59,130,246,0.2)" }}
+                        onClick={() => alert("Функционал редактирования будет добавлен далее")}
                       >
                         <svg className="w-4 h-4" style={{ color: "#60a5fa" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -221,13 +247,22 @@ export function UsersTable({ users }: UsersTableProps) {
                       </button>
 
                       <button
-                        className="p-2 rounded-lg transition-all hover:bg-red-500/10"
+                        className="p-2 rounded-lg transition-all hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Удалить"
                         style={{ border: "1px solid rgba(239,68,68,0.2)" }}
+                        onClick={() => handleDelete(user.id, user.name)}
+                        disabled={isDeleting === user.id}
                       >
-                        <svg className="w-4 h-4" style={{ color: "#ef4444" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        {isDeleting === user.id ? (
+                          <svg className="w-4 h-4 animate-spin" style={{ color: "#ef4444" }} fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" style={{ color: "#ef4444" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
                       </button>
                     </div>
                   </td>

@@ -167,7 +167,7 @@ export function RoninHero() {
             className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4"
           >
             <a
-              href="#booking-flow"
+              href="/register"
               className="card-sweep inline-flex items-center justify-center gap-2 px-6 sm:px-10 py-3 sm:py-4 rounded-xl font-black uppercase tracking-wider text-white transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(99,102,241,0.6)] text-sm sm:text-base"
               style={{
                 background: "linear-gradient(90deg, #1d4ed8, #7c3aed)",

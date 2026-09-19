@@ -215,7 +215,7 @@ export function RoninBookingFlow() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <a
-            href="/booking"
+            href="/register"
             className="inline-flex items-center gap-3 px-12 py-4 rounded-xl font-black uppercase tracking-wider text-white text-sm transition-all hover:scale-105"
             style={{
               background: "linear-gradient(90deg, #1d4ed8, #7c3aed)",
