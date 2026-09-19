@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
-import { Phone, Send, Mail, MapPin, Zap, Shield, Clock } from "lucide-react";
+import { PhoneIcon, SendIcon, MailIcon, MapPinIcon, ZapIcon, ShieldIcon, ClockIcon } from "@/components/ui/icons";
 
 export function RoninContacts() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
@@ -89,28 +89,28 @@ export function RoninContacts() {
             <div className="space-y-3 mb-8">
               {[
                 {
-                  icon: Phone,
+                  icon: PhoneIcon,
                   label: "Телефон",
                   value: "+996 501 004 700",
                   sub: "Звони с 10:00 до 02:00",
                   href: "tel:+996501004700",
                 },
                 {
-                  icon: Send,
+                  icon: SendIcon,
                   label: "Telegram",
                   value: "@ronin_support",
                   sub: "Быстрые ответы на все вопросы",
                   href: "https://t.me/ronin_support",
                 },
                 {
-                  icon: Mail,
+                  icon: MailIcon,
                   label: "Email",
                   value: "info@ronin.kg",
                   sub: "Отвечаем в течение 1 часа",
                   href: "mailto:info@ronin.kg",
                 },
                 {
-                  icon: MapPin,
+                  icon: MapPinIcon,
                   label: "Адрес",
                   value: "г. Бишкек, ул. Горького 130, 2 этаж",
                   sub: "Удобное расположение в центре города",
@@ -170,7 +170,7 @@ export function RoninContacts() {
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}
                 >
-                  <Zap className="w-5 h-5" style={{ color: "#8b5cf6" }} />
+                  <ZapIcon className="w-5 h-5" style={{ color: "#8b5cf6" }} />
                 </div>
                 <div>
                   <p
@@ -194,7 +194,7 @@ export function RoninContacts() {
                     boxShadow: "0 0 20px rgba(124,58,237,0.3)",
                   }}
                 >
-                  <Phone className="w-4 h-4" />
+                  <PhoneIcon className="w-4 h-4" />
                   <div className="text-left">
                     <div className="text-xs font-black">Позвонить</div>
                     <div className="text-xs opacity-70">+996 501 004 700</div>
@@ -215,7 +215,7 @@ export function RoninContacts() {
                     color: "#3b82f6",
                   }}
                 >
-                  <Send className="w-4 h-4" />
+                  <SendIcon className="w-4 h-4" />
                   <div className="text-left">
                     <div className="text-xs font-black">WhatsApp</div>
                     <div className="text-xs opacity-70">Быстрый ответ</div>
@@ -235,9 +235,9 @@ export function RoninContacts() {
               className="grid grid-cols-3 gap-4 mt-6"
             >
               {[
-                { icon: Zap, title: "Быстрые ответы", sub: "Не заставим ждать" },
-                { icon: Shield, title: "Проф. поддержка", sub: "Поможем всегда" },
-                { icon: Clock, title: "Удобное время", sub: "с 10:00 до 02:00" },
+                { icon: ZapIcon, title: "Быстрые ответы", sub: "Не заставим ждать" },
+                { icon: ShieldIcon, title: "Проф. поддержка", sub: "Поможем всегда" },
+                { icon: ClockIcon, title: "Удобное время", sub: "с 10:00 до 02:00" },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (

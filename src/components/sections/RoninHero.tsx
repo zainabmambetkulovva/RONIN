@@ -128,9 +128,9 @@ export function RoninHero() {
             transition={{ duration: 0.6, delay: 0.25 }}
             className="text-gray-200 text-sm sm:text-base lg:text-lg leading-relaxed max-w-lg mb-8 sm:mb-12 font-medium"
           >
-            RONIN — современный компьютерный клуб,
-            где технологии, комфорт и атмосфера создают
-            идеальные условия для твоей игры.
+            Забудь про тормоза и старое железо. Здесь только новые RTX 4090, 
+            240Hz мониторы и геймерские кресла. Бронируй онлайн за 2 минуты — 
+            играй без ограничений.
           </motion.p>
 
           {/* Stats — адаптивная сетка */}

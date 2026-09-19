@@ -2,12 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import { Monitor, Calendar, Clock, CreditCard, CheckCircle, Building2 } from "lucide-react";
+import { MonitorIcon, CalendarIcon, ClockIcon, CreditCardIcon, CheckCircleIcon, BuildingIcon } from "@/components/ui/icons";
 
 const steps = [
   {
     num: "01",
-    icon: Building2,
+    icon: BuildingIcon,
     title: "Клуб",
     subtitle: "Выбери филиал",
     desc: "Бишкек",
@@ -15,7 +15,7 @@ const steps = [
   },
   {
     num: "02",
-    icon: Monitor,
+    icon: MonitorIcon,
     title: "ПК",
     subtitle: "Выбери компьютер",
     desc: "из доступных",
@@ -23,7 +23,7 @@ const steps = [
   },
   {
     num: "03",
-    icon: Calendar,
+    icon: CalendarIcon,
     title: "Дата",
     subtitle: "Укажи удобную",
     desc: "дату",
@@ -31,7 +31,7 @@ const steps = [
   },
   {
     num: "04",
-    icon: Clock,
+    icon: ClockIcon,
     title: "Время",
     subtitle: "Выбери время",
     desc: "сеанса",
@@ -39,7 +39,7 @@ const steps = [
   },
   {
     num: "05",
-    icon: CreditCard,
+    icon: CreditCardIcon,
     title: "Оплата",
     subtitle: "Оплати удобным",
     desc: "способом",
@@ -47,7 +47,7 @@ const steps = [
   },
   {
     num: "06",
-    icon: CheckCircle,
+    icon: CheckCircleIcon,
     title: "Готово!",
     subtitle: "Бронирование",
     desc: "подтверждено",
@@ -222,7 +222,7 @@ export function RoninBookingFlow() {
               boxShadow: "0 0 32px rgba(99,102,241,0.45)",
             }}
           >
-            <Calendar className="w-5 h-5" />
+            <CalendarIcon className="w-5 h-5" />
             Забронировать
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />

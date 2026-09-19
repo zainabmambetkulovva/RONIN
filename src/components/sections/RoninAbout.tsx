@@ -3,12 +3,12 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
-import { Cpu, Armchair, Volume2, Rocket } from "lucide-react";
+import { CpuIcon, ArmchairIcon, VolumeIcon, RocketIcon } from "@/components/ui/icons";
 
 const features = [
   {
     num: "01",
-    icon: Cpu,
+    icon: CpuIcon,
     title: "МОЩНОСТЬ",
     desc1: "Мощные игровые компьютеры",
     desc2: "RTX • Intel i5/i9 • до 64 GB RAM",
@@ -18,7 +18,7 @@ const features = [
   },
   {
     num: "02",
-    icon: Armchair,
+    icon: ArmchairIcon,
     title: "КОМФОРТ",
     desc1: "Игровые кресла • большие мониторы",
     desc2: "144–240Hz • продуманное пространство",
@@ -28,7 +28,7 @@ const features = [
   },
   {
     num: "03",
-    icon: Volume2,
+    icon: VolumeIcon,
     title: "АТМОСФЕРА",
     desc1: "Тёмный интерьер • неоновый свет",
     desc2: "качественный звук • кибер атмосфера",
@@ -38,7 +38,7 @@ const features = [
   },
   {
     num: "04",
-    icon: Rocket,
+    icon: RocketIcon,
     title: "ТВОЯ СЕССИЯ",
     desc1: "Выбери компьютер • дату • время",
     desc2: "оплати онлайн • приходи • играй",
@@ -129,9 +129,9 @@ export function RoninAbout() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-2xl mb-10 sm:mb-14"
         >
-          RONIN — это современный компьютерный клуб, где технологии,
-          комфорт и атмосфера создают идеальные условия для твоей игры.
-          96 мощных ПК, 4 категории, онлайн-бронирование.
+          96 топовых игровых станций от Standard до VIP. 
+          Intel i9, RTX 4090, 240Hz мониторы, профессиональные кресла. 
+          Круглосуточная работа, онлайн-бронирование, 4 тарифа на выбор.
         </motion.p>
 
         {/* Feature rows — вертикальные на мобилке */}
