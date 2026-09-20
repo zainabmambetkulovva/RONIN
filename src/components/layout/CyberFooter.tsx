@@ -1,3 +1,5 @@
+"use client";
+
 import { Instagram, Phone, MapPin, MessageCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
