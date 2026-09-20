@@ -4,52 +4,54 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import { CpuIcon, ArmchairIcon, VolumeIcon, RocketIcon } from "@/components/ui/icons";
-
-const features = [
-  {
-    num: "01",
-    icon: CpuIcon,
-    title: "МОЩНОСТЬ",
-    desc1: "Мощные игровые компьютеры",
-    desc2: "RTX • Intel i5/i9 • до 64 GB RAM",
-    image: "/images (1).jpg",
-    label: ["GEFORCE", "RTX"],
-    accent: "#3b82f6",
-  },
-  {
-    num: "02",
-    icon: ArmchairIcon,
-    title: "КОМФОРТ",
-    desc1: "Игровые кресла • большие мониторы",
-    desc2: "144–240Hz • продуманное пространство",
-    image: "/images (2).jpg",
-    label: ["RONIN"],
-    accent: "#60a5fa",
-  },
-  {
-    num: "03",
-    icon: VolumeIcon,
-    title: "АТМОСФЕРА",
-    desc1: "Тёмный интерьер • неоновый свет",
-    desc2: "качественный звук • кибер атмосфера",
-    image: "/images (4).jpg",
-    label: ["RONIN"],
-    accent: "#818cf8",
-  },
-  {
-    num: "04",
-    icon: RocketIcon,
-    title: "ТВОЯ СЕССИЯ",
-    desc1: "Выбери компьютер • дату • время",
-    desc2: "оплати онлайн • приходи • играй",
-    image: "/images (3).jpg",
-    label: ["Бронирование"],
-    accent: "#a78bfa",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function RoninAbout() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      num: "01",
+      icon: CpuIcon,
+      title: t("about.power.title"),
+      desc1: t("about.power.desc1"),
+      desc2: "RTX • Intel i5/i9 • до 64 GB RAM",
+      image: "/images (1).jpg",
+      label: ["GEFORCE", "RTX"],
+      accent: "#3b82f6",
+    },
+    {
+      num: "02",
+      icon: ArmchairIcon,
+      title: t("about.comfort.title"),
+      desc1: t("about.comfort.desc1"),
+      desc2: "144–240Hz • продуманное пространство",
+      image: "/images (2).jpg",
+      label: ["RONIN"],
+      accent: "#60a5fa",
+    },
+    {
+      num: "03",
+      icon: VolumeIcon,
+      title: t("about.atmosphere.title"),
+      desc1: t("about.atmosphere.desc1"),
+      desc2: t("about.atmosphere.desc2"),
+      image: "/images (4).jpg",
+      label: ["RONIN"],
+      accent: "#818cf8",
+    },
+    {
+      num: "04",
+      icon: RocketIcon,
+      title: t("about.session.title"),
+      desc1: t("about.session.desc1"),
+      desc2: t("about.session.desc2"),
+      image: "/images (3).jpg",
+      label: ["Бронирование"],
+      accent: "#a78bfa",
+    },
+  ];
 
   return (
     <section
@@ -78,14 +80,14 @@ export function RoninAbout() {
             <div className="flex items-center gap-3 mb-4 sm:mb-5">
               <div className="h-px w-8 sm:w-10" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
               <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em]" style={{ color: "#60a5fa" }}>
-                Почему RONIN?
+                {t("about.tag")}
               </span>
             </div>
             <h2
               className="font-black uppercase leading-[0.9] tracking-tighter"
               style={{ fontSize: "clamp(2rem, 5.5vw, 5rem)" }}
             >
-              <span className="block text-white">НЕ ПРОСТО ПК.</span>
+              <span className="block text-white">{t("about.heading1")}</span>
               <span
                 className="block"
                 style={{
@@ -94,7 +96,7 @@ export function RoninAbout() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                СВОЁ МЕСТО
+                {t("about.heading2")}
               </span>
               <span
                 className="block"
@@ -104,7 +106,7 @@ export function RoninAbout() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                ДЛЯ ИГРЫ.
+                {t("about.heading3")}
               </span>
             </h2>
           </motion.div>
@@ -129,9 +131,7 @@ export function RoninAbout() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-2xl mb-10 sm:mb-14"
         >
-          96 топовых игровых станций от Standard до VIP. 
-          Intel i9, RTX 4090, 240Hz мониторы, профессиональные кресла. 
-          Круглосуточная работа, онлайн-бронирование, 4 тарифа на выбор.
+          {t("about.description")}
         </motion.p>
 
         {/* Feature rows — вертикальные на мобилке */}
