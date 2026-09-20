@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const games = [
   { name: "Counter-Strike 2", genre: "FPS", image: "/images (11).jpg", accentColor: "#f97316" },
@@ -19,6 +20,7 @@ const games = [
 
 export function CyberGames() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
+  const { t } = useLanguage();
 
   return (
     <section id="games" className="py-16 sm:py-20 lg:py-24 relative" style={{ background: "#03030a" }} ref={ref}>
@@ -38,11 +40,11 @@ export function CyberGames() {
           <div className="flex items-center gap-3 mb-3">
             <div className="h-px w-8" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
             <span className="text-sm font-bold uppercase tracking-[0.25em]" style={{ color: "#60a5fa" }}>
-              В нашем клубе
+              {t("games.tag")}
             </span>
           </div>
           <h2 className="font-black text-white uppercase" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
-            Игры
+            {t("games.title")}
           </h2>
         </motion.div>
 

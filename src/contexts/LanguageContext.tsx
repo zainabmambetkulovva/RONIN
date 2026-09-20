@@ -84,9 +84,12 @@ const translations = {
 
     // Contacts
     "contacts.tag": "Контакты",
+    "contacts.title1": "ОСТАЛИСЬ",
+    "contacts.title2": "ВОПРОСЫ?",
+    "contacts.description": "Мы всегда на связи! Напиши нам, и мы поможем выбрать ПК, ответим на все вопросы и поможем с бронированием.",
     "contacts.title": "Найдите нас",
     "contacts.address": "Адрес",
-    "contacts.addressValue": "Горького 130, 2 этаж, Бишкек",
+    "contacts.addressValue": "г. Бишкек, ул. Горького 130, 2 этаж",
     "contacts.phone": "Телефон",
     "contacts.whatsapp": "WhatsApp",
     "contacts.instagram": "Instagram",
@@ -170,9 +173,12 @@ const translations = {
 
     // Contacts
     "contacts.tag": "Contacts",
+    "contacts.title1": "HAVE",
+    "contacts.title2": "QUESTIONS?",
+    "contacts.description": "We are always in touch! Write to us, and we will help you choose a PC, answer all questions and help with booking.",
     "contacts.title": "Find Us",
     "contacts.address": "Address",
-    "contacts.addressValue": "Gorkogo 130, 2nd floor, Bishkek",
+    "contacts.addressValue": "Bishkek, Gorkogo 130, 2nd floor",
     "contacts.phone": "Phone",
     "contacts.whatsapp": "WhatsApp",
     "contacts.instagram": "Instagram",
@@ -256,9 +262,12 @@ const translations = {
 
     // Contacts
     "contacts.tag": "Байланыш",
+    "contacts.title1": "СУРООЛОР",
+    "contacts.title2": "КАЛДЫБЫ?",
+    "contacts.description": "Биз ар дайым байланыштабыз! Бизге жазыңыз, биз ПК тандап, бардык суроолорго жооп берип, брондоого жардам беребиз.",
     "contacts.title": "Бизди табыңыз",
     "contacts.address": "Дарек",
-    "contacts.addressValue": "Горького 130, 2-кабат, Бишкек",
+    "contacts.addressValue": "Бишкек, Горького 130, 2-кабат",
     "contacts.phone": "Телефон",
     "contacts.whatsapp": "WhatsApp",
     "contacts.instagram": "Instagram",

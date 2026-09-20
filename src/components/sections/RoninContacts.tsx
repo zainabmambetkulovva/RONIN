@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import { PhoneIcon, SendIcon, MailIcon, MapPinIcon, ZapIcon, ShieldIcon, ClockIcon } from "@/components/ui/icons";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function RoninContacts() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
+  const { t } = useLanguage();
 
   return (
     <section
@@ -57,7 +59,7 @@ export function RoninContacts() {
                 className="text-xs font-bold uppercase tracking-[0.2em]"
                 style={{ color: "#3b82f6" }}
               >
-                Контакты
+                {t("contacts.tag")}
               </span>
             </div>
 
@@ -66,7 +68,7 @@ export function RoninContacts() {
               className="font-black uppercase leading-[0.9] mb-4 sm:mb-6"
               style={{ fontSize: "clamp(2rem, 6vw, 5rem)" }}
             >
-              <span className="block text-white">ОСТАЛИСЬ</span>
+              <span className="block text-white">{t("contacts.title1")}</span>
               <span
                 className="block"
                 style={{
@@ -76,13 +78,12 @@ export function RoninContacts() {
                   filter: "drop-shadow(0 0 20px rgba(124,58,237,0.4))",
                 }}
               >
-                ВОПРОСЫ?
+                {t("contacts.title2")}
               </span>
             </h2>
 
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-md">
-              Мы всегда на связи! Напиши нам, и мы поможем выбрать ПК,
-              ответим на все вопросы и поможем с бронированием.
+              {t("contacts.description")}
             </p>
 
             {/* Contact cards */}

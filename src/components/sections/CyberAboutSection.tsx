@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CyberAboutSection() {
+  const { t } = useLanguage();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -11,20 +13,20 @@ export function CyberAboutSection() {
 
   const features = [
     {
-      title: "Топовое железо",
-      description: "RTX 4090, i9-13900K, 165Hz мониторы"
+      title: t("about.feature1.title"),
+      description: t("about.feature1.desc")
     },
     {
-      title: "24/7 работаем",
-      description: "Круглосуточно без выходных"
+      title: t("about.feature2.title"),
+      description: t("about.feature2.desc")
     },
     {
-      title: "Кибер-атмосфера",
-      description: "RGB подсветка, удобные кресла"
+      title: t("about.feature3.title"),
+      description: t("about.feature3.desc")
     },
     {
-      title: "Выгодные тарифы",
-      description: "От 150₸/час, ночные пакеты"
+      title: t("about.feature4.title"),
+      description: t("about.feature4.desc")
     }
   ];
   const [ref, inView] = useInView({
