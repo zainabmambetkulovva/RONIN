@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboardIcon,
@@ -14,13 +15,11 @@ import {
   LogOutIcon,
 } from "@/components/ui/icons";
 
-interface AdminSidebarProps {
-  user: {
-    name: string;
-    email: string;
-    role: string;
-    image?: string | null;
-  };
+interface AdminUser {
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string | null;
 }
 
 const navItems = [
@@ -51,11 +50,6 @@ const navItems = [
     icon: CreditCardIcon,
   },
   {
-    label: "Игры",
-    href: "/admin/games",
-    icon: GamepadIcon,
-  },
-  {
     label: "Менеджеры",
     href: "/admin/managers",
     icon: UserCogIcon,
@@ -67,13 +61,39 @@ const navItems = [
   },
 ];
 
-export function AdminSidebar({ user }: AdminSidebarProps) {
+export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<AdminUser | null>(null);
+
+  useEffect(() => {
+    // Получить данные пользователя из токена
+    const token = localStorage.getItem("admin_token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser({
+          name: payload.email.split('@')[0],
+          email: payload.email,
+          role: payload.role,
+        });
+      } catch (e) {
+        console.error("Failed to parse token:", e);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    router.push("/admin/login");
+  };
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
   };
+
+  if (!user) return null;
 
   return (
     <aside
@@ -102,29 +122,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       {/* User info */}
       <div className="px-4 py-4 border-b" style={{ borderColor: "rgba(59,130,246,0.08)" }}>
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-            style={{
-              background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-            }}
-          >
-            {user.name.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white truncate">{user.name}</p>
-            <p className="text-xs text-gray-400 truncate">{user.email}</p>
-          </div>
-        </div>
-        <div className="mt-2">
+        <div className="flex items-center justify-center">
           <span
-            className="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase"
+            className="px-3 py-1 rounded-lg text-sm font-bold uppercase"
             style={{
-              background: "rgba(59,130,246,0.15)",
+              background: "rgba(59,130,246,0.2)",
               color: "#60a5fa",
             }}
           >
-            {user.role}
+            ADMIN
           </span>
         </div>
       </div>
@@ -169,11 +175,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
         <div className="pt-4 mt-4 border-t" style={{ borderColor: "rgba(59,130,246,0.08)" }}>
           <button
-            onClick={() => {
-              // TODO: Implement logout
-              console.log("Logout");
-            }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
           >
             <LogOutIcon className="w-5 h-5" />
             <span>Выйти</span>
@@ -181,16 +184,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         </div>
       </nav>
 
-      {/* Footer badge */}
+      {/* Footer */}
       <div
         className="px-4 py-3 border-t"
         style={{
           borderColor: "rgba(59,130,246,0.08)",
-          background: "rgba(139,92,246,0.05)",
         }}
       >
         <p className="text-xs text-gray-500 text-center">
-          RONIN Admin Panel v1.0
+          v1.0
         </p>
       </div>
     </aside>

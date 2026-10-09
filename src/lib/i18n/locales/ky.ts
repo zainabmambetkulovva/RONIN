@@ -1,0 +1,243 @@
+export const ky = {
+  // Navigation
+  "nav.home": "Башкы",
+  "nav.about": "Биз жөнүндө",
+  "nav.booking": "Брондоо",
+  "nav.computers": "Компьютерлер",
+  "nav.games": "Оюндар",
+  "nav.tariffs": "Тарифтер",
+  "nav.contacts": "Байланыштар",
+  "nav.login": "Кирүү",
+  "nav.signup": "Катталуу",
+
+  // Common
+  "common.welcome": "Кош келиңиз",
+  "common.loading": "Жүктөлүүдө...",
+  "common.error": "Ката",
+  "common.success": "Ийгилик",
+  "common.cancel": "Жокко чыгаруу",
+  "common.confirm": "Ырастоо",
+  "common.save": "Сактоо",
+  "common.delete": "Өчүрүү",
+  "common.edit": "Түзөтүү",
+  "common.close": "Жабуу",
+  "common.submit": "Жөнөтүү",
+  "common.search": "Издөө",
+  "common.filter": "Чыпкалоо",
+  "common.logout": "Чыгуу",
+  "common.profile": "Профиль",
+  "common.settings": "Жөндөөлөр",
+
+  // Hero Section
+  "hero.title": "RONIN",
+  "hero.subtitle": "Жаңы муундагы компьютердик клуб",
+  "hero.description": "Топтогу ПКлар, арзан баалар, жайлуу атмосфера",
+  "hero.bookNow": "БРОНДОО",
+  "hero.learnMore": "Кеңири маалымат",
+
+  // About Section
+  "about.title": "БИЗ ЖӨНҮНДӨ",
+  "about.clubTitle": "RONIN клубу жөнүндө",
+  "about.description": "RONIN — бул күчтүү жабдуулар, ыңгайлуу отургучтар жана профессионалдык атмосфера менен заманбап компьютердик клуб. Биз чыныгы геймерлер үчүн мейкиндик түзүп бердик.",
+
+  // Features Section
+  "features.title": "АРТЫКЧЫЛЫКТАР",
+  "features.whyUs": "Эмне үчүн бизди тандашат",
+  
+  "features.performance": "Жогорку өндүрүмдүүлүк",
+  "features.performance.desc": "RTX 3060 жана i7-12700F менен күчтүү оюн ПКлары",
+  
+  "features.speed": "Ылдам интернет",
+  "features.speed.desc": "Ыңгайлуу оюн үчүн шектөөсүз 500 Мбит/с",
+  
+  "features.security": "Коопсуздук",
+  "features.security.desc": "Жеке маалыматтын колдонуу жана коргоо",
+  
+  "features.equipment": "Профессионалдык жабдуулар",
+  "features.equipment.desc": "240Hz мониторлор жана сапаттуу добуш",
+  
+  "features.drinks": "Суусундуктар камтылган",
+  "features.drinks.desc": "Бардык конокторго акысыз чай, кофе жана суу",
+  
+  "features.atmosphere": "Жагымдуу атмосфера",
+  "features.atmosphere.desc": "Заманбап дизайн жана ыңгайлуу отургучтар",
+
+  // Stats Section
+  "stats.computers": "Компьютерлер",
+  "stats.computers.desc": "4 категория тандоого",
+  "stats.available": "Эс алышсыз",
+  "stats.available.desc": "24/7 иштейбиз",
+  "stats.categories": "ПК категориясы",
+  "stats.categories.desc": "Standard — Ronin Rooms",
+  "stats.frequency": "Макс. частота",
+  "stats.frequency.desc": "Premium станцияларда",
+
+  // Booking Section
+  "booking.title": "БРОНДОО",
+  "booking.selectDate": "Күндү тандаңыз",
+  "booking.selectTime": "Убакытты тандаңыз",
+  "booking.selectComputer": "Компьютерди тандаңыз",
+  "booking.duration": "Узактыгы",
+  "booking.hours": "саат",
+  "booking.total": "Жалпы",
+  "booking.confirm": "Брондоону ырастоо",
+  "booking.success": "Брондоо ийгиликтүү!",
+  "booking.error": "Брондоо катасы",
+
+  // Tariffs Section
+  "tariffs.title": "ТАРИФТЕР",
+  "tariffs.morning": "Эртең менен",
+  "tariffs.standard": "Стандарттык",
+  "tariffs.night": "Түнкү",
+  "tariffs.morning.time": "09:00 — 17:00",
+  "tariffs.standard.time": "17:00 — 23:00",
+  "tariffs.night.time": "23:00 — 09:00",
+  "tariffs.morning.feature1": "Эртең менен саат",
+  "tariffs.morning.feature2": "Арзандатуу -20%",
+  "tariffs.standard.feature1": "Стандарттык убакыт",
+  "tariffs.standard.feature2": "Бардык ПКлар",
+  "tariffs.night.feature1": "Түнкү саат",
+  "tariffs.night.feature2": "Арзандатуу -15%",
+  "tariffs.book": "БРОНДОО",
+  "tariffs.hour": "саат",
+  "tariffs.perHour": "/саат",
+
+  // Computers Section
+  "computers.title": "КОМПЬЮТЕРЛЕР",
+  "computers.categories": "категория",
+  "computers.standard": "Standard",
+  "computers.comfort": "Comfort",
+  "computers.premium": "Premium",
+  "computers.ronin": "Ronin Rooms",
+  "computers.available": "Жеткиликтүү",
+  "computers.busy": "Бош эмес",
+  "computers.cpu": "Процессор",
+  "computers.gpu": "Видеокарта",
+  "computers.ram": "RAM",
+  "computers.monitor": "Монитор",
+
+  // Games Section
+  "games.title": "ОЮНДАР",
+  "games.inClub": "БИЗДИН КЛУБТА",
+  "games.popular": "Популярдуу оюндар",
+  "games.category.fps": "FPS",
+  "games.category.moba": "MOBA",
+  "games.category.battle": "BATTLE ROYALE",
+
+  // Contacts Section
+  "contacts.title": "БАЙЛАНЫШТАР",
+  "contacts.getInTouch": "ТЕЗДИК БАЙЛАНЫШ",
+  "contacts.fastContact": "Ыңгайлуу ыкманы тандаңыз жана биз тез эле жооп беребиз",
+  "contacts.phone": "Телефон",
+  "contacts.phone.time": "10:00дөн 02:00гө чейин чалыңыз",
+  "contacts.telegram": "Telegram",
+  "contacts.telegram.desc": "Бардык суроолорго тез жооп",
+  "contacts.email": "Email",
+  "contacts.email.desc": "1 саатта жооп беребиз",
+  "contacts.address": "Дарек",
+  "contacts.address.desc": "Шаардын борборунда ыңгайлуу жайгашкан",
+  "contacts.social": "Социалдык тармактар",
+  "contacts.location": "Жайгашкан жер",
+  "contacts.workingHours": "Иштөө убактысы",
+  "contacts.callNow": "Азыр чалыңыз",
+  "contacts.sendMessage": "Билдирүү жөнөтүү",
+  "contacts.whatsapp": "WhatsApp",
+  "contacts.whatsapp.desc": "Тез жооп",
+
+  // Footer
+  "footer.description": "Бишкектеги заманбап оюн клубу. Күчтүү ПКлар, ыңгайлуу атмосфера жана онлайн брондоо.",
+  "footer.rights": "Бардык укуктар корголгон",
+  "footer.quickLinks": "ТЕЗДИК ШИЛТЕМЕЛЕР",
+  "footer.home": "Башкы бет",
+  "footer.booking": "Брондоо",
+  "footer.helpCenter": "Жардам борбору",
+  "footer.login": "Кирүү",
+  "footer.signup": "Катталуу",
+  "footer.support": "КОЛДОО",
+  "footer.social": "БИЗДИН СОЦТАРМАКТАР",
+  "footer.location": "Бишкек, Кыргызстан",
+
+  // Auth
+  "auth.login": "Кирүү",
+  "auth.signup": "Катталуу",
+  "auth.email": "Email",
+  "auth.password": "Сыр сөз",
+  "auth.confirmPassword": "Сыр сөздү ырастоо",
+  "auth.fullName": "Аты-Жөнү",
+  "auth.phone": "Телефон",
+  "auth.forgotPassword": "Сыр сөздү унуттуңузбу?",
+  "auth.rememberMe": "Эстеп калуу",
+  "auth.or": "же",
+  "auth.withGoogle": "Google менен",
+  "auth.haveAccount": "Аккаунтуңуз барбы?",
+  "auth.noAccount": "Аккаунтуңуз жокпу?",
+  "auth.minPassword": "Минимум 6 символ",
+  
+  // Registration errors
+  "auth.error.invalidEmail": "Жараксыз email дареги",
+  "auth.error.weakPassword": "Сыр сөз өтө алсыз",
+  "auth.error.passwordMismatch": "Сыр сөздөр дал келбейт",
+  "auth.error.emailExists": "Бул email менен аккаунт бар",
+  "auth.error.invalidCredentials": "Жараксыз email же сыр сөз",
+
+  // Profile
+  "profile.title": "Профиль",
+  "profile.edit": "Профильди түзөтүү",
+  "profile.bookings": "Менин брондоолорум",
+  "profile.history": "Тарых",
+  "profile.settings": "Жөндөөлөр",
+  "profile.changePassword": "Сыр сөздү өзгөртүү",
+  "profile.notifications": "Билдирүүлөр",
+  "profile.language": "Тил",
+  "profile.theme": "Тема",
+  "profile.lightMode": "Жарык режим",
+  "profile.darkMode": "Караңгы режим",
+
+  // Admin Panel
+  "admin.title": "Админ панели",
+  "admin.dashboard": "Башкаруу панели",
+  "admin.bookings": "Брондоолор",
+  "admin.computers": "Компьютерлер",
+  "admin.users": "Колдонуучулар",
+  "admin.managers": "Менеджерлер",
+  "admin.tariffs": "Тарифтер",
+  "admin.settings": "Жөндөөлөр",
+  "admin.statistics": "Статистика",
+  "admin.reports": "Отчеттор",
+  "admin.addNew": "Жаңы кошуу",
+  "admin.edit": "Түзөтүү",
+  "admin.delete": "Өчүрүү",
+  "admin.active": "Активдүү",
+  "admin.inactive": "Активдүү эмес",
+  "admin.status": "Статус",
+  "admin.actions": "Аракеттер",
+
+  // Manager Panel
+  "manager.title": "Менеджер панели",
+  "manager.todayBookings": "Бүгүнкү брондоолор",
+  "manager.checkIn": "Кабыл алуу",
+  "manager.checkOut": "Чыгаруу",
+
+  // Notifications
+  "notification.bookingConfirmed": "Брондоо ырасталды",
+  "notification.bookingCancelled": "Брондоо жокко чыгарылды",
+  "notification.paymentSuccess": "Төлөм ийгиликтүү",
+  "notification.paymentFailed": "Төлөм катасы",
+
+  // Receipt
+  "receipt.title": "Чек",
+  "receipt.date": "Дата",
+  "receipt.time": "Убакыт",
+  "receipt.computer": "Компьютер",
+  "receipt.duration": "Узактыгы",
+  "receipt.total": "Жалпы",
+  "receipt.download": "Жүктөп алуу",
+  "receipt.print": "Басып чыгаруу",
+
+  // Validation
+  "validation.required": "Бул талаа милдеттүү",
+  "validation.email": "Туура email дарегин жазыңыз",
+  "validation.phone": "Туура телефон номерин жазыңыз",
+  "validation.minLength": "Минимум {min} символ",
+  "validation.maxLength": "Максимум {max} символ",
+};

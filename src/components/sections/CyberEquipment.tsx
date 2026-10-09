@@ -6,7 +6,7 @@ import Image from "next/image";
 
 const equipment = [
   {
-    image: "/images (5).jpg",
+    image: "/equipment/pc.svg",
     category: "Системный блок",
     name: "MSI MAG Z790 / i7-12700",
     specs: [
@@ -18,7 +18,7 @@ const equipment = [
     accent: "#3b82f6",
   },
   {
-    image: "/images (4).jpg",
+    image: "/equipment/monitor.svg",
     category: "Монитор",
     name: "UltraWide 34\"",
     specs: [
@@ -35,7 +35,7 @@ export function CyberEquipment() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
   return (
-    <section id="equipment" className="py-20 relative" style={{ background: "#05050f" }} ref={ref}>
+    <section id="equipment" className="py-24 relative" style={{ background: "#05050f" }} ref={ref}>
       <div
         className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)" }}

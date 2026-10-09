@@ -1,82 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 
-// DELETE - удалить пользователя
+const prisma = new PrismaClient();
+
+// DELETE /api/admin/users/[id] - удалить пользователя
 export async function DELETE(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const userId = params.id;
+    // TODO: Get actual admin ID from session
+    const adminId = "mock-user-id";
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
+    // Prevent deleting self
+    if (params.id === adminId) {
       return NextResponse.json(
-        { error: "Пользователь не найден" },
-        { status: 404 }
+        { error: "Cannot delete your own account" },
+        { status: 400 }
       );
     }
 
-    // Soft delete
-    await prisma.user.update({
-      where: { id: userId },
-      data: { status: "deleted" },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Пользователь удалён",
-    });
-  } catch (error) {
-    console.error("Delete user error:", error);
-    return NextResponse.json(
-      { error: "Ошибка сервера" },
-      { status: 500 }
-    );
-  }
-}
-
-// PATCH - обновить пользователя
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const userId = params.id;
-    const body = await request.json();
-    const { name, email, phone, role, status } = body;
-
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...(name && { name }),
-        ...(email && { email }),
-        ...(phone !== undefined && { phone }),
-        ...(role && { role }),
-        ...(status && { status }),
-      },
+    // Get user before deletion for audit log
+    const user = await prisma.users.findUnique({
+      where: { id: params.id },
       select: {
         id: true,
         name: true,
         email: true,
         phone: true,
         role: true,
-        status: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Soft delete - change status instead of actual deletion
+    await prisma.users.update({
+      where: { id: params.id },
+      data: {
+        status: "deleted",
+      },
+    });
+
+    // Audit log
+    await prisma.audit_logs.create({
+      data: {
+        user_id: adminId,
+        action: "DELETE_USER",
+        entity_type: "User",
+        entity_id: params.id,
+        old_data: { name: user.name, email: user.email, role: user.role },
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Пользователь обновлён",
-      user,
+      message: "User deleted successfully",
     });
-  } catch (error: any) {
-    console.error("Update user error:", error);
+  } catch (error) {
+    console.error("Error deleting user:", error);
     return NextResponse.json(
-      { error: "Ошибка сервера" },
+      { error: "Failed to delete user" },
       { status: 500 }
     );
   }

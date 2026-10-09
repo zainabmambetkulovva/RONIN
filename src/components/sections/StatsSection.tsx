@@ -6,7 +6,7 @@ import { useInView } from "react-intersection-observer";
 const stats = [
   { value: "96", label: "Компьютеров", suffix: "" },
   { value: "24", label: "Часа в сутки", suffix: "/7" },
-  { value: "120", label: "Сом в час", suffix: "₸" },
+  { value: "120", label: "Сом в час", suffix: "с" },
   { value: "4", label: "Категории ПК", suffix: "" },
 ];
 

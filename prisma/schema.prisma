@@ -8,35 +8,290 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─────────────────────────── ENUMS ───────────────────────────
+model accounts {
+  id                  String  @id
+  user_id             String
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?
+  access_token        String?
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?
+  session_state       String?
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-enum UserRole {
-  client
-  manager
-  admin
+  @@unique([provider, provider_account_id])
 }
 
-enum UserStatus {
-  active
-  blocked
-  deleted
+model ai_chats {
+  id          String        @id
+  user_id     String
+  provider    AiProvider
+  created_at  DateTime      @default(now())
+  updated_at  DateTime
+  users       users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  ai_messages ai_messages[]
 }
 
-enum OtpType {
-  registration
-  login
+model ai_messages {
+  id         String   @id
+  chat_id    String
+  role       AiRole
+  message    String
+  created_at DateTime @default(now())
+  ai_chats   ai_chats @relation(fields: [chat_id], references: [id], onDelete: Cascade)
 }
 
-enum ComputerStatus {
-  available
-  maintenance
+model audit_logs {
+  id          String   @id
+  user_id     String
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(100)
+  entity_id   String?
+  old_data    Json?
+  new_data    Json?
+  created_at  DateTime @default(now())
+  users       users    @relation(fields: [user_id], references: [id])
 }
 
-enum TariffType {
-  hourly
-  package
-  night
-  morning
+model auth_sessions {
+  id            String   @id
+  session_token String   @unique
+  user_id       String
+  expires       DateTime
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model avatars {
+  id        String  @id
+  code      String  @unique @db.VarChar(20)
+  image_url String
+  is_active Boolean @default(true)
+}
+
+model booking_status_history {
+  id         String         @id
+  booking_id String
+  old_status BookingStatus?
+  new_status BookingStatus
+  changed_by String
+  reason     String?
+  created_at DateTime       @default(now())
+  bookings   bookings       @relation(fields: [booking_id], references: [id])
+  users      users          @relation(fields: [changed_by], references: [id])
+}
+
+model bookings {
+  id                     String                   @id
+  booking_number         String                   @unique @db.VarChar(30)
+  user_id                String
+  computer_id            String
+  tariff_id              String
+  start_at               DateTime
+  end_at                 DateTime
+  duration_minutes       Int
+  price                  Decimal                  @db.Decimal(10, 2)
+  status                 BookingStatus            @default(pending)
+  qr_token               String                   @unique @db.VarChar(255)
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime
+  booking_code           String                   @unique @db.VarChar(5)
+  is_expired             Boolean                  @default(false)
+  payment_status         PaymentStatus?           @default(pending)
+  payment_method         String?                  @db.VarChar(50)
+  transaction_id         String?                  @db.VarChar(255)
+  paid_at                DateTime?
+  booking_status_history booking_status_history[]
+  computers              computers                @relation(fields: [computer_id], references: [id])
+  tariffs                tariffs                  @relation(fields: [tariff_id], references: [id])
+  users                  users                    @relation(fields: [user_id], references: [id])
+  gaming_sessions        gaming_sessions[]
+  payments               payments[]
+}
+
+model computer_categories {
+  id          String      @id
+  name        String      @db.VarChar(100)
+  description String
+  image_url   String?
+  is_active   Boolean     @default(true)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime
+  computers   computers[]
+  tariffs     tariffs[]
+}
+
+model computers {
+  id                  String              @id
+  category_id         String
+  number              Int                 @unique
+  specifications      Json
+  image_url           String?
+  status              ComputerStatus      @default(available)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime
+  bookings            bookings[]
+  computer_categories computer_categories @relation(fields: [category_id], references: [id])
+  gaming_sessions     gaming_sessions[]
+}
+
+model content {
+  id          String      @id
+  type        ContentType
+  title       String?     @db.VarChar(255)
+  description String?
+  image_url   String?
+  is_active   Boolean     @default(true)
+  created_by  String
+  updated_at  DateTime
+  users       users       @relation(fields: [created_by], references: [id])
+}
+
+model gaming_sessions {
+  id          String              @id
+  booking_id  String
+  computer_id String
+  started_by  String
+  started_at  DateTime
+  ended_at    DateTime?
+  status      GamingSessionStatus @default(active)
+  created_at  DateTime            @default(now())
+  bookings    bookings            @relation(fields: [booking_id], references: [id])
+  computers   computers           @relation(fields: [computer_id], references: [id])
+  users       users               @relation(fields: [started_by], references: [id])
+}
+
+model notifications {
+  id         String   @id
+  user_id    String
+  type       String   @db.VarChar(50)
+  title      String   @db.VarChar(255)
+  message    String
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model otp_codes {
+  id          String    @id
+  user_id     String?
+  destination String    @db.VarChar(255)
+  code_hash   String    @db.VarChar(255)
+  type        OtpType
+  expires_at  DateTime
+  attempts    Int       @default(0)
+  used_at     DateTime?
+  created_at  DateTime  @default(now())
+  users       users?    @relation(fields: [user_id], references: [id])
+}
+
+model password_reset_tokens {
+  id         String    @id
+  user_id    String
+  token      String    @unique @db.VarChar(6)
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model payments {
+  id             String        @id
+  booking_id     String
+  amount         Decimal       @db.Decimal(10, 2)
+  method         PaymentMethod
+  status         PaymentStatus @default(pending)
+  provider       String?       @db.VarChar(100)
+  transaction_id String?       @db.VarChar(255)
+  paid_at        DateTime?
+  refunded_at    DateTime?
+  created_at     DateTime      @default(now())
+  bookings       bookings      @relation(fields: [booking_id], references: [id])
+}
+
+model sessions {
+  id         String    @id
+  user_id    String
+  token_hash String    @db.VarChar(255)
+  expires_at DateTime
+  revoked_at DateTime?
+  created_at DateTime  @default(now())
+  ip_address String?   @db.VarChar(45)
+  user_agent String?
+}
+
+model tariffs {
+  id                  String               @id
+  category_id         String?
+  name                String               @db.VarChar(100)
+  duration_minutes    Int
+  price               Decimal              @db.Decimal(10, 2)
+  type                TariffType
+  is_active           Boolean              @default(true)
+  created_at          DateTime             @default(now())
+  updated_at          DateTime
+  bookings            bookings[]
+  computer_categories computer_categories? @relation(fields: [category_id], references: [id])
+}
+
+model two_factor_codes {
+  id         String    @id
+  user_id    String
+  code       String    @db.VarChar(6)
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([user_id])
+}
+
+model users {
+  id                     String                   @id
+  name                   String                   @db.VarChar(100)
+  phone                  String?                  @unique @db.VarChar(20)
+  email                  String?                  @unique @db.VarChar(255)
+  role                   UserRole                 @default(client)
+  status                 UserStatus               @default(active)
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime
+  avatar                 String?                  @db.VarChar(50)
+  email_verified         DateTime?
+  image                  String?
+  password               String?                  @db.VarChar(255)
+  telegram_chat_id       String?                  @unique @db.VarChar(50)
+  accounts               accounts[]
+  ai_chats               ai_chats[]
+  audit_logs             audit_logs[]
+  auth_sessions          auth_sessions[]
+  booking_status_history booking_status_history[]
+  bookings               bookings[]
+  content                content[]
+  gaming_sessions        gaming_sessions[]
+  notifications          notifications[]
+  otp_codes              otp_codes[]
+  password_reset_tokens  password_reset_tokens[]
+  telegram_verifications telegram_verifications[]
+}
+
+model verification_tokens {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum AiProvider {
+  openai
+  gemini
+}
+
+enum AiRole {
+  user
+  assistant
 }
 
 enum BookingStatus {
@@ -45,6 +300,28 @@ enum BookingStatus {
   cancelled
   completed
   expired
+}
+
+enum ComputerStatus {
+  available
+  maintenance
+}
+
+enum ContentType {
+  banner
+  text
+  image
+}
+
+enum GamingSessionStatus {
+  active
+  completed
+  expired
+}
+
+enum OtpType {
+  registration
+  login
 }
 
 enum PaymentMethod {
@@ -59,329 +336,41 @@ enum PaymentStatus {
   refunded
 }
 
-enum GamingSessionStatus {
+enum TariffType {
+  hourly
+  package
+  night
+  morning
+}
+
+enum UserRole {
+  client
+  manager
+  admin
+}
+
+enum UserStatus {
   active
-  completed
-  expired
+  blocked
+  deleted
 }
 
-enum AiProvider {
-  openai
-  gemini
+
+model telegram_verifications {
+  id         String   @id @default(cuid())
+  user_id    String   @unique
+  code       String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-enum AiRole {
-  user
-  assistant
-}
 
-enum ContentType {
-  banner
-  text
-  image
-}
-
-// ─────────────────────────── TABLES ───────────────────────────
-
-model User {
-  id            String     @id @default(uuid())
-  name          String     @db.VarChar(100)
-  phone         String?    @unique @db.VarChar(20)
-  email         String?    @unique @db.VarChar(255)
-  emailVerified DateTime?  @map("email_verified")
-  password      String?    @db.VarChar(255)
-  image         String?
-  role          UserRole   @default(client)
-  status        UserStatus @default(active)
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
-
-  accounts                  Account[]
-  sessions                  AuthSession[]
-  passwordResetTokens       PasswordResetToken[]
-  otpCodes                  OtpCode[]
-  bookings                  Booking[]
-  notifications             Notification[]
-  aiChats                   AiChat[]
-  content                   Content[]
-  auditLogs                 AuditLog[]
-  gamingSessionsStarted     GamingSession[]        @relation("StartedBy")
-  bookingStatusChanges      BookingStatusHistory[] @relation("ChangedBy")
-
-  @@map("users")
-}
-
-// NextAuth models
-model Account {
-  id                String  @id @default(uuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model AuthSession {
-  id           String   @id @default(uuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("auth_sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
-}
-
-model PasswordResetToken {
-  id        String    @id @default(uuid())
-  userId    String    @map("user_id")
-  token     String    @unique @db.VarChar(6)
-  expiresAt DateTime  @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("password_reset_tokens")
-}
-
-model OtpCode {
-  id          String    @id @default(uuid())
-  userId      String?   @map("user_id")
-  destination String    @db.VarChar(255)
-  codeHash    String    @db.VarChar(255) @map("code_hash")
-  type        OtpType
-  expiresAt   DateTime  @map("expires_at")
-  attempts    Int       @default(0)
-  usedAt      DateTime? @map("used_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@map("otp_codes")
-}
-
-model Session {
-  id         String    @id @default(uuid())
-  userId     String    @map("user_id")
-  tokenHash  String    @db.VarChar(255) @map("token_hash")
-  expiresAt  DateTime  @map("expires_at")
-  revokedAt  DateTime? @map("revoked_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  ipAddress  String?   @map("ip_address") @db.VarChar(45)
-  userAgent  String?   @map("user_agent")
-
-  @@map("sessions")
-}
-
-model ComputerCategory {
-  id          String   @id @default(uuid())
-  name        String   @db.VarChar(100)
-  description String
-  imageUrl    String?  @map("image_url")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  computers Computer[]
-  tariffs   Tariff[]
-
-  @@map("computer_categories")
-}
-
-model Computer {
-  id             String         @id @default(uuid())
-  categoryId     String         @map("category_id")
-  number         Int            @unique
-  specifications Json           @db.JsonB
-  imageUrl       String?        @map("image_url")
-  status         ComputerStatus @default(available)
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-
-  category       ComputerCategory @relation(fields: [categoryId], references: [id])
-  bookings       Booking[]
-  gamingSessions GamingSession[]
-
-  @@map("computers")
-}
-
-model Tariff {
-  id              String     @id @default(uuid())
-  categoryId      String?    @map("category_id")
-  name            String     @db.VarChar(100)
-  durationMinutes Int        @map("duration_minutes")
-  price           Decimal    @db.Decimal(10, 2)
-  type            TariffType
-  isActive        Boolean    @default(true) @map("is_active")
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-
-  category ComputerCategory? @relation(fields: [categoryId], references: [id])
-  bookings Booking[]
-
-  @@map("tariffs")
-}
-
-model Booking {
-  id              String        @id @default(uuid())
-  bookingNumber   String        @unique @db.VarChar(30) @map("booking_number")
-  userId          String        @map("user_id")
-  computerId      String        @map("computer_id")
-  tariffId        String        @map("tariff_id")
-  startAt         DateTime      @map("start_at")
-  endAt           DateTime      @map("end_at")
-  durationMinutes Int           @map("duration_minutes")
-  price           Decimal       @db.Decimal(10, 2)
-  status          BookingStatus @default(pending)
-  qrToken         String        @unique @db.VarChar(255) @map("qr_token")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-
-  user           User                   @relation(fields: [userId], references: [id])
-  computer       Computer               @relation(fields: [computerId], references: [id])
-  tariff         Tariff                 @relation(fields: [tariffId], references: [id])
-  payments       Payment[]
-  gamingSessions GamingSession[]
-  statusHistory  BookingStatusHistory[]
-
-  @@map("bookings")
-}
-
-model Payment {
-  id            String        @id @default(uuid())
-  bookingId     String        @map("booking_id")
-  amount        Decimal       @db.Decimal(10, 2)
-  method        PaymentMethod
-  status        PaymentStatus @default(pending)
-  provider      String?       @db.VarChar(100)
-  transactionId String?       @db.VarChar(255) @map("transaction_id")
-  paidAt        DateTime?     @map("paid_at")
-  refundedAt    DateTime?     @map("refunded_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
-
-  booking Booking @relation(fields: [bookingId], references: [id])
-
-  @@map("payments")
-}
-
-model GamingSession {
-  id         String              @id @default(uuid())
-  bookingId  String              @map("booking_id")
-  computerId String              @map("computer_id")
-  startedBy  String              @map("started_by")
-  startedAt  DateTime            @map("started_at")
-  endedAt    DateTime?           @map("ended_at")
-  status     GamingSessionStatus @default(active)
-  createdAt  DateTime            @default(now()) @map("created_at")
-
-  booking  Booking  @relation(fields: [bookingId], references: [id])
-  computer Computer @relation(fields: [computerId], references: [id])
-  manager  User     @relation("StartedBy", fields: [startedBy], references: [id])
-
-  @@map("gaming_sessions")
-}
-
-model BookingStatusHistory {
-  id        String        @id @default(uuid())
-  bookingId String        @map("booking_id")
-  oldStatus BookingStatus? @map("old_status")
-  newStatus BookingStatus  @map("new_status")
-  changedBy String        @map("changed_by")
-  reason    String?
-  createdAt DateTime      @default(now()) @map("created_at")
-
-  booking Booking @relation(fields: [bookingId], references: [id])
-  user    User    @relation("ChangedBy", fields: [changedBy], references: [id])
-
-  @@map("booking_status_history")
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  type      String   @db.VarChar(50)
-  title     String   @db.VarChar(255)
-  message   String
-  isRead    Boolean  @default(false) @map("is_read")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-model AiChat {
-  id        String     @id @default(uuid())
-  userId    String     @map("user_id")
-  provider  AiProvider
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-
-  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages AiMessage[]
-
-  @@map("ai_chats")
-}
-
-model AiMessage {
-  id        String   @id @default(uuid())
-  chatId    String   @map("chat_id")
-  role      AiRole
-  message   String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  chat AiChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
-  @@map("ai_messages")
-}
-
-model Content {
-  id          String      @id @default(uuid())
-  type        ContentType
-  title       String?     @db.VarChar(255)
+model settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
   description String?
-  imageUrl    String?     @map("image_url")
-  isActive    Boolean     @default(true) @map("is_active")
-  createdBy   String      @map("created_by")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-
-  creator User @relation(fields: [createdBy], references: [id])
-
-  @@map("content")
-}
-
-model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  action     String   @db.VarChar(100)
-  entityType String   @db.VarChar(100) @map("entity_type")
-  entityId   String?  @map("entity_id")
-  oldData    Json?    @db.JsonB @map("old_data")
-  newData    Json?    @db.JsonB @map("new_data")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@map("audit_logs")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }

@@ -1,69 +1,85 @@
 import { StatCard } from "@/components/admin/dashboard/StatCard";
-import { ActiveSessionsChart } from "@/components/admin/dashboard/ActiveSessionsChart";
-import { RevenueChart } from "@/components/admin/dashboard/RevenueChart";
-import { LiveSessions } from "@/components/admin/dashboard/LiveSessions";
-import { RecentBookings } from "@/components/admin/dashboard/RecentBookings";
+import { UpcomingBookings } from "@/components/admin/dashboard/UpcomingBookings";
+import { RecentUsers } from "@/components/admin/dashboard/RecentUsers";
+
+async function getStats() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/stats`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return null;
+  }
+}
 
 export default async function AdminDashboard() {
-  // TODO: Fetch real data from database
-  const stats = {
-    activeSessions: 42,
-    todayBookings: 28,
-    revenue: 124500,
-    activeComputers: 38,
-    totalComputers: 96,
-  };
+  const data = await getStats();
+  
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">Не удалось загрузить данные</h2>
+          <p className="text-gray-400">Проверьте подключение к базе данных</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-3xl font-black text-white mb-2">Dashboard Overview</h1>
-        <p className="text-gray-400">Welcome back! Here's what's happening today.</p>
+        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Dashboard</h1>
+        <p className="text-gray-400 text-sm">Статистика за сегодня</p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
-          label="Активные сессии"
-          value={stats.activeSessions}
-          subtitle="Играют сейчас"
-          color="#3b82f6"
-          trend="+12%"
+          label="Клиентов сегодня"
+          value={data.clients.today}
+          subtitle={`Всего: ${data.clients.total}`}
+          icon="users"
+          color="#ef4444"
         />
         <StatCard
-          label="Бронирований сегодня"
-          value={stats.todayBookings}
-          subtitle="Всего за день"
+          label="Менеджеров"
+          value={data.managers.active}
+          subtitle={`Всего: ${data.managers.total}`}
+          icon="shield"
           color="#8b5cf6"
-          trend="+8%"
         />
         <StatCard
-          label="Выручка"
-          value={`${(stats.revenue / 1000).toFixed(1)}K`}
-          subtitle="За сегодня (сом)"
-          color="#10b981"
-          trend="+15%"
+          label="Играют сейчас"
+          value={data.bookings.active}
+          subtitle={`Активных сессий`}
+          icon="calendar"
+          color="#ec4899"
         />
         <StatCard
-          label="Компьютеры"
-          value={`${stats.activeComputers}/${stats.totalComputers}`}
-          subtitle="В работе / Всего"
-          color="#f59e0b"
-          progress={(stats.activeComputers / stats.totalComputers) * 100}
+          label="Забронировали"
+          value={data.bookings.today}
+          subtitle={`Бронирований сегодня`}
+          icon="monitor"
+          color="#3b82f6"
+        />
+        <StatCard
+          label="Компьютеров"
+          value={data.computers.available}
+          subtitle={`Доступно`}
+          icon="tag"
+          color="#06b6d4"
         />
       </div>
 
-      {/* Charts row */}
+      {/* Bottom row - Bookings and Users */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActiveSessionsChart />
-        <RevenueChart />
-      </div>
-
-      {/* Tables row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LiveSessions />
-        <RecentBookings />
+        <UpcomingBookings bookings={data.upcomingBookings} />
+        <RecentUsers users={data.recentUsers} />
       </div>
     </div>
   );

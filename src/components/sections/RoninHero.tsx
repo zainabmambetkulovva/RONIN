@@ -3,9 +3,44 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useState, useEffect } from "react";
 
 export function RoninHero() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  
+  // Тексты карусели в зависимости от языка
+  const texts = language === 'ky' 
+    ? [
+        "ЖӨНӨКӨЙ ПК ЭМЕС",
+        "СЕНИН ARENA",
+        "ЖЕҢИШТЕР БУЛ ЖЕРДЕН БАШТАЛАТ",
+        "ЧЕКСИЗ КҮЧ",
+        "ОЮН МЕЙКИНДИГИ"
+      ]
+    : language === 'en'
+    ? [
+        "NOT JUST A PC",
+        "YOUR ARENA",
+        "VICTORIES START HERE",
+        "POWER WITHOUT LIMITS",
+        "GAMING SPACE"
+      ]
+    : [
+        "НЕ ПРОСТО ПК",
+        "ТВОЯ ARENA",
+        "ПОБЕДЫ НАЧИНАЮТСЯ ЗДЕСЬ",
+        "МОЩЬ БЕЗ ГРАНИЦ",
+        "ИГРОВОЕ ПРОСТРАНСТВО"
+      ];
+  
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTextIndex((prev) => (prev + 1) % texts.length);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, [texts.length]);
   
   const stats = [
     { value: "96", label: t("stats.computers") },
@@ -19,10 +54,40 @@ export function RoninHero() {
       className="relative flex items-center overflow-hidden"
       style={{ background: "#03030a", minHeight: "100svh" }}
     >
+      {/* RGB LED Lines */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute h-1"
+            style={{
+              left: `${i * 16}%`,
+              width: "200px",
+              background: `linear-gradient(90deg, 
+                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}00 0%, 
+                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'} 50%, 
+                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}00 100%)`,
+              boxShadow: `0 0 20px ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}`,
+              opacity: 0.6,
+            }}
+            animate={{
+              y: ['0vh', '100vh'],
+              rotate: [0, 360],
+            }}
+            transition={{
+              duration: 15 + i * 2,
+              repeat: Infinity,
+              ease: "linear",
+              delay: i * 1.5,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Background photo */}
       <div className="absolute inset-0">
         <Image
-          src="/images (5).jpg"
+          src="/РОНИН фон.png"
           alt="RONIN Gaming Club"
           fill
           className="object-cover object-center"
@@ -81,7 +146,7 @@ export function RoninHero() {
             </span>
           </motion.div>
 
-          {/* Main heading — адаптивный */}
+          {/* Main heading — с каруселью */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -91,13 +156,20 @@ export function RoninHero() {
             <h1
               className="font-black leading-[0.88] tracking-tighter uppercase"
               style={{
-                fontSize: "clamp(2.5rem, 10vw, 9rem)",
+                fontSize: "clamp(2rem, 8vw, 6rem)",
                 fontStretch: "expanded",
               }}
             >
-              <span className="block text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.8)]">
-                НЕ ПРОСТО ПК.
-              </span>
+              <motion.span
+                key={currentTextIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="block text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.8)]"
+              >
+                {texts[currentTextIndex]}
+              </motion.span>
               <span
                 className="block"
                 style={{
@@ -107,18 +179,7 @@ export function RoninHero() {
                   filter: "drop-shadow(0 0 40px rgba(59,130,246,0.55))",
                 }}
               >
-                СВОЁ МЕСТО
-              </span>
-              <span
-                className="block"
-                style={{
-                  background: "linear-gradient(90deg, #3b82f6 0%, #818cf8 60%, #a78bfa 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 0 40px rgba(59,130,246,0.55))",
-                }}
-              >
-                ДЛЯ ИГРЫ.
+                СВОЁ МЕСТО ДЛЯ ИГРЫ
               </span>
             </h1>
           </motion.div>
@@ -176,7 +237,7 @@ export function RoninHero() {
                 boxShadow: "0 0 30px rgba(99,102,241,0.45)",
               }}
             >
-              Забронировать ПК
+              Забронировать
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

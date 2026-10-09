@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-type Language = "ru" | "en" | "kg";
+type Language = "ru" | "en" | "ky";
 
 interface LanguageContextType {
   language: Language;
@@ -46,6 +46,10 @@ const translations = {
     "about.session.title": "ТВОЯ СЕССИЯ",
     "about.session.desc1": "Выбери компьютер • дату • время",
     "about.session.desc2": "оплати онлайн • приходи • играй",
+    "about.subtitle": "Компьютерный клуб",
+    "about.tagline": "Больше, чем просто компьютерный клуб",
+    "about.power.desc2": "RTX • Intel i5/i9 • до 64 GB RAM",
+    "about.comfort.desc2": "144–240Hz • продуманное пространство",
     "about.title": "Почему RONIN?",
     "about.feature1.title": "Топовое железо",
     "about.feature1.desc": "RTX 4090, i9-13900K, 165Hz мониторы",
@@ -54,7 +58,7 @@ const translations = {
     "about.feature3.title": "Кибер-атмосфера",
     "about.feature3.desc": "RGB подсветка, удобные кресла",
     "about.feature4.title": "Выгодные тарифы",
-    "about.feature4.desc": "От 150₸/час, ночные пакеты",
+    "about.feature4.desc": "От 150с/час, ночные пакеты",
 
     // Booking Flow
     "booking.tag": "Как забронировать",
@@ -80,21 +84,49 @@ const translations = {
     "tariffs.title": "Выберите свой тариф",
     "tariffs.vip.name": "VIP",
     "tariffs.vip.desc": "RTX 4090, i9-13900K, 240Hz",
-    "tariffs.vip.price": "400₸",
+    "tariffs.vip.price": "400с",
     "tariffs.vip.duration": "час",
     "tariffs.premium.name": "Premium",
     "tariffs.premium.desc": "RTX 4070 Ti, i7-13700K, 165Hz",
-    "tariffs.premium.price": "300₸",
+    "tariffs.premium.price": "300с",
     "tariffs.premium.duration": "час",
     "tariffs.standard.name": "Standard",
     "tariffs.standard.desc": "RTX 4060 Ti, i5-13600K, 144Hz",
-    "tariffs.standard.price": "150₸",
+    "tariffs.standard.price": "150с",
     "tariffs.standard.duration": "час",
     "tariffs.button": "Забронировать",
 
     // Games
     "games.tag": "В нашем клубе",
+    
+    // Admin Login
+    "admin_login": "Вход в админ панель",
+    "admin_login_desc": "Введите email и пароль администратора",
+    "admin_login_error": "Неверный email или пароль",
+    "admin_2fa_title": "Двухфакторная аутентификация",
+    "admin_2fa_desc": "Введите код из Telegram",
+    "admin_2fa_error": "Неверный код",
+    "email": "Email",
+    "password": "Пароль",
+    "telegram_code": "Код из Telegram",
+    "check_telegram": "Проверьте Telegram бота на наличие кода",
+    "continue": "Продолжить",
+    "verify": "Подтвердить",
+    "verifying": "Проверка...",
+    "loading": "Загрузка...",
+    "back": "Назад",
+    "admin_security_notice": "Все действия в админ панели логируются",
     "games.title": "Игры",
+
+    // Events
+    "events.tag": "Активные турниры",
+    "events.title": "СОРЕВНОВАНИЯ",
+    "events.prize": "Призовой фонд",
+    "events.register": "Записаться",
+    "events.open": "Открыт",
+    "events.soon": "Скоро",
+    "events.cta": "Хотите организовать свой турнир? Свяжитесь с нами!",
+    "events.contact": "Связаться с нами",
 
     // Contacts
     "contacts.tag": "Контакты",
@@ -149,6 +181,10 @@ const translations = {
     "about.session.title": "YOUR SESSION",
     "about.session.desc1": "Choose computer • date • time",
     "about.session.desc2": "pay online • come • play",
+    "about.subtitle": "Gaming Club",
+    "about.tagline": "More than just a gaming club",
+    "about.power.desc2": "RTX • Intel i5/i9 • up to 64 GB RAM",
+    "about.comfort.desc2": "144–240Hz • thoughtful space",
     "about.title": "Why RONIN?",
     "about.feature1.title": "Top Hardware",
     "about.feature1.desc": "RTX 4090, i9-13900K, 165Hz monitors",
@@ -157,7 +193,7 @@ const translations = {
     "about.feature3.title": "Cyber Atmosphere",
     "about.feature3.desc": "RGB lighting, comfortable chairs",
     "about.feature4.title": "Best Prices",
-    "about.feature4.desc": "From 150₸/hour, night packages",
+    "about.feature4.desc": "From 150с/hour, night packages",
 
     // Booking Flow
     "booking.tag": "How to Book",
@@ -199,6 +235,16 @@ const translations = {
     "games.tag": "In Our Club",
     "games.title": "Games",
 
+    // Events
+    "events.tag": "Active Tournaments",
+    "events.title": "COMPETITIONS",
+    "events.prize": "Prize Pool",
+    "events.register": "Register",
+    "events.open": "Open",
+    "events.soon": "Soon",
+    "events.cta": "Want to organize your own tournament? Contact us!",
+    "events.contact": "Contact Us",
+
     // Contacts
     "contacts.tag": "Contacts",
     "contacts.title1": "HAVE",
@@ -219,7 +265,7 @@ const translations = {
     "footer.club": "RONIN Gaming Club",
   },
 
-  kg: {
+  ky: {
     // Navbar
     "nav.about": "Клуб жөнүндө",
     "nav.booking": "Брондоо",
@@ -252,6 +298,10 @@ const translations = {
     "about.session.title": "СЕНИН СЕССИЯ",
     "about.session.desc1": "Компьютер тандаңыз • күн • убакыт",
     "about.session.desc2": "онлайн төлөңүз • келиңиз • ойноңуз",
+    "about.subtitle": "Компьютердик клуб",
+    "about.tagline": "Жөн гана компьютердик клуб эмес",
+    "about.power.desc2": "RTX • Intel i5/i9 • 64 GB RAM чейин",
+    "about.comfort.desc2": "144–240Hz • ойлонулган мейкиндик",
     "about.title": "Эмне үчүн RONIN?",
     "about.feature1.title": "Топ техника",
     "about.feature1.desc": "RTX 4090, i9-13900K, 165Hz мониторлор",
@@ -302,6 +352,16 @@ const translations = {
     "games.tag": "Биздин клубта",
     "games.title": "Оюндар",
 
+    // Events
+    "events.tag": "Активдүү турнирлер",
+    "events.title": "МЕЛДЕШТЕР",
+    "events.prize": "Сыйлык фонду",
+    "events.register": "Катталуу",
+    "events.open": "Ачык",
+    "events.soon": "Жакында",
+    "events.cta": "Өзүңүздүн турнирди уюштургуңуз келеби? Бизге кайрылыңыз!",
+    "events.contact": "Биз менен байланышуу",
+
     // Contacts
     "contacts.tag": "Байланыш",
     "contacts.title1": "СУРООЛОР",
@@ -329,7 +389,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("ronin-language") as Language;
-    if (saved && (saved === "ru" || saved === "en" || saved === "kg")) {
+    if (saved && (saved === "ru" || saved === "en" || saved === "ky")) {
       setLanguageState(saved);
     }
   }, []);

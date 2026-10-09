@@ -1,0 +1,243 @@
+export const ru = {
+  // Navigation
+  "nav.home": "Главная",
+  "nav.about": "О нас",
+  "nav.booking": "Бронирование",
+  "nav.computers": "Компьютеры",
+  "nav.games": "Игры",
+  "nav.tariffs": "Тарифы",
+  "nav.contacts": "Контакты",
+  "nav.login": "Войти",
+  "nav.signup": "Регистрация",
+
+  // Common
+  "common.welcome": "Добро пожаловать",
+  "common.loading": "Загрузка...",
+  "common.error": "Ошибка",
+  "common.success": "Успех",
+  "common.cancel": "Отмена",
+  "common.confirm": "Подтвердить",
+  "common.save": "Сохранить",
+  "common.delete": "Удалить",
+  "common.edit": "Редактировать",
+  "common.close": "Закрыть",
+  "common.submit": "Отправить",
+  "common.search": "Поиск",
+  "common.filter": "Фильтр",
+  "common.logout": "Выход",
+  "common.profile": "Профиль",
+  "common.settings": "Настройки",
+
+  // Hero Section
+  "hero.title": "RONIN",
+  "hero.subtitle": "Компьютерный клуб нового поколения",
+  "hero.description": "Топовые ПК, низкие цены, уютная атмосфера",
+  "hero.bookNow": "ЗАБРОНИРОВАТЬ",
+  "hero.learnMore": "Подробнее",
+
+  // About Section
+  "about.title": "О НАС",
+  "about.clubTitle": "О клубе RONIN",
+  "about.description": "RONIN — это современный компьютерный клуб с мощным оборудованием, комфортными креслами и профессиональной атмосферой. Мы создали пространство для настоящих геймеров.",
+
+  // Features Section
+  "features.title": "ПРЕИМУЩЕСТВА",
+  "features.whyUs": "Почему выбирают нас",
+  
+  "features.performance": "Высокая производительность",
+  "features.performance.desc": "Мощные игровые ПК с RTX 3060 и i7-12700F",
+  
+  "features.speed": "Скоростной интернет",
+  "features.speed.desc": "500 Мбит/с для комфортной игры без лагов",
+  
+  "features.security": "Безопасность",
+  "features.security.desc": "Контроль доступа и защита личных данных",
+  
+  "features.equipment": "Профессиональное оборудование",
+  "features.equipment.desc": "Мониторы 240Hz и качественный звук",
+  
+  "features.drinks": "Напитки включены",
+  "features.drinks.desc": "Бесплатный чай, кофе и вода для всех гостей",
+  
+  "features.atmosphere": "Приятная атмосфера",
+  "features.atmosphere.desc": "Современный дизайн и комфортные кресла",
+
+  // Stats Section
+  "stats.computers": "Компьютеров",
+  "stats.computers.desc": "4 категории на выбор",
+  "stats.available": "Без выходных",
+  "stats.available.desc": "Работаем 24/7",
+  "stats.categories": "Категория ПК",
+  "stats.categories.desc": "Standard — Ronin Rooms",
+  "stats.frequency": "Макс. частота",
+  "stats.frequency.desc": "На Premium станциях",
+
+  // Booking Section
+  "booking.title": "БРОНИРОВАНИЕ",
+  "booking.selectDate": "Выберите дату",
+  "booking.selectTime": "Выберите время",
+  "booking.selectComputer": "Выберите компьютер",
+  "booking.duration": "Продолжительность",
+  "booking.hours": "часов",
+  "booking.total": "Итого",
+  "booking.confirm": "Подтвердить бронирование",
+  "booking.success": "Бронирование успешно!",
+  "booking.error": "Ошибка бронирования",
+
+  // Tariffs Section
+  "tariffs.title": "ТАРИФЫ",
+  "tariffs.morning": "Утренний",
+  "tariffs.standard": "Стандартный",
+  "tariffs.night": "Ночной",
+  "tariffs.morning.time": "09:00 — 17:00",
+  "tariffs.standard.time": "17:00 — 23:00",
+  "tariffs.night.time": "23:00 — 09:00",
+  "tariffs.morning.feature1": "Утренние часы",
+  "tariffs.morning.feature2": "Скидка -20%",
+  "tariffs.standard.feature1": "Стандартное время",
+  "tariffs.standard.feature2": "Все ПК",
+  "tariffs.night.feature1": "Ночные часы",
+  "tariffs.night.feature2": "Скидка -15%",
+  "tariffs.book": "ЗАБРОНИРОВАТЬ",
+  "tariffs.hour": "час",
+  "tariffs.perHour": "/час",
+
+  // Computers Section
+  "computers.title": "КОМПЬЮТЕРЫ",
+  "computers.categories": "категории",
+  "computers.standard": "Standard",
+  "computers.comfort": "Comfort",
+  "computers.premium": "Premium",
+  "computers.ronin": "Ronin Rooms",
+  "computers.available": "Доступен",
+  "computers.busy": "Занят",
+  "computers.cpu": "Процессор",
+  "computers.gpu": "Видеокарта",
+  "computers.ram": "Оперативная память",
+  "computers.monitor": "Монитор",
+
+  // Games Section
+  "games.title": "ИГРЫ",
+  "games.inClub": "В НАШЕМ КЛУБЕ",
+  "games.popular": "Популярные игры",
+  "games.category.fps": "FPS",
+  "games.category.moba": "MOBA",
+  "games.category.battle": "BATTLE ROYALE",
+
+  // Contacts Section
+  "contacts.title": "КОНТАКТЫ",
+  "contacts.getInTouch": "БЫСТРАЯ СВЯЗЬ",
+  "contacts.fastContact": "Выберите удобный способ и мы сразу ответим",
+  "contacts.phone": "Телефон",
+  "contacts.phone.time": "Звоните с 10:00 до 02:00",
+  "contacts.telegram": "Telegram",
+  "contacts.telegram.desc": "Быстрые ответы на все вопросы",
+  "contacts.email": "Email",
+  "contacts.email.desc": "Ответим в течение 1 часа",
+  "contacts.address": "Адрес",
+  "contacts.address.desc": "Удобное расположение в центре города",
+  "contacts.social": "Соцсети",
+  "contacts.location": "Местоположение",
+  "contacts.workingHours": "Режим работы",
+  "contacts.callNow": "Позвонить",
+  "contacts.sendMessage": "Отправить сообщение",
+  "contacts.whatsapp": "WhatsApp",
+  "contacts.whatsapp.desc": "Быстрый ответ",
+
+  // Footer
+  "footer.description": "Современный игровой клуб в Бишкеке. Мощные ПК, комфортная атмосфера и онлайн-бронирование.",
+  "footer.rights": "Все права защищены",
+  "footer.quickLinks": "БЫСТРЫЕ ССЫЛКИ",
+  "footer.home": "Главная",
+  "footer.booking": "Бронирование",
+  "footer.helpCenter": "Помощь",
+  "footer.login": "Вход",
+  "footer.signup": "Регистрация",
+  "footer.support": "ПОДДЕРЖКА",
+  "footer.social": "МЫ В СОЦСЕТЯХ",
+  "footer.location": "Бишкек, Кыргызстан",
+
+  // Auth
+  "auth.login": "Вход",
+  "auth.signup": "Регистрация",
+  "auth.email": "Email",
+  "auth.password": "Пароль",
+  "auth.confirmPassword": "Подтвердите пароль",
+  "auth.fullName": "Имя и Фамилия",
+  "auth.phone": "Телефон",
+  "auth.forgotPassword": "Забыли пароль?",
+  "auth.rememberMe": "Запомнить меня",
+  "auth.or": "или",
+  "auth.withGoogle": "Войти через Google",
+  "auth.haveAccount": "Уже есть аккаунт?",
+  "auth.noAccount": "Нет аккаунта?",
+  "auth.minPassword": "Минимум 6 символов",
+  
+  // Registration errors
+  "auth.error.invalidEmail": "Неверный email адрес",
+  "auth.error.weakPassword": "Слишком слабый пароль",
+  "auth.error.passwordMismatch": "Пароли не совпадают",
+  "auth.error.emailExists": "Аккаунт с таким email уже существует",
+  "auth.error.invalidCredentials": "Неверный email или пароль",
+
+  // Profile
+  "profile.title": "Профиль",
+  "profile.edit": "Редактировать профиль",
+  "profile.bookings": "Мои бронирования",
+  "profile.history": "История",
+  "profile.settings": "Настройки",
+  "profile.changePassword": "Изменить пароль",
+  "profile.notifications": "Уведомления",
+  "profile.language": "Язык",
+  "profile.theme": "Тема",
+  "profile.lightMode": "Светлая тема",
+  "profile.darkMode": "Темная тема",
+
+  // Admin Panel
+  "admin.title": "Панель администратора",
+  "admin.dashboard": "Панель управления",
+  "admin.bookings": "Бронирования",
+  "admin.computers": "Компьютеры",
+  "admin.users": "Пользователи",
+  "admin.managers": "Менеджеры",
+  "admin.tariffs": "Тарифы",
+  "admin.settings": "Настройки",
+  "admin.statistics": "Статистика",
+  "admin.reports": "Отчёты",
+  "admin.addNew": "Добавить новый",
+  "admin.edit": "Редактировать",
+  "admin.delete": "Удалить",
+  "admin.active": "Активный",
+  "admin.inactive": "Неактивный",
+  "admin.status": "Статус",
+  "admin.actions": "Действия",
+
+  // Manager Panel
+  "manager.title": "Панель менеджера",
+  "manager.todayBookings": "Сегодняшние бронирования",
+  "manager.checkIn": "Регистрация",
+  "manager.checkOut": "Выезд",
+
+  // Notifications
+  "notification.bookingConfirmed": "Бронирование подтверждено",
+  "notification.bookingCancelled": "Бронирование отменено",
+  "notification.paymentSuccess": "Оплата прошла успешно",
+  "notification.paymentFailed": "Ошибка оплаты",
+
+  // Receipt
+  "receipt.title": "Чек",
+  "receipt.date": "Дата",
+  "receipt.time": "Время",
+  "receipt.computer": "Компьютер",
+  "receipt.duration": "Продолжительность",
+  "receipt.total": "Итого",
+  "receipt.download": "Скачать",
+  "receipt.print": "Распечатать",
+
+  // Validation
+  "validation.required": "Это поле обязательно",
+  "validation.email": "Введите корректный email",
+  "validation.phone": "Введите корректный номер телефона",
+  "validation.minLength": "Минимум {min} символов",
+  "validation.maxLength": "Максимум {max} символов",
+};

@@ -1,75 +1,284 @@
-import { UsersTable } from "@/components/admin/users/UsersTable";
-import { UsersHeader } from "@/components/admin/users/UsersHeader";
+"use client";
 
-export default async function UsersPage() {
-  // TODO: Fetch from database with filters
-  const users = [
-    {
-      id: "1",
-      name: "Бекболот Алымкулов",
-      email: "bekbolot@example.com",
-      phone: "+996 555 123 456",
-      role: "client",
-      status: "active",
-      createdAt: "2026-08-15",
-      bookingsCount: 12,
-    },
-    {
-      id: "2",
-      name: "Айжан Кадырова",
-      email: "aizhan@example.com",
-      phone: "+996 700 234 567",
-      role: "client",
-      status: "active",
-      createdAt: "2026-09-01",
-      bookingsCount: 8,
-    },
-    {
-      id: "3",
-      name: "Нурбек Токтогулов",
-      email: "nurbek@ronin.kg",
-      phone: "+996 555 345 678",
-      role: "manager",
-      status: "active",
-      createdAt: "2026-07-20",
-      bookingsCount: 0,
-    },
-    {
-      id: "4",
-      name: "Эльмира Садыкова",
-      email: "elmira@example.com",
-      phone: "+996 777 456 789",
-      role: "client",
-      status: "blocked",
-      createdAt: "2026-09-10",
-      bookingsCount: 3,
-    },
-    {
-      id: "5",
-      name: "Азамат Момунов",
-      email: "azamat@example.com",
-      phone: "+996 500 567 890",
-      role: "client",
-      status: "active",
-      createdAt: "2026-08-25",
-      bookingsCount: 15,
-    },
-  ];
+import { useState, useEffect } from "react";
+import { Plus, Search, Trash2, Ban, CheckCircle } from "lucide-react";
+import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
+import { RollingLoader } from "@/components/ui/RollingLoader";
+import { UserCard } from "@/components/admin/users/UserCard";
 
-  const stats = {
-    total: 156,
-    active: 142,
-    blocked: 8,
-    managers: 6,
+interface User {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: string;
+  avatar: string | null;
+  createdAt: string;
+}
+
+export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    filterUsers();
+  }, [users, searchQuery, roleFilter, statusFilter]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/users");
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("API Error:", errorData);
+        throw new Error(errorData.error || "Failed to fetch users");
+      }
+      
+      const data = await res.json();
+      setUsers(data.users || []);
+    } catch (error: any) {
+      console.error("Failed to fetch users:", error);
+      alert(`Ошибка загрузки пользователей: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const filterUsers = () => {
+    let filtered = [...users];
+
+    // Role filter
+    if (roleFilter !== "all") {
+      filtered = filtered.filter((u) => u.role === roleFilter);
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((u) => u.status === statusFilter);
+    }
+
+    // Search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (u) =>
+          u.name.toLowerCase().includes(query) ||
+          u.email?.toLowerCase().includes(query) ||
+          u.phone?.includes(query)
+      );
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Удалить пользователя? Это действие нельзя отменить.")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setUsers(users.filter((u) => u.id !== userId));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Ошибка удаления");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Ошибка сети");
+    }
+  };
+
+  const handleBlockUser = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    const action = newStatus === "blocked" ? "заблокировать" : "разблокировать";
+
+    if (!confirm(`Вы уверены что хотите ${action} этого пользователя?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        setUsers(
+          users.map((u) =>
+            u.id === userId ? { ...u, status: newStatus } : u
+          )
+        );
+      } else {
+        const data = await res.json();
+        alert(data.error || "Ошибка изменения статуса");
+      }
+    } catch (error) {
+      console.error("Status change error:", error);
+      alert("Ошибка сети");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <RollingLoader />
+          <p className="text-gray-400 mt-4">Загрузка пользователей...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page header with stats */}
-      <UsersHeader stats={stats} />
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
+            Пользователи
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Управление клиентами системы • Всего: {users.length}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center gap-2"
+          style={{
+            background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+            color: "#fff",
+          }}
+        >
+          <Plus className="w-5 h-5" />
+          Добавить пользователя
+        </button>
+      </div>
 
-      {/* Users table */}
-      <UsersTable users={users} />
+      {/* Filters */}
+      <div
+        className="rounded-2xl p-6"
+        style={{
+          background: "linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%)",
+          border: "1px solid rgba(139,92,246,0.3)",
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+              style={{ color: "#9ca3af" }}
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Поиск по имени, email, телефону..."
+              className="w-full pl-12 pr-4 py-3 rounded-xl text-sm transition-all"
+              style={{
+                background: "rgba(15,15,30,0.8)",
+                border: "1px solid rgba(139,92,246,0.3)",
+                color: "#fff",
+              }}
+            />
+          </div>
+
+          {/* Role filter */}
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
+            style={{
+              background: "rgba(15,15,30,0.8)",
+              border: "1px solid rgba(139,92,246,0.3)",
+              color: "#fff",
+            }}
+          >
+            <option value="all">Все роли</option>
+            <option value="client">Клиенты</option>
+            <option value="manager">Менеджеры</option>
+            <option value="admin">Администраторы</option>
+          </select>
+
+          {/* Status filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
+            style={{
+              background: "rgba(15,15,30,0.8)",
+              border: "1px solid rgba(139,92,246,0.3)",
+              color: "#fff",
+            }}
+          >
+            <option value="all">Все статусы</option>
+            <option value="active">Активные</option>
+            <option value="blocked">Заблокированные</option>
+          </select>
+        </div>
+
+        {/* Results count */}
+        <div className="mt-4 text-sm text-gray-400">
+          Найдено: {filteredUsers.length} из {users.length}
+        </div>
+      </div>
+
+      {/* Users Grid */}
+      {filteredUsers.length === 0 ? (
+        <div className="text-center py-20">
+          <div
+            className="w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4"
+            style={{
+              background: "rgba(139,92,246,0.1)",
+              border: "1px solid rgba(139,92,246,0.3)",
+            }}
+          >
+            <Search className="w-10 h-10" style={{ color: "#9ca3af" }} />
+          </div>
+          <p className="text-gray-400 text-lg mb-2">Пользователи не найдены</p>
+          <p className="text-gray-500 text-sm">Попробуйте изменить фильтры</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredUsers.map((user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+              onDelete={handleDeleteUser}
+              onBlock={handleBlockUser}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <CreateUserModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            fetchUsers();
+            setShowCreateModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }
+

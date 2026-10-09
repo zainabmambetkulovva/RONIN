@@ -1,0 +1,44 @@
+-- Админ колдонуучу түзүү SQL
+-- https://console.neon.tech/ ачып, SQL Editor'до иштетиңиз
+
+-- 1. Алгач эски админди өчүрөбүз (эгер бар болсо)
+DELETE FROM users WHERE email = 'admin@ronin.kg';
+
+-- 2. Жаңы админ түзөбүз
+-- Password: admin123
+-- Telegram Chat ID: 8824394948 (өзүңүздүн Chat ID коюңуз!)
+
+INSERT INTO users (
+  id, 
+  email, 
+  name, 
+  password, 
+  telegram_chat_id, 
+  role, 
+  status, 
+  avatar, 
+  created_at, 
+  updated_at
+)
+VALUES (
+  gen_random_uuid(),
+  'admin@ronin.kg',
+  'Admin RONIN',
+  '$2a$10$abcdefghijklmnopqrstuv1234567890123456789012345678',
+  '8824394948',
+  'admin',
+  'active',
+  'default',
+  NOW(),
+  NOW()
+);
+
+-- Проверка
+SELECT id, email, name, role, telegram_chat_id, status 
+FROM users 
+WHERE email = 'admin@ronin.kg';
+
+-- ✅ Админ түзүлдү!
+-- Логин: admin@ronin.kg
+-- Пароль: admin123
+-- Telegram Chat ID: 8824394948

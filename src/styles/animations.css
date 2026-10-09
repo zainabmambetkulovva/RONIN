@@ -1,0 +1,666 @@
+/* Animated Card with Rotating Border */
+.card-animated {
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg, #171717);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.card-animated .content {
+  border-radius: 8px;
+  background: var(--card-bg, #171717);
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  z-index: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.card-animated .content::before {
+  opacity: 0;
+  transition: opacity 300ms;
+  content: " ";
+  display: block;
+  background: white;
+  width: 5px;
+  height: 50px;
+  position: absolute;
+  filter: blur(50px);
+  overflow: hidden;
+}
+
+.card-animated:hover .content::before {
+  opacity: 1;
+}
+
+.card-animated::before {
+  opacity: 0;
+  content: " ";
+  position: absolute;
+  display: block;
+  width: 80px;
+  height: 360px;
+  background: linear-gradient(#ff2288, #387ef0);
+  transition: opacity 300ms;
+  animation: rotation_9018 8000ms infinite linear;
+  animation-play-state: paused;
+}
+
+.card-animated:hover::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+.card-animated::after {
+  position: absolute;
+  content: " ";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: rgba(23, 23, 23, 0.2);
+  backdrop-filter: blur(50px);
+}
+
+@keyframes rotation_9018 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Cosmic Toggle - Compact Version */
+.cosmic-toggle {
+  position: relative;
+  width: 70px;
+  height: 35px;
+  transform-style: preserve-3d;
+  perspective: 500px;
+}
+
+.cosmic-toggle .toggle {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cosmic-toggle .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #1a1a2e, #16213e);
+  border-radius: 17.5px;
+  transition: 0.5s;
+  transform-style: preserve-3d;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.cosmic-toggle .cosmos {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(1px 1px at 10% 10%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 20% 20%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 30% 30%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 40% 40%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 50% 50%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 60% 60%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 70% 70%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 80% 80%, #fff 100%, transparent),
+    radial-gradient(1px 1px at 90% 90%, #fff 100%, transparent);
+  background-size: 200% 200%;
+  opacity: 0.1;
+  transition: 0.5s;
+}
+
+.cosmic-toggle .toggle-orb {
+  position: absolute;
+  height: 31px;
+  width: 31px;
+  left: 2px;
+  bottom: 2px;
+  background: linear-gradient(145deg, #ff6b6b, #4ecdc4);
+  border-radius: 50%;
+  transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform-style: preserve-3d;
+  z-index: 2;
+}
+
+.cosmic-toggle .inner-orb {
+  position: absolute;
+  inset: 2.5px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff, #e6e6e6);
+  transition: 0.5s;
+  overflow: hidden;
+}
+
+.cosmic-toggle .inner-orb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(from 0deg, transparent 0deg, rgba(0, 0, 0, 0.1) 10deg, transparent 20deg);
+  animation: patternRotate 10s linear infinite;
+}
+
+.cosmic-toggle .ring {
+  position: absolute;
+  inset: -1.5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition: 0.5s;
+}
+
+.cosmic-toggle .toggle:checked + .slider {
+  background: linear-gradient(45deg, #16213e, #1a1a2e);
+}
+
+.cosmic-toggle .toggle:checked + .slider .toggle-orb {
+  transform: translateX(35px) rotate(360deg);
+  background: linear-gradient(145deg, #4ecdc4, #45b7af);
+}
+
+.cosmic-toggle .toggle:checked + .slider .inner-orb {
+  background: linear-gradient(145deg, #45b7af, #3da89f);
+  transform: scale(0.9);
+}
+
+.cosmic-toggle .toggle:checked + .slider .ring {
+  border-color: rgba(78, 205, 196, 0.3);
+  animation: ringPulse 2s infinite;
+}
+
+.cosmic-toggle .energy-line {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(78, 205, 196, 0.5), transparent);
+  transform-origin: left;
+  opacity: 0;
+  transition: 0.5s;
+}
+
+.cosmic-toggle .energy-line:nth-child(1) {
+  top: 20%;
+  transform: rotate(15deg);
+}
+
+.cosmic-toggle .energy-line:nth-child(2) {
+  top: 50%;
+  transform: rotate(0deg);
+}
+
+.cosmic-toggle .energy-line:nth-child(3) {
+  top: 80%;
+  transform: rotate(-15deg);
+}
+
+.cosmic-toggle .toggle:checked + .slider .energy-line {
+  opacity: 1;
+  animation: energyFlow 2s linear infinite;
+}
+
+.cosmic-toggle .particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.cosmic-toggle .particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #4ecdc4;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.cosmic-toggle .toggle:checked + .slider .particle {
+  animation: particleBurst 1s ease-out infinite;
+}
+
+.cosmic-toggle .particle:nth-child(1) {
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.cosmic-toggle .particle:nth-child(2) {
+  left: 40%;
+  animation-delay: 0.2s;
+}
+
+.cosmic-toggle .particle:nth-child(3) {
+  left: 60%;
+  animation-delay: 0.4s;
+}
+
+.cosmic-toggle .particle:nth-child(4) {
+  left: 80%;
+  animation-delay: 0.6s;
+}
+
+.cosmic-toggle .particle:nth-child(5) {
+  left: 30%;
+  animation-delay: 0.8s;
+}
+
+.cosmic-toggle .particle:nth-child(6) {
+  left: 70%;
+  animation-delay: 1s;
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.6;
+  }
+}
+
+@keyframes patternRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes energyFlow {
+  0% {
+    transform: scaleX(0) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scaleX(1) translateX(50%);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0) translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes particleBurst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(cos(var(--angle)) * 50px), calc(sin(var(--angle)) * 50px)) scale(0);
+    opacity: 0;
+  }
+}
+
+.cosmic-toggle .slider:hover .toggle-orb {
+  filter: brightness(1.2);
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.5), 0 0 40px rgba(78, 205, 196, 0.3);
+}
+
+.cosmic-toggle .slider:hover .cosmos {
+  opacity: 0.2;
+  animation: cosmosPan 20s linear infinite;
+}
+
+@keyframes cosmosPan {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
+  }
+}
+
+.cosmic-toggle .toggle:active + .slider .toggle-orb {
+  transform: scale(0.95);
+}
+
+.cosmic-toggle:hover .slider {
+  transform: rotateX(10deg) rotateY(10deg);
+}
+
+.cosmic-toggle:hover .toggle-orb {
+  transform: translateZ(10px);
+}
+
+.cosmic-toggle .toggle:checked + .slider::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(78, 205, 196, 0.2), transparent 50%);
+  opacity: 0;
+  animation: glowFollow 2s linear infinite;
+}
+
+@keyframes glowFollow {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Animated Social Cards */
+.social-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.social-cards .up {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+.social-cards .down {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+.social-card {
+  width: 90px;
+  height: 90px;
+  outline: none;
+  border: none;
+  background: white;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  transition: 0.2s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-card.card1 {
+  border-radius: 90px 5px 5px 5px;
+}
+
+.social-card.card2 {
+  border-radius: 5px 90px 5px 5px;
+}
+
+.social-card.card3 {
+  border-radius: 5px 5px 5px 90px;
+}
+
+.social-card.card4 {
+  border-radius: 5px 5px 90px 5px;
+}
+
+.social-card svg {
+  width: 30px;
+  height: 30px;
+}
+
+.social-card:hover {
+  cursor: pointer;
+  scale: 1.1;
+}
+
+/* Animated Social Cards */
+.social-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.social-cards .up {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+.social-cards .down {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+.social-card {
+  width: 90px;
+  height: 90px;
+  outline: none;
+  border: none;
+  background: white;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  transition: 0.2s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-card.card1 {
+  border-radius: 90px 5px 5px 5px;
+}
+
+.social-card.card2 {
+  border-radius: 5px 90px 5px 5px;
+}
+
+.social-card.card3 {
+  border-radius: 5px 5px 5px 90px;
+}
+
+.social-card.card4 {
+  border-radius: 5px 5px 90px 5px;
+}
+
+.social-card svg {
+  width: 30px;
+  height: 30px;
+}
+
+.social-card:hover {
+  cursor: pointer;
+  scale: 1.1;
+}
+
+.social-card.telegram:hover {
+  background-color: #0088cc;
+  box-shadow: 1px 1px 0px #4db8e8, 2px 2px 0px #2ca5e0, 3px 3px 0px #2ca5e0, 4px 4px 0px #2ca5e0, 5px 5px 0px #2ca5e0;
+}
+
+.social-card.telegram:hover svg {
+  fill: white;
+}
+
+.social-card.whatsapp:hover {
+  background-color: #25d366;
+  box-shadow: 1px 1px 0px #7ee3a3, 2px 2px 0px #4fdc82, 3px 3px 0px #4fdc82, 4px 4px 0px #4fdc82, 5px 5px 0px #4fdc82;
+}
+
+.social-card.whatsapp:hover svg {
+  fill: white;
+}
+
+.social-card.tiktok:hover {
+  background-color: #000000;
+  box-shadow: 1px 1px 0px #666, 2px 2px 0px #333, 3px 3px 0px #333, 4px 4px 0px #333, 5px 5px 0px #333;
+}
+
+.social-card.tiktok:hover svg {
+  fill: white;
+}
+
+.social-card.instagram:hover {
+  background-color: #cc39a4;
+  box-shadow: 1px 1px 0px #eeb1de, 2px 2px 0px #d365b6, 3px 3px 0px #d365b6, 4px 4px 0px #d365b6, 5px 5px 0px #d365b6;
+}
+
+.social-card.instagram:hover svg {
+  fill: white;
+}
+
+/* Save/Download Button Animation */
+.action_has {
+  --color: 0 0% 60%;
+  --color-has: 211deg 100% 48%;
+  --sz: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--sz) * 2.5);
+  width: calc(var(--sz) * 2.5);
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 0.0625rem solid hsl(var(--color));
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.action_has:hover {
+  border-color: hsl(var(--color-has));
+  background: hsl(var(--color-has) / 0.1);
+}
+
+.action_has:hover svg {
+  color: hsl(var(--color-has));
+}
+
+.action_has svg {
+  overflow: visible;
+  height: calc(var(--sz) * 1.75);
+  width: calc(var(--sz) * 1.75);
+  --ease: cubic-bezier(0.5, 0, 0.25, 1);
+  --zoom-from: 1.75;
+  --zoom-via: 0.75;
+  --zoom-to: 1;
+  --duration: 1s;
+}
+
+.action_has:hover path[data-path="box"] {
+  transition: all 0.3s var(--ease);
+  animation: has-saved var(--duration) var(--ease) forwards;
+  fill: hsl(var(--color-has) / 0.35);
+}
+
+.action_has:hover path[data-path="line-top"] {
+  animation: has-saved-line-top var(--duration) var(--ease) forwards;
+}
+
+.action_has:hover path[data-path="line-bottom"] {
+  animation: has-saved-line-bottom var(--duration) var(--ease) forwards,
+    has-saved-line-bottom-2 calc(var(--duration) * 1) var(--ease) calc(var(--duration) * 0.75);
+}
+
+@keyframes has-saved-line-top {
+  33.333% {
+    transform: rotate(0deg) translate(1px, 2px) scale(var(--zoom-from));
+    d: path("M 3 5 L 3 8 L 3 8");
+  }
+  66.666% {
+    transform: rotate(20deg) translate(2px, -2px) scale(var(--zoom-via));
+  }
+  99.999% {
+    transform: rotate(0deg) translate(0px, 0px) scale(var(--zoom-to));
+  }
+}
+
+@keyframes has-saved-line-bottom {
+  33.333% {
+    transform: rotate(0deg) translate(1px, 2px) scale(var(--zoom-from));
+    d: path("M 17 20 L 17 13 L 7 13 L 7 20");
+  }
+  66.666% {
+    transform: rotate(20deg) translate(2px, -2px) scale(var(--zoom-via));
+  }
+  99.999% {
+    transform: rotate(0deg) translate(0px, 0px) scale(var(--zoom-to));
+    d: path("M 17 21 L 17 21 L 7 21 L 7 21");
+  }
+}
+
+@keyframes has-saved-line-bottom-2 {
+  from {
+    d: path("M 17 21 L 17 21 L 7 21 L 7 21");
+  }
+  to {
+    transform: rotate(0deg) translate(0px, 0px) scale(var(--zoom-to));
+    d: path("M 17 20 L 17 13 L 7 13 L 7 20");
+    fill: white;
+  }
+}
+
+@keyframes has-saved {
+  33.333% {
+    transform: rotate(0deg) translate(1px, 2px) scale(var(--zoom-from));
+  }
+  66.666% {
+    transform: rotate(20deg) translate(2px, -2px) scale(var(--zoom-via));
+  }
+  99.999% {
+    transform: rotate(0deg) translate(0px, 0px) scale(var(--zoom-to));
+  }
+}
+
+/* Global Hover Animations */
+
+/* All buttons */
+button:not(.social-card):not(.action_has):hover {
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  filter: brightness(1.1);
+}
+
+/* All images */
+img:hover {
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+  filter: brightness(1.05);
+}
+
+/* All cards with glass-card class */
+.glass-card:hover {
+  transform: translateY(-4px);
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+}
+
+/* All divs containing 'card' in className */
+[class*="card"]:not(.social-card):not(.action_has):not(.card-animated):hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Specific hover for feature cards */
+.feature-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Links with smooth transitions */
+a:hover {
+  transition: all 0.3s ease;
+}
+
+/* Smooth scale for interactive elements */
+.interactive-element:hover {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+}

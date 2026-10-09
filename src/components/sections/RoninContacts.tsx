@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import Image from "next/image";
 import { PhoneIcon, SendIcon, MailIcon, MapPinIcon, ZapIcon, ShieldIcon, ClockIcon } from "@/components/ui/icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -252,104 +251,92 @@ export function RoninContacts() {
             </motion.div>
           </motion.div>
 
-          {/* ── RIGHT — Map + Gaming setup photo ── */}
+          {/* ── RIGHT — Large RONIN logo display ── */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={inView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative space-y-6"
+            className="relative flex items-center justify-center"
+            style={{ minHeight: "600px" }}
           >
-            {/* 2GIS Map */}
-            <div className="relative rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(99,102,241,0.2)" }}>
-              <iframe
-                src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lat%22%3A42.87661267975688%2C%22lon%22%3A74.60592836141588%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22bishkek%22%7D%2C%22org%22%3A%2270000001083373538%22%7D"
-                width="100%"
-                height="300"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                className="w-full"
+            {/* Giant glowing RONIN text */}
+            <div className="relative">
+              {/* Glow layers */}
+              <div
+                className="absolute inset-0 blur-[100px]"
+                style={{
+                  background: "radial-gradient(circle, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.2) 50%, transparent 70%)",
+                }}
               />
-            </div>
-
-            {/* Top-right decorative text */}
-            <div className="absolute -top-2 right-0 text-right z-10">
-              <p
-                className="text-base font-black uppercase leading-tight tracking-widest"
-                style={{ color: "rgba(139,92,246,0.7)" }}
+              <div
+                className="absolute inset-0 blur-[60px]"
+                style={{
+                  background: "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 60%)",
+                }}
+              />
+              
+              {/* Main text */}
+              <h1
+                className="font-black uppercase tracking-tighter relative z-10"
+                style={{
+                  fontSize: "clamp(4rem, 15vw, 12rem)",
+                  background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  textShadow: "0 0 80px rgba(59,130,246,0.5)",
+                  lineHeight: "0.85",
+                }}
               >
-                НАПИШИ
-                <br />
-                ИЛИ ПОЗВОНИ
-                <br />
-                СЕЙЧАС
-              </p>
-              {/* Arrow decoration */}
-              <svg
-                className="w-10 h-10 mt-1 ml-auto"
-                style={{ color: "rgba(139,92,246,0.5)", transform: "rotate(30deg)" }}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
+                RONIN
+              </h1>
 
-            {/* Photo */}
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                border: "1px solid rgba(99,102,241,0.2)",
-                boxShadow: "0 0 60px rgba(99,102,241,0.15)",
-              }}
-            >
-              <div className="aspect-[4/3] relative">
-                <Image
-                  src="/images (5).jpg"
-                  alt="RONIN Gaming Setup"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-                {/* Overlay */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(3,3,10,0.3) 0%, transparent 60%)",
-                  }}
-                />
-                {/* RONIN logo on screen */}
-                <div className="absolute bottom-6 left-6">
-                  <span
-                    className="text-3xl font-black tracking-widest"
-                    style={{
-                      background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      filter: "drop-shadow(0 0 20px rgba(59,130,246,0.6))",
-                    }}
-                  >
-                    RONIN
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom label */}
-            <div className="flex items-center justify-end gap-3 mt-4">
+              {/* Subtitle */}
               <p
-                className="text-sm font-black uppercase tracking-widest"
-                style={{ color: "rgba(59,130,246,0.6)" }}
-              >
-                RONIN —
-              </p>
-              <p
-                className="text-xs font-bold uppercase tracking-[0.2em]"
-                style={{ color: "rgba(139,92,246,0.5)" }}
+                className="text-center mt-6 text-sm sm:text-base font-bold uppercase tracking-[0.3em]"
+                style={{
+                  color: "rgba(139,92,246,0.7)",
+                }}
               >
                 Твой компьютерный клуб
               </p>
+
+              {/* Decorative lines */}
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <div className="h-px w-20" style={{ background: "linear-gradient(90deg, transparent, #3b82f6, transparent)" }} />
+                <div className="w-2 h-2 rounded-full" style={{ background: "#8b5cf6", boxShadow: "0 0 20px #8b5cf6" }} />
+                <div className="h-px w-20" style={{ background: "linear-gradient(90deg, transparent, #8b5cf6, transparent)" }} />
+              </div>
+
+              {/* Stats badges */}
+              <div className="flex items-center justify-center gap-6 mt-12">
+                <div className="text-center">
+                  <div className="text-3xl font-black" style={{ color: "#3b82f6" }}>50+</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">Компьютеров</div>
+                </div>
+                <div className="w-px h-12" style={{ background: "rgba(139,92,246,0.3)" }} />
+                <div className="text-center">
+                  <div className="text-3xl font-black" style={{ color: "#8b5cf6" }}>24/7</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">Работаем</div>
+                </div>
+                <div className="w-px h-12" style={{ background: "rgba(59,130,246,0.3)" }} />
+                <div className="text-center">
+                  <div className="text-3xl font-black" style={{ color: "#6366f1" }}>5★</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">Рейтинг</div>
+                </div>
+              </div>
+
+              {/* Map below */}
+              <div className="mt-12 rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(99,102,241,0.2)" }}>
+                <iframe
+                  src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lat%22%3A42.87661267975688%2C%22lon%22%3A74.60592836141588%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22bishkek%22%7D%2C%22org%22%3A%2270000001083373538%22%7D"
+                  width="100%"
+                  height="500"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  className="w-full"
+                />
+              </div>
             </div>
           </motion.div>
 

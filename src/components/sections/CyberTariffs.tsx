@@ -53,7 +53,7 @@ export function CyberTariffs() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
   return (
-    <section id="tariffs" className="py-20 relative" style={{ background: "#05050f" }} ref={ref}>
+    <section id="tariffs" className="py-24 relative" style={{ background: "#05050f" }} ref={ref}>
       <div
         className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)" }}

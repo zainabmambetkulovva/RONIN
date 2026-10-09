@@ -5,17 +5,17 @@ import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 
 const photos = [
-  { src: "/images (1).jpg", alt: "Компьютерный зал — вид 1" },
-  { src: "/images (2).jpg", alt: "Компьютерный зал — вид 2" },
-  { src: "/images (3).jpg", alt: "Компьютерный зал — вид 3" },
-  { src: "/images (4).jpg", alt: "Компьютерный зал — вид 4" },
+  { src: "/Dota 2 (MOBA).jpg", alt: "Компьютерный зал — вид 1" },
+  { src: "/League of Legends (MOBA).jpg", alt: "Компьютерный зал — вид 2" },
+  { src: "/Fortnite (Battle Royale).jpg", alt: "Компьютерный зал — вид 3" },
+  { src: "/Overwatch 2 (FPS).jpg", alt: "Компьютерный зал — вид 4" },
 ];
 
 export function CyberComfortPlaces() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.08 });
 
   return (
-    <section id="comfort" className="py-20 relative" style={{ background: "#05050f" }} ref={ref}>
+    <section id="comfort" className="py-24 relative" style={{ background: "#05050f" }} ref={ref}>
       <div
         className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)" }}

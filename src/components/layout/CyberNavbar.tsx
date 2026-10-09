@@ -64,7 +64,7 @@ export function CyberNavbar() {
             <ThemeSwitcher />
             <a
               href="/login"
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+              className="hover-button px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300"
             >
               {t("nav.login")}
             </a>

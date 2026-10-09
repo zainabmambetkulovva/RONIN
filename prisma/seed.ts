@@ -1,193 +1,373 @@
-import { PrismaClient, UserRole, UserStatus, ComputerStatus, TariffType } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { PrismaClient, ComputerStatus, TariffType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding RONIN database...");
+  console.log('🌱 Начинаем seed базы данных...');
 
-  // ── Admin user ──
-  const admin = await prisma.user.upsert({
-    where: { phone: "+996700000001" },
-    update: {},
-    create: {
-      name: "Admin RONIN",
-      phone: "+996700000001",
-      email: "admin@ronin.kg",
-      role: UserRole.admin,
-      status: UserStatus.active,
+  // 1. Создаем категории компьютеров
+  console.log('📂 Создаем категории...');
+  
+  const standartCategory = await prisma.computer_categories.create({
+    data: {
+      id: 'cat-standart',
+      name: 'STANDART',
+      description: '70 станций с отличными характеристиками для комфортной игры',
+      image_url: '/categories/standart.jpg',
+      is_active: true,
+      created_at: new Date(),
+      updated_at: new Date(),
     },
   });
 
-  // ── Manager user ──
-  const manager = await prisma.user.upsert({   
-    where: { phone: "+996700000002" },
-    update: {},
-    create: {
-      name: "Manager RONIN",
-      phone: "+996700000002",
-      email: "manager@ronin.kg",
-      role: UserRole.manager,
-      status: UserStatus.active,
+  const premiumCategory = await prisma.computer_categories.create({
+    data: {
+      id: 'cat-premium',
+      name: 'PREMIUM',
+      description: '10 станций с премиальным оборудованием для требовательных игр',
+      image_url: '/categories/premium.jpg',
+      is_active: true,
+      created_at: new Date(),
+      updated_at: new Date(),
     },
   });
 
-  console.log(`✅ Users: admin(${admin.id}), manager(${manager.id})`);
-
-  // ── Computer categories ──
-  const categories = [
-    {
-      name: "Standard",
-      description: "Стандартные компьютеры для комфортной игры. Intel Core i5, GTX 1660.",
-      imageUrl: null,
+  const vipCategory = await prisma.computerCategory.create({
+    data: {
+      name: 'VIP',
+      description: '10 станций с топовым железом и эксклюзивным комфортом',
+      imageUrl: '/categories/vip.jpg',
+      isActive: true,
     },
-    {
-      name: "Comfort",
-      description: "Комфортные места с улучшенными характеристиками. Intel Core i7, RTX 3060.",
-      imageUrl: null,
+  });
+
+  const roninRoomsCategory = await prisma.computerCategory.create({
+    data: {
+      name: 'RONIN ROOMS',
+      description: '3 индивидуальные стримерские комнаты с максимальной мощностью',
+      imageUrl: '/categories/ronin-rooms.jpg',
+      isActive: true,
     },
-    {
-      name: "Premium",
-      description: "Премиум-компьютеры с топовым железом. Intel Core i9, RTX 4080.",
-      imageUrl: null,
-    },
-    {
-      name: "Ronin Rooms",
-      description: "Приватные комнаты для группы. Топовое железо, изолированное пространство.",
-      imageUrl: null,
-    },
-  ];
+  });
 
-  const createdCategories: Record<string, string> = {};
-  for (const cat of categories) {
-    const c = await prisma.computerCategory.upsert({
-      where: { name: cat.name } as any,
-      update: {},
-      create: { ...cat, isActive: true },
-    });
-    createdCategories[cat.name] = c.id;
-  }
+  console.log('✅ Категории созданы!');
 
-  console.log("✅ Categories created");
+  // 2. Создаем тарифы
+  console.log('💰 Создаем тарифы...');
 
-  // ── Computers (96 total) ──
-  const distribution = [
-    { category: "Standard", count: 40 },
-    { category: "Comfort", count: 30 },
-    { category: "Premium", count: 20 },
-    { category: "Ronin Rooms", count: 6 },
-  ];
+  // Тарифы для STANDART (Comfort цены)
+  await prisma.tariff.createMany({
+    data: [
+      {
+        categoryId: standartCategory.id,
+        name: '1 час',
+        durationMinutes: 60,
+        price: 120,
+        type: TariffType.hourly,
+        isActive: true,
+      },
+      {
+        categoryId: standartCategory.id,
+        name: '3 часа',
+        durationMinutes: 180,
+        price: 300,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: standartCategory.id,
+        name: '5 часов',
+        durationMinutes: 300,
+        price: 500,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: standartCategory.id,
+        name: 'Ночь пакет',
+        durationMinutes: 540, // 9 часов (23:00-08:00)
+        price: 600,
+        type: TariffType.night,
+        isActive: true,
+      },
+      {
+        categoryId: standartCategory.id,
+        name: 'Утро пакет',
+        durationMinutes: 240, // 4 часа (08:00-12:00)
+        price: 300,
+        type: TariffType.morning,
+        isActive: true,
+      },
+    ],
+  });
 
-  const specs: Record<string, object> = {
-    Standard: {
-      cpu: "Intel Core i5-12400F",
-      gpu: "NVIDIA GTX 1660 Super 6GB",
-      ram: "16GB DDR4",
-      storage: "512GB NVMe SSD",
-      monitor: "24\" IPS 144Hz",
-      headset: "HyperX Cloud Core",
-      keyboard: "HyperX Alloy FPS",
-      mouse: "Logitech G102",
-    },
-    Comfort: {
-      cpu: "Intel Core i7-12700F",
-      gpu: "NVIDIA RTX 3060 12GB",
-      ram: "32GB DDR4",
-      storage: "1TB NVMe SSD",
-      monitor: "27\" IPS 165Hz",
-      headset: "HyperX Cloud II",
-      keyboard: "SteelSeries Apex 3",
-      mouse: "SteelSeries Rival 3",
-    },
-    Premium: {
-      cpu: "Intel Core i9-13900K",
-      gpu: "NVIDIA RTX 4080 16GB",
-      ram: "64GB DDR5",
-      storage: "2TB NVMe SSD",
-      monitor: "32\" IPS 240Hz 4K",
-      headset: "SteelSeries Arctis Nova Pro",
-      keyboard: "Keychron Q1 Pro",
-      mouse: "Logitech G Pro X Superlight 2",
-    },
-    "Ronin Rooms": {
-      cpu: "Intel Core i9-13900KS",
-      gpu: "NVIDIA RTX 4090 24GB",
-      ram: "64GB DDR5",
-      storage: "2TB NVMe SSD",
-      monitor: "34\" Ultrawide 165Hz",
-      headset: "SteelSeries Arctis Nova Pro",
-      keyboard: "Keychron Q1 Pro",
-      mouse: "Logitech G Pro X Superlight 2",
-      extras: "Private room, sofa, mini-fridge",
-    },
-  };
+  // Тарифы для PREMIUM
+  await prisma.tariff.createMany({
+    data: [
+      {
+        categoryId: premiumCategory.id,
+        name: '1 час',
+        durationMinutes: 60,
+        price: 250,
+        type: TariffType.hourly,
+        isActive: true,
+      },
+      {
+        categoryId: premiumCategory.id,
+        name: '3 часа',
+        durationMinutes: 180,
+        price: 550,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: premiumCategory.id,
+        name: '5 часов',
+        durationMinutes: 300,
+        price: 850,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: premiumCategory.id,
+        name: 'Ночь пакет',
+        durationMinutes: 540,
+        price: 700,
+        type: TariffType.night,
+        isActive: true,
+      },
+      {
+        categoryId: premiumCategory.id,
+        name: 'Утро пакет',
+        durationMinutes: 240,
+        price: 550,
+        type: TariffType.morning,
+        isActive: true,
+      },
+    ],
+  });
 
-  let computerNumber = 1;
-  for (const { category, count } of distribution) {
-    const categoryId = createdCategories[category];
-    for (let i = 0; i < count; i++) {
-      await prisma.computer.upsert({
-        where: { number: computerNumber },
-        update: {},
-        create: {
-          categoryId,
-          number: computerNumber,
-          specifications: specs[category],
-          status: ComputerStatus.available,
-        },
-      });
-      computerNumber++;
-    }
-  }
+  // Тарифы для VIP (такие же как Premium)
+  await prisma.tariff.createMany({
+    data: [
+      {
+        categoryId: vipCategory.id,
+        name: '1 час',
+        durationMinutes: 60,
+        price: 250,
+        type: TariffType.hourly,
+        isActive: true,
+      },
+      {
+        categoryId: vipCategory.id,
+        name: '3 часа',
+        durationMinutes: 180,
+        price: 550,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: vipCategory.id,
+        name: '5 часов',
+        durationMinutes: 300,
+        price: 850,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: vipCategory.id,
+        name: 'Ночь пакет',
+        durationMinutes: 540,
+        price: 700,
+        type: TariffType.night,
+        isActive: true,
+      },
+      {
+        categoryId: vipCategory.id,
+        name: 'Утро пакет',
+        durationMinutes: 240,
+        price: 550,
+        type: TariffType.morning,
+        isActive: true,
+      },
+    ],
+  });
 
-  console.log(`✅ ${computerNumber - 1} computers created`);
+  // Тарифы для RONIN ROOMS (такие же как Premium)
+  await prisma.tariff.createMany({
+    data: [
+      {
+        categoryId: roninRoomsCategory.id,
+        name: '1 час',
+        durationMinutes: 60,
+        price: 250,
+        type: TariffType.hourly,
+        isActive: true,
+      },
+      {
+        categoryId: roninRoomsCategory.id,
+        name: '3 часа',
+        durationMinutes: 180,
+        price: 550,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: roninRoomsCategory.id,
+        name: '5 часов',
+        durationMinutes: 300,
+        price: 850,
+        type: TariffType.package,
+        isActive: true,
+      },
+      {
+        categoryId: roninRoomsCategory.id,
+        name: 'Ночь пакет',
+        durationMinutes: 540,
+        price: 700,
+        type: TariffType.night,
+        isActive: true,
+      },
+      {
+        categoryId: roninRoomsCategory.id,
+        name: 'Утро пакет',
+        durationMinutes: 240,
+        price: 550,
+        type: TariffType.morning,
+        isActive: true,
+      },
+    ],
+  });
 
-  // ── Tariffs ──
-  const tariffData = [
-    // Standard
-    { category: "Standard", name: "1 час", duration: 60, price: 120, type: TariffType.hourly },
-    { category: "Standard", name: "3 часа", duration: 180, price: 300, type: TariffType.hourly },
-    { category: "Standard", name: "5 часов", duration: 300, price: 500, type: TariffType.hourly },
-    { category: "Standard", name: "Ночной пакет", duration: 480, price: 600, type: TariffType.night },
-    { category: "Standard", name: "Утренний пакет", duration: 240, price: 300, type: TariffType.morning },
-    // Comfort
-    { category: "Comfort", name: "1 час", duration: 60, price: 150, type: TariffType.hourly },
-    { category: "Comfort", name: "3 часа", duration: 180, price: 390, type: TariffType.hourly },
-    { category: "Comfort", name: "5 часов", duration: 300, price: 600, type: TariffType.hourly },
-    { category: "Comfort", name: "Ночной пакет", duration: 480, price: 800, type: TariffType.night },
-    { category: "Comfort", name: "Утренний пакет", duration: 240, price: 380, type: TariffType.morning },
-    // Premium
-    { category: "Premium", name: "1 час", duration: 60, price: 200, type: TariffType.hourly },
-    { category: "Premium", name: "3 часа", duration: 180, price: 550, type: TariffType.hourly },
-    { category: "Premium", name: "5 часов", duration: 300, price: 850, type: TariffType.hourly },
-    { category: "Premium", name: "Ночной пакет", duration: 480, price: 1200, type: TariffType.night },
-    { category: "Premium", name: "Утренний пакет", duration: 240, price: 600, type: TariffType.morning },
-    // Ronin Rooms
-    { category: "Ronin Rooms", name: "1 час", duration: 60, price: 500, type: TariffType.hourly },
-    { category: "Ronin Rooms", name: "3 часа", duration: 180, price: 1300, type: TariffType.hourly },
-    { category: "Ronin Rooms", name: "Ночной пакет", duration: 480, price: 2500, type: TariffType.night },
-  ];
+  console.log('✅ Тарифы созданы!');
 
-  for (const t of tariffData) {
-    await prisma.tariff.create({
+  // 3. Создаем компьютеры
+  console.log('💻 Создаем компьютеры...');
+
+  // STANDART компьютеры (1-70)
+  for (let i = 1; i <= 70; i++) {
+    await prisma.computer.create({
       data: {
-        categoryId: createdCategories[t.category],
-        name: t.name,
-        durationMinutes: t.duration,
-        price: t.price,
-        type: t.type,
+        categoryId: standartCategory.id,
+        number: i,
+        specifications: {
+          cpu: 'Intel Core i5 12400F',
+          gpu: 'GEFORCE RTX 4060',
+          ram: 'KINGSTON FURY BEAST 16x2',
+          monitor: '27" ASUS TUF 280Hz',
+          keyboard: 'HyperX Alloy Origins',
+          mouse: 'HyperX Pulsefire Core',
+          chair: 'Anda Seat Phantom 3',
+        },
+        status: ComputerStatus.available,
+      },
+    });
+  }
+
+  // PREMIUM компьютеры (71-80)
+  for (let i = 71; i <= 80; i++) {
+    await prisma.computer.create({
+      data: {
+        categoryId: premiumCategory.id,
+        number: i,
+        specifications: {
+          cpu: 'Intel Core i7 12700',
+          gpu: 'GEFORCE RTX 4070 TI',
+          ram: '32GB KINGSTON FURY BEAST',
+          monitor: '27" ASUS TUF 280Hz',
+          keyboard: 'Varmilo Limited Edition',
+          mouse: 'Logitech Pro SuperLight',
+          chair: 'Anda Seat Dark Knight XL',
+        },
+        status: ComputerStatus.available,
+      },
+    });
+  }
+
+  // VIP компьютеры (81-90)
+  for (let i = 81; i <= 90; i++) {
+    await prisma.computer.create({
+      data: {
+        categoryId: vipCategory.id,
+        number: i,
+        specifications: {
+          cpu: 'Intel Core i7 12700',
+          gpu: 'GEFORCE RTX 4060 TI',
+          ram: '32GB KINGSTON FURY BEAST',
+          monitor: '27" ASUS TUF 280Hz',
+          keyboard: 'HyperX Alloy Elite 2',
+          mouse: 'HyperX Pulsefire Surge',
+          chair: 'Anda Seat Kaiser II XL',
+        },
+        status: ComputerStatus.available,
+      },
+    });
+  }
+
+  // RONIN ROOMS (91-93) - самые мощные для стримеров
+  for (let i = 91; i <= 93; i++) {
+    await prisma.computer.create({
+      data: {
+        categoryId: roninRoomsCategory.id,
+        number: i,
+        specifications: {
+          cpu: 'Intel Core i9 13900K',
+          gpu: 'GEFORCE RTX 4090',
+          ram: '64GB DDR5 KINGSTON FURY BEAST',
+          monitor: '32" ASUS ROG Swift 360Hz',
+          keyboard: 'Razer Huntsman V3 Pro',
+          mouse: 'Razer Viper V3 Pro',
+          chair: 'Secretlab Titan Evo 2024',
+          microphone: 'Shure SM7B',
+          camera: 'Sony A7 III',
+          streamDeck: 'Elgato Stream Deck XL',
+          lighting: 'Elgato Key Light Air x2',
+        },
+        status: ComputerStatus.available,
+      },
+    });
+  }
+
+  console.log('✅ 93 компьютера созданы!');
+
+  // 4. Создаем аватары
+  console.log('👤 Создаем аватары...');
+
+  const avatars = [
+    'samurai', 'ninja', 'warrior', 'mage', 'archer', 'knight', 'assassin', 'monk',
+    'ronin-gold', 'ronin-silver', 'dragon', 'phoenix', 'tiger',
+  ];
+
+  for (let i = 0; i < avatars.length; i++) {
+    await prisma.avatar.create({
+      data: {
+        code: avatars[i],
+        imageUrl: `/avatars/${avatars[i]}.png`,
         isActive: true,
       },
     });
   }
 
-  console.log("✅ Tariffs created");
-  console.log("🎉 Seed complete!");
+  console.log('✅ 13 аватаров созданы!');
+
+  console.log('');
+  console.log('🎉 SEED ЗАВЕРШЕН УСПЕШНО!');
+  console.log('');
+  console.log('📊 СОЗДАНО:');
+  console.log('  • 4 категории');
+  console.log('  • 20 тарифов (5 на категорию)');
+  console.log('  • 93 компьютера');
+  console.log('    - STANDART: 70 ПК');
+  console.log('    - PREMIUM: 10 ПК');
+  console.log('    - VIP: 10 ПК');
+  console.log('    - RONIN ROOMS: 3 ПК');
+  console.log('  • 13 аватаров');
+  console.log('');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Ошибка при выполнении seed:', e);
     process.exit(1);
   })
   .finally(async () => {

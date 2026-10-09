@@ -16,7 +16,7 @@ export function RoninAbout() {
       icon: CpuIcon,
       title: t("about.power.title"),
       desc1: t("about.power.desc1"),
-      desc2: "RTX • Intel i5/i9 • до 64 GB RAM",
+      desc2: t("about.power.desc2"),
       image: "/images (1).jpg",
       label: ["GEFORCE", "RTX"],
       accent: "#3b82f6",
@@ -26,7 +26,7 @@ export function RoninAbout() {
       icon: ArmchairIcon,
       title: t("about.comfort.title"),
       desc1: t("about.comfort.desc1"),
-      desc2: "144–240Hz • продуманное пространство",
+      desc2: t("about.comfort.desc2"),
       image: "/images (2).jpg",
       label: ["RONIN"],
       accent: "#60a5fa",
@@ -60,12 +60,29 @@ export function RoninAbout() {
       style={{ background: "#03030a" }}
       ref={ref}
     >
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/РОНИН ФОН 2.png"
+          alt="RONIN Background"
+          fill
+          className="object-cover object-center opacity-20"
+          sizes="100vw"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(to bottom, #03030a 0%, rgba(3,3,10,0.85) 50%, #03030a 100%)",
+          }}
+        />
+      </div>
+
       <div
-        className="absolute top-0 left-0 right-0 h-px"
+        className="absolute top-0 left-0 right-0 h-px z-10"
         style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent)" }}
       />
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full pointer-events-none z-10"
         style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.07) 0%, transparent 70%)" }}
       />
 
@@ -85,7 +102,7 @@ export function RoninAbout() {
             </div>
             <h2
               className="font-black uppercase leading-[0.9] tracking-tighter"
-              style={{ fontSize: "clamp(2rem, 5.5vw, 5rem)" }}
+              style={{ fontSize: "clamp(1.75rem, 4.5vw, 3.5rem)" }}
             >
               <span className="block text-white">{t("about.heading1")}</span>
               <span
@@ -118,7 +135,7 @@ export function RoninAbout() {
             className="text-left lg:text-right"
           >
             <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: "#60a5fa" }}>
-              Компьютерный клуб
+              {t("about.subtitle")}
             </span>
             <div className="h-px w-20 sm:w-28 lg:ml-auto mt-2" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5))" }} />
           </motion.div>
@@ -230,7 +247,7 @@ export function RoninAbout() {
           className="text-center mt-10 sm:mt-14"
         >
           <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: "rgba(96,165,250,0.5)" }}>
-            Больше, чем просто компьютерный клуб
+            {t("about.tagline")}
           </span>
         </motion.div>
       </div>

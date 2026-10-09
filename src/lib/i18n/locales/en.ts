@@ -1,0 +1,243 @@
+export const en = {
+  // Navigation
+  "nav.home": "Home",
+  "nav.about": "About",
+  "nav.booking": "Booking",
+  "nav.computers": "Computers",
+  "nav.games": "Games",
+  "nav.tariffs": "Tariffs",
+  "nav.contacts": "Contacts",
+  "nav.login": "Login",
+  "nav.signup": "Sign Up",
+
+  // Common
+  "common.welcome": "Welcome",
+  "common.loading": "Loading...",
+  "common.error": "Error",
+  "common.success": "Success",
+  "common.cancel": "Cancel",
+  "common.confirm": "Confirm",
+  "common.save": "Save",
+  "common.delete": "Delete",
+  "common.edit": "Edit",
+  "common.close": "Close",
+  "common.submit": "Submit",
+  "common.search": "Search",
+  "common.filter": "Filter",
+  "common.logout": "Logout",
+  "common.profile": "Profile",
+  "common.settings": "Settings",
+
+  // Hero Section
+  "hero.title": "RONIN",
+  "hero.subtitle": "Next Generation Gaming Club",
+  "hero.description": "Top-tier PCs, low prices, cozy atmosphere",
+  "hero.bookNow": "BOOK NOW",
+  "hero.learnMore": "Learn More",
+
+  // About Section
+  "about.title": "ABOUT US",
+  "about.clubTitle": "About RONIN Club",
+  "about.description": "RONIN is a modern gaming club with powerful equipment, comfortable chairs, and a professional atmosphere. We've created a space for true gamers.",
+
+  // Features Section
+  "features.title": "ADVANTAGES",
+  "features.whyUs": "Why choose us",
+  
+  "features.performance": "High Performance",
+  "features.performance.desc": "Powerful gaming PCs with RTX 3060 and i7-12700F",
+  
+  "features.speed": "Fast Internet",
+  "features.speed.desc": "500 Mbps for comfortable gaming without lags",
+  
+  "features.security": "Security",
+  "features.security.desc": "Access control and personal data protection",
+  
+  "features.equipment": "Professional Equipment",
+  "features.equipment.desc": "240Hz monitors and quality sound",
+  
+  "features.drinks": "Drinks Included",
+  "features.drinks.desc": "Free tea, coffee and water for all guests",
+  
+  "features.atmosphere": "Pleasant Atmosphere",
+  "features.atmosphere.desc": "Modern design and comfortable chairs",
+
+  // Stats Section
+  "stats.computers": "Computers",
+  "stats.computers.desc": "4 categories to choose",
+  "stats.available": "24/7",
+  "stats.available.desc": "Always available",
+  "stats.categories": "PC Categories",
+  "stats.categories.desc": "Standard — Ronin Rooms",
+  "stats.frequency": "Max Frequency",
+  "stats.frequency.desc": "On Premium stations",
+
+  // Booking Section
+  "booking.title": "BOOKING",
+  "booking.selectDate": "Select date",
+  "booking.selectTime": "Select time",
+  "booking.selectComputer": "Select computer",
+  "booking.duration": "Duration",
+  "booking.hours": "hours",
+  "booking.total": "Total",
+  "booking.confirm": "Confirm booking",
+  "booking.success": "Booking successful!",
+  "booking.error": "Booking error",
+
+  // Tariffs Section
+  "tariffs.title": "TARIFFS",
+  "tariffs.morning": "Morning",
+  "tariffs.standard": "Standard",
+  "tariffs.night": "Night",
+  "tariffs.morning.time": "09:00 AM — 05:00 PM",
+  "tariffs.standard.time": "05:00 PM — 11:00 PM",
+  "tariffs.night.time": "11:00 PM — 09:00 AM",
+  "tariffs.morning.feature1": "Morning hours",
+  "tariffs.morning.feature2": "Discount -20%",
+  "tariffs.standard.feature1": "Standard time",
+  "tariffs.standard.feature2": "All PCs",
+  "tariffs.night.feature1": "Night hours",
+  "tariffs.night.feature2": "Discount -15%",
+  "tariffs.book": "BOOK NOW",
+  "tariffs.hour": "hour",
+  "tariffs.perHour": "/hour",
+
+  // Computers Section
+  "computers.title": "COMPUTERS",
+  "computers.categories": "categories",
+  "computers.standard": "Standard",
+  "computers.comfort": "Comfort",
+  "computers.premium": "Premium",
+  "computers.ronin": "Ronin Rooms",
+  "computers.available": "Available",
+  "computers.busy": "Busy",
+  "computers.cpu": "CPU",
+  "computers.gpu": "GPU",
+  "computers.ram": "RAM",
+  "computers.monitor": "Monitor",
+
+  // Games Section
+  "games.title": "GAMES",
+  "games.inClub": "IN OUR CLUB",
+  "games.popular": "Popular games",
+  "games.category.fps": "FPS",
+  "games.category.moba": "MOBA",
+  "games.category.battle": "BATTLE ROYALE",
+
+  // Contacts Section
+  "contacts.title": "CONTACTS",
+  "contacts.getInTouch": "GET IN TOUCH",
+  "contacts.fastContact": "Choose a convenient way and we will reply immediately",
+  "contacts.phone": "Phone",
+  "contacts.phone.time": "Call from 10:00 AM to 02:00 AM",
+  "contacts.telegram": "Telegram",
+  "contacts.telegram.desc": "Quick answers to all questions",
+  "contacts.email": "Email",
+  "contacts.email.desc": "Reply within 1 hour",
+  "contacts.address": "Address",
+  "contacts.address.desc": "Convenient location in the city center",
+  "contacts.social": "Social Media",
+  "contacts.location": "Location",
+  "contacts.workingHours": "Working Hours",
+  "contacts.callNow": "Call Now",
+  "contacts.sendMessage": "Send Message",
+  "contacts.whatsapp": "WhatsApp",
+  "contacts.whatsapp.desc": "Quick reply",
+
+  // Footer
+  "footer.description": "Modern gaming club in Bishkek. Powerful PCs, comfortable atmosphere and online booking.",
+  "footer.rights": "All rights reserved",
+  "footer.quickLinks": "QUICK LINKS",
+  "footer.home": "Home",
+  "footer.booking": "Booking",
+  "footer.helpCenter": "Help Center",
+  "footer.login": "Login",
+  "footer.signup": "Sign Up",
+  "footer.support": "SUPPORT",
+  "footer.social": "SOCIAL MEDIA",
+  "footer.location": "Bishkek, Kyrgyzstan",
+
+  // Auth
+  "auth.login": "Login",
+  "auth.signup": "Sign Up",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.confirmPassword": "Confirm Password",
+  "auth.fullName": "Full Name",
+  "auth.phone": "Phone",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.rememberMe": "Remember me",
+  "auth.or": "or",
+  "auth.withGoogle": "Continue with Google",
+  "auth.haveAccount": "Already have an account?",
+  "auth.noAccount": "Don't have an account?",
+  "auth.minPassword": "Minimum 6 characters",
+  
+  // Registration errors
+  "auth.error.invalidEmail": "Invalid email address",
+  "auth.error.weakPassword": "Password too weak",
+  "auth.error.passwordMismatch": "Passwords do not match",
+  "auth.error.emailExists": "Account with this email already exists",
+  "auth.error.invalidCredentials": "Invalid email or password",
+
+  // Profile
+  "profile.title": "Profile",
+  "profile.edit": "Edit Profile",
+  "profile.bookings": "My Bookings",
+  "profile.history": "History",
+  "profile.settings": "Settings",
+  "profile.changePassword": "Change Password",
+  "profile.notifications": "Notifications",
+  "profile.language": "Language",
+  "profile.theme": "Theme",
+  "profile.lightMode": "Light Mode",
+  "profile.darkMode": "Dark Mode",
+
+  // Admin Panel
+  "admin.title": "Admin Panel",
+  "admin.dashboard": "Dashboard",
+  "admin.bookings": "Bookings",
+  "admin.computers": "Computers",
+  "admin.users": "Users",
+  "admin.managers": "Managers",
+  "admin.tariffs": "Tariffs",
+  "admin.settings": "Settings",
+  "admin.statistics": "Statistics",
+  "admin.reports": "Reports",
+  "admin.addNew": "Add New",
+  "admin.edit": "Edit",
+  "admin.delete": "Delete",
+  "admin.active": "Active",
+  "admin.inactive": "Inactive",
+  "admin.status": "Status",
+  "admin.actions": "Actions",
+
+  // Manager Panel
+  "manager.title": "Manager Panel",
+  "manager.todayBookings": "Today's Bookings",
+  "manager.checkIn": "Check In",
+  "manager.checkOut": "Check Out",
+
+  // Notifications
+  "notification.bookingConfirmed": "Booking confirmed",
+  "notification.bookingCancelled": "Booking cancelled",
+  "notification.paymentSuccess": "Payment successful",
+  "notification.paymentFailed": "Payment failed",
+
+  // Receipt
+  "receipt.title": "Receipt",
+  "receipt.date": "Date",
+  "receipt.time": "Time",
+  "receipt.computer": "Computer",
+  "receipt.duration": "Duration",
+  "receipt.total": "Total",
+  "receipt.download": "Download",
+  "receipt.print": "Print",
+
+  // Validation
+  "validation.required": "This field is required",
+  "validation.email": "Enter a valid email",
+  "validation.phone": "Enter a valid phone number",
+  "validation.minLength": "Minimum {min} characters",
+  "validation.maxLength": "Maximum {max} characters",
+};
