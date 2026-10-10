@@ -58,8 +58,15 @@ export function RegisterForm() {
         throw new Error(data.error || "Ошибка регистрации");
       }
 
-      // Success — redirect to profile or login
-      router.push("/login?registered=true");
+      // Success — redirect to setup profile
+      const data = await response.json();
+      
+      // Save token if provided
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
+      
+      router.push("/setup-profile");
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при регистрации");
       setIsLoading(false);

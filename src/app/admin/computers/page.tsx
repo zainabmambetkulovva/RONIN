@@ -2,16 +2,21 @@ import { prisma } from "@/lib/prisma";
 import { ComputersTable } from "@/components/admin/ComputersTable";
 
 export default async function ComputersPage() {
-  // Получить все компьютеры с текущими бронированиями
+  const now = new Date();
+  
+  // Получить все компьютеры с АКТИВНЫМИ бронированиями (которые идут прямо сейчас)
   const computersData = await prisma.computers.findMany({
     include: {
       bookings: {
         where: {
           status: {
-            in: ["confirmed", "pending"],
+            in: ["confirmed"],
+          },
+          start_at: {
+            lte: now, // Бронирование уже началось
           },
           end_at: {
-            gte: new Date(),
+            gte: now, // И еще не закончилось
           },
         },
         orderBy: {

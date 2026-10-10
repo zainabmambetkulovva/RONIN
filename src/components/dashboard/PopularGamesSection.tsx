@@ -15,72 +15,72 @@ const GAMES_2026 = [
   {
     id: "1",
     name: "Counter-Strike 2",
-    imageUrl: "/games/cs2.jpg",
+    imageUrl: "/Counter-Strike 2 (FPS).jpg",
     category: "FPS",
     color: "#ff9500",
   },
   {
     id: "2",
     name: "Dota 2",
-    imageUrl: "/games/dota2.jpg",
+    imageUrl: "/Dota 2 (MOBA).jpg",
     category: "MOBA",
     color: "#e62020",
   },
   {
     id: "3",
     name: "Valorant",
-    imageUrl: "/games/valorant.jpg",
+    imageUrl: "/Valorant.png",
     category: "FPS",
     color: "#ff4655",
   },
   {
     id: "4",
     name: "League of Legends",
-    imageUrl: "/games/lol.jpg",
+    imageUrl: "/League of Legends (MOBA).jpg",
     category: "MOBA",
     color: "#c89b3c",
   },
   {
     id: "5",
     name: "Apex Legends",
-    imageUrl: "/games/apex.jpg",
+    imageUrl: "/Apex Legends.png",
     category: "Battle Royale",
     color: "#da292e",
   },
   {
     id: "6",
     name: "Overwatch 2",
-    imageUrl: "/games/overwatch.jpg",
+    imageUrl: "/Overwatch 2 (FPS).jpg",
     category: "FPS",
     color: "#f99e1a",
   },
   {
     id: "7",
     name: "Fortnite",
-    imageUrl: "/games/fortnite.jpg",
+    imageUrl: "/Fortnite (Battle Royale).jpg",
     category: "Battle Royale",
     color: "#00d9ff",
   },
   {
     id: "8",
-    name: "PUBG",
-    imageUrl: "/games/pubg.jpg",
-    category: "Battle Royale",
-    color: "#f2a900",
+    name: "Minecraft",
+    imageUrl: "/Minecraft (Sandbox).jpg",
+    category: "Sandbox",
+    color: "#8cc63f",
   },
   {
     id: "9",
     name: "Cyberpunk 2077",
-    imageUrl: "/games/cyberpunk.jpg",
+    imageUrl: "/Cyberpunk 2077 (RPG).jpg",
     category: "RPG",
     color: "#fcee09",
   },
   {
     id: "10",
-    name: "GTA V",
-    imageUrl: "/games/gtav.jpg",
-    category: "Action",
-    color: "#8cc63f",
+    name: "Elden Ring",
+    imageUrl: "/Elden Ring (RPG).jpg",
+    category: "RPG",
+    color: "#d4af37",
   },
 ];
 
@@ -88,6 +88,7 @@ export function PopularGamesSection() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
 
   const checkScroll = () => {
     const container = scrollContainerRef.current;
@@ -98,6 +99,27 @@ export function PopularGamesSection() {
       container.scrollLeft < container.scrollWidth - container.clientWidth - 10
     );
   };
+
+  // Auto-scroll effect
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || isHovering) return;
+
+    const autoScroll = setInterval(() => {
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const currentScroll = container.scrollLeft;
+
+      // If reached end, go back to start
+      if (currentScroll >= maxScroll - 5) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        // Scroll right slowly
+        container.scrollBy({ left: 1, behavior: "auto" });
+      }
+    }, 30); // 30ms interval for smooth scrolling
+
+    return () => clearInterval(autoScroll);
+  }, [isHovering]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -186,6 +208,8 @@ export function PopularGamesSection() {
       <div className="relative">
         <div
           ref={scrollContainerRef}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
           className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4"
           style={{
             scrollbarWidth: "none",
@@ -205,11 +229,24 @@ export function PopularGamesSection() {
                 border: "1px solid rgba(59,130,246,0.2)",
               }}
             >
-              {/* Game image placeholder */}
+              {/* Game image */}
+              <img 
+                src={game.imageUrl} 
+                alt={game.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback если изображение не загрузилось
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+              
+              {/* Fallback background */}
               <div
                 className="absolute inset-0 flex items-center justify-center text-6xl font-black"
                 style={{
                   background: `linear-gradient(135deg, ${game.color}33, ${game.color}11)`,
+                  zIndex: -1,
                 }}
               >
                 <span style={{ color: game.color, opacity: 0.3 }}>
