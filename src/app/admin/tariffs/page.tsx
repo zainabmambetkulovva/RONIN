@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, DollarSign, Clock } from "lucide-react";
+import { Plus, Search, DollarSign } from "lucide-react";
 import { CreateTariffModal } from "@/components/admin/tariffs/CreateTariffModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { EditTariffModal } from "@/components/admin/tariffs/EditTariffModal";
