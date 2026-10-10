@@ -86,17 +86,17 @@ export async function POST(req: NextRequest) {
       // Продолжаем работу, код в консоли
     }
 
-    // Создать временный session token
-    const sessionToken = crypto.randomUUID();
-    
-    // Временное хранилище (в production использовать Redis)
-    if (!global.tempSessions) {
-      global.tempSessions = new Map();
-    }
-    global.tempSessions.set(sessionToken, {
-      userId: user.id,
-      timestamp: Date.now(),
-    });
+    // Создать временный JWT session token (действителен 5 минут)
+    const jwt = require('jsonwebtoken');
+    const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
+    const sessionToken = jwt.sign(
+      {
+        userId: user.id,
+        type: "2fa_pending",
+      },
+      jwtSecret,
+      { expiresIn: "5m" }
+    );
 
     return NextResponse.json({
       success: true,

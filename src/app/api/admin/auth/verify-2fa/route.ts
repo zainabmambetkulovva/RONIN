@@ -8,8 +8,7 @@ export async function POST(req: NextRequest) {
 
     console.log('Verify-2FA request:', { 
       sessionToken: sessionToken ? 'exists' : 'missing', 
-      code: code ? code : 'missing',
-      globalSessions: global.tempSessions ? global.tempSessions.size : 'undefined'
+      code: code ? code : 'missing'
     });
 
     // Validation
@@ -21,18 +20,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Проверить временную сессию из global
-    if (!global.tempSessions) {
+    // Проверить и декодировать JWT session token
+    let session;
+    try {
+      const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
+      session = jwt.verify(sessionToken, jwtSecret) as { userId: string; type: string };
+      
+      if (session.type !== "2fa_pending") {
+        return NextResponse.json(
+          { error: "Неверный тип сессии" },
+          { status: 401 }
+        );
+      }
+    } catch (error) {
       return NextResponse.json(
-        { error: "Сессия не найдена" },
-        { status: 401 }
-      );
-    }
-
-    const session = global.tempSessions.get(sessionToken);
-    if (!session) {
-      return NextResponse.json(
-        { error: "Сессия истекла или не найдена" },
+        { error: "Сессия истекла или неверна" },
         { status: 401 }
       );
     }
@@ -92,9 +94,6 @@ export async function POST(req: NextRequest) {
     await prisma.telegram_verifications.delete({
       where: { id: verification.id },
     });
-
-    // Удалить временную сессию
-    global.tempSessions.delete(sessionToken);
 
     // Создать JWT token
     const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
