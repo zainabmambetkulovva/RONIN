@@ -45,8 +45,13 @@ export default function AdminLoginPage() {
         throw new Error('Session token отсутствует в ответе');
       }
       
+      console.log('Setting sessionToken:', data.sessionToken);
       setSessionToken(data.sessionToken);
-      setStep("telegram");
+      
+      // Небольшая задержка для обновления состояния
+      setTimeout(() => {
+        setStep("telegram");
+      }, 100);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -57,9 +62,21 @@ export default function AdminLoginPage() {
   const handleTelegramSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!sessionToken) {
+      setError("Сессия истекла. Пожалуйста, войдите заново.");
+      setStep("credentials");
+      return;
+    }
+
+    if (code.length !== 6) {
+      setError("Код должен содержать 6 цифр");
+      return;
+    }
+
     setLoading(true);
 
-    console.log('Submitting 2FA:', { sessionToken, code });
+    console.log('Submitting 2FA:', { sessionToken: sessionToken.substring(0, 20) + '...', code });
 
     try {
       const res = await fetch("/api/admin/auth/verify-2fa", {
@@ -69,6 +86,8 @@ export default function AdminLoginPage() {
       });
 
       const data = await res.json();
+
+      console.log('Verify-2FA response:', data);
 
       if (!res.ok) {
         throw new Error(data.error || "Неверный код");

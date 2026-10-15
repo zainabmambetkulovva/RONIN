@@ -148,20 +148,43 @@ export function BookingForm() {
 
     setSubmitting(true);
     try {
+      // Prepare data for API
+      const startDateTime = new Date(`${formData.date}T${formData.time}`);
+      
+      const bookingPayload = {
+        computerId: formData.computerId,
+        tariffId: formData.tariffId,
+        startAt: startDateTime.toISOString(),
+      };
+
+      console.log("📤 Sending booking request:", bookingPayload);
+
       // Create booking
       const bookingResponse = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(bookingPayload),
       });
 
       const bookingData = await bookingResponse.json();
 
+      console.log("🔍 Booking Response:", bookingData); // Debug log
+
       if (!bookingResponse.ok) {
+        console.error("❌ Booking creation failed:", bookingData);
         setErrors({ submit: bookingData.error || "Ошибка создания бронирования" });
         setSubmitting(false);
         return;
       }
+
+      if (!bookingData.booking || !bookingData.booking.id) {
+        console.error("❌ Booking ID missing:", bookingData);
+        setErrors({ submit: "Не получен ID бронирования" });
+        setSubmitting(false);
+        return;
+      }
+
+      console.log("✅ Booking created with ID:", bookingData.booking.id);
 
       // Create payment automatically (skip payment page)
       const paymentResponse = await fetch("/api/payments", {
@@ -174,13 +197,16 @@ export function BookingForm() {
       });
 
       if (paymentResponse.ok) {
+        console.log("✅ Redirecting to success page with booking ID:", bookingData.booking.id);
         // Redirect directly to success page with receipt
         router.push(`/booking-success?bookingId=${bookingData.booking.id}`);
       } else {
+        const paymentError = await paymentResponse.json();
+        console.error("❌ Payment failed:", paymentError);
         setErrors({ submit: "Ошибка оплаты" });
       }
     } catch (error) {
-      console.error("Failed to create booking:", error);
+      console.error("❌ Failed to create booking:", error);
       setErrors({ submit: "Ошибка сети" });
     } finally {
       setSubmitting(false);

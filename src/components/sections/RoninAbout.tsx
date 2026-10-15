@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import Image from "next/image";
-import { CpuIcon, ArmchairIcon, VolumeIcon, RocketIcon } from "@/components/ui/icons";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Cpu, Armchair, Volume2, Zap, Trophy, Shield, Users, Clock } from "lucide-react";
 
 export function RoninAbout() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
@@ -12,244 +11,219 @@ export function RoninAbout() {
 
   const features = [
     {
-      num: "01",
-      icon: CpuIcon,
+      icon: Cpu,
       title: t("about.power.title"),
       desc1: t("about.power.desc1"),
       desc2: t("about.power.desc2"),
-      image: "/images (1).jpg",
-      label: ["GEFORCE", "RTX"],
-      accent: "#3b82f6",
+      color: "#a855f7",
     },
     {
-      num: "02",
-      icon: ArmchairIcon,
+      icon: Armchair,
       title: t("about.comfort.title"),
       desc1: t("about.comfort.desc1"),
       desc2: t("about.comfort.desc2"),
-      image: "/images (2).jpg",
-      label: ["RONIN"],
-      accent: "#60a5fa",
+      color: "#ec4899",
     },
     {
-      num: "03",
-      icon: VolumeIcon,
+      icon: Volume2,
       title: t("about.atmosphere.title"),
       desc1: t("about.atmosphere.desc1"),
       desc2: t("about.atmosphere.desc2"),
-      image: "/images (4).jpg",
-      label: ["RONIN"],
-      accent: "#818cf8",
+      color: "#3b82f6",
     },
     {
-      num: "04",
-      icon: RocketIcon,
+      icon: Zap,
       title: t("about.session.title"),
       desc1: t("about.session.desc1"),
       desc2: t("about.session.desc2"),
-      image: "/images (3).jpg",
-      label: ["Бронирование"],
-      accent: "#a78bfa",
+      color: "#f59e0b",
     },
+  ];
+
+  const communityFeatures = [
+    { icon: Trophy, title: "Турниры", desc: "Участвуй в соревнованиях", color: "#f59e0b" },
+    { icon: Users, title: "Сообщество", desc: "Играй с друзьями", color: "#ec4899" },
+    { icon: Shield, title: "Безопасность", desc: "Защита аккаунтов", color: "#3b82f6" },
+    { icon: Clock, title: "24/7 Поддержка", desc: "Всегда на связи", color: "#a855f7" },
   ];
 
   return (
     <section
       id="about"
-      className="py-16 sm:py-20 lg:py-24 relative overflow-hidden"
-      style={{ background: "#03030a" }}
+      className="py-20 lg:py-28 relative overflow-hidden bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"
       ref={ref}
     >
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/РОНИН ФОН 2.png"
-          alt="RONIN Background"
-          fill
-          className="object-cover object-center opacity-20"
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: "linear-gradient(to bottom, #03030a 0%, rgba(3,3,10,0.85) 50%, #03030a 100%)",
-          }}
-        />
+      {/* Animated background */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-40 left-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute bottom-40 right-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
       </div>
 
-      <div
-        className="absolute top-0 left-0 right-0 h-px z-10"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent)" }}
-      />
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full pointer-events-none z-10"
-        style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.07) 0%, transparent 70%)" }}
-      />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-10 sm:mb-14 gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center gap-3 mb-4 sm:mb-5">
-              <div className="h-px w-8 sm:w-10" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em]" style={{ color: "#60a5fa" }}>
-                {t("about.tag")}
-              </span>
-            </div>
-            <h2
-              className="font-black uppercase leading-[0.9] tracking-tighter"
-              style={{ fontSize: "clamp(1.75rem, 4.5vw, 3.5rem)" }}
-            >
-              <span className="block text-white">{t("about.heading1")}</span>
-              <span
-                className="block"
-                style={{
-                  background: "linear-gradient(90deg, #3b82f6, #818cf8, #a78bfa)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {t("about.heading2")}
-              </span>
-              <span
-                className="block"
-                style={{
-                  background: "linear-gradient(90deg, #3b82f6, #818cf8, #a78bfa)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {t("about.heading3")}
-              </span>
-            </h2>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-left lg:text-right"
-          >
-            <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em]" style={{ color: "#60a5fa" }}>
-              {t("about.subtitle")}
-            </span>
-            <div className="h-px w-20 sm:w-28 lg:ml-auto mt-2" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5))" }} />
-          </motion.div>
-        </div>
-
-        {/* Description */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-2xl mb-10 sm:mb-14"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
         >
-          {t("about.description")}
-        </motion.p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 mb-6">
+            <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-sm font-bold uppercase tracking-wider text-purple-300">
+              {t("about.tag")}
+            </span>
+          </div>
 
-        {/* Feature rows — вертикальные на мобилке */}
-        <div className="space-y-3">
-          {features.map((f, i) => {
-            const Icon = f.icon;
+          <h2 className="text-4xl md:text-6xl font-black uppercase mb-6">
+            <span className="block text-white">{t("about.heading1")}</span>
+            <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+              {t("about.heading2")} {t("about.heading3")}
+            </span>
+          </h2>
+
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
+            {t("about.description")}
+          </p>
+        </motion.div>
+
+        {/* Main Features Grid - E PLAY style */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {features.map((feature, i) => {
+            const Icon = feature.icon;
             return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -30 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.55, delay: 0.1 * i }}
-                className="card-sweep group relative rounded-2xl overflow-hidden flex flex-col md:flex-row md:items-center cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
-                style={{
-                  background: "linear-gradient(90deg, #07071a 0%, #0d0d24 100%)",
-                  border: "1px solid rgba(59,130,246,0.15)",
-                  minHeight: "100px",
-                }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 * i }}
+                className="group relative"
               >
-                {/* Left content */}
-                <div className="flex items-center gap-4 sm:gap-6 px-4 sm:px-8 py-5 sm:py-6 flex-1 min-w-0">
-                  <span
-                    className="text-3xl sm:text-5xl font-black shrink-0 leading-none select-none"
-                    style={{ color: "rgba(59,130,246,0.10)" }}
-                  >
-                    {f.num}
-                  </span>
-
-                  <div
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300"
+                <div className="relative h-full p-6 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border-2 border-gray-800 hover:border-purple-500/50 transition-all duration-300 hover:scale-[1.02]">
+                  
+                  {/* Icon */}
+                  <div 
+                    className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                     style={{
-                      background: `${f.accent}18`,
-                      border: `1px solid ${f.accent}44`,
+                      background: `linear-gradient(135deg, ${feature.color}20, ${feature.color}10)`,
+                      border: `2px solid ${feature.color}`,
+                      boxShadow: `0 0 20px ${feature.color}30`,
                     }}
                   >
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: f.accent }} />
+                    <Icon className="w-7 h-7" style={{ color: feature.color }} />
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-white font-black text-base sm:text-xl tracking-wider mb-0.5 sm:mb-1">
-                      {f.title}
-                    </h3>
-                    <p className="text-gray-300 text-xs sm:text-sm font-medium">{f.desc1}</p>
-                    <p className="text-gray-500 text-[0.65rem] sm:text-xs">{f.desc2}</p>
-                  </div>
-                </div>
+                  {/* Content */}
+                  <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wide">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-2">{feature.desc1}</p>
+                  <p className="text-gray-500 text-xs">{feature.desc2}</p>
 
-                {/* Arrow — скрыт на мобилке */}
-                <div className="hidden md:flex px-6 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">
-                  <svg className="w-5 h-5" style={{ color: f.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </div>
-
-                {/* Right photo — скрыто на мобилке */}
-                <div className="hidden md:block relative shrink-0 overflow-hidden" style={{ width: "300px", height: "100px" }}>
-                  <Image
-                    src={f.image}
-                    alt={f.title}
-                    fill
-                    className="object-cover opacity-35 group-hover:opacity-55 group-hover:scale-105 transition-all duration-500"
-                    sizes="300px"
+                  {/* Hover glow */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none"
+                    style={{
+                      background: `radial-gradient(circle at center, ${feature.color}10, transparent 70%)`,
+                    }}
                   />
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: "linear-gradient(90deg, #07071a 0%, transparent 45%)" }}
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-right">
-                    {f.label.map((w) => (
-                      <div
-                        key={w}
-                        className="text-xs font-black tracking-[0.2em] leading-loose"
-                        style={{ color: `${f.accent}66` }}
-                      >
-                        {w}
-                      </div>
-                    ))}
-                  </div>
                 </div>
-
-                {/* Left accent bar */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-l-2xl"
-                  style={{ background: `linear-gradient(to bottom, transparent, ${f.accent}, transparent)` }}
-                />
               </motion.div>
             );
           })}
         </div>
 
-        {/* Tagline */}
+        {/* Community Section - E PLAY "Join Community" style */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="relative"
+        >
+          {/* Big Banner Card */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-purple-900 via-fuchsia-900 to-pink-900 border-2 border-purple-500/30">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+            
+            <div className="relative p-8 md:p-12">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                
+                {/* Left - Content */}
+                <div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-6">
+                    <Users className="w-4 h-4 text-purple-300" />
+                    <span className="text-sm font-bold uppercase tracking-wider text-purple-200">
+                      Присоединяйся
+                    </span>
+                  </div>
+
+                  <h3 className="text-3xl md:text-4xl font-black text-white mb-4 uppercase">
+                    {t("about.carousel_title") || "Больше чем игры"}
+                  </h3>
+                  <p className="text-purple-100 text-lg mb-6 leading-relaxed">
+                    {t("about.carousel_desc") || "Становись частью нашего сообщества. Участвуй в турнирах, находи новых друзей и наслаждайся атмосферой настоящего киберспорта."}
+                  </p>
+
+                  <div className="flex flex-wrap gap-4">
+                    <motion.a
+                      href="/register"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-4 rounded-xl bg-white text-purple-900 font-black uppercase tracking-wider hover:shadow-2xl transition-all"
+                    >
+                      Регистрация
+                    </motion.a>
+                    <motion.a
+                      href="#contacts"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-4 rounded-xl bg-white/10 backdrop-blur-sm text-white font-bold uppercase tracking-wider border-2 border-white/30 hover:bg-white/20 transition-all"
+                    >
+                      Узнать больше
+                    </motion.a>
+                  </div>
+                </div>
+
+                {/* Right - Community Features */}
+                <div className="grid grid-cols-2 gap-4">
+                  {communityFeatures.map((item, i) => {
+                    const Icon = item.icon;
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={inView ? { opacity: 1, scale: 1 } : {}}
+                        transition={{ delay: 0.6 + i * 0.1 }}
+                        className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all group"
+                      >
+                        <Icon className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" style={{ color: item.color }} />
+                        <h4 className="text-white font-bold text-sm mb-1">{item.title}</h4>
+                        <p className="text-purple-200 text-xs">{item.desc}</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-3xl opacity-20" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500 rounded-full blur-3xl opacity-20" />
+          </div>
+        </motion.div>
+
+        {/* Bottom tagline */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="text-center mt-10 sm:mt-14"
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="text-center mt-12"
         >
-          <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: "rgba(96,165,250,0.5)" }}>
+          <span className="text-sm font-bold uppercase tracking-widest text-purple-400/50">
             {t("about.tagline")}
           </span>
         </motion.div>
+
       </div>
     </section>
   );

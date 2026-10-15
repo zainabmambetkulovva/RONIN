@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/user/profile - получить профиль текущего пользователя
 export async function GET(req: NextRequest) {
   try {
-    // TODO: Replace with real auth when NextAuth is configured
-    const mockUserId = "mock-user-id";
+    const session = await getServerSession(authOptions);
 
-    const user = await prisma.user.findUnique({
-      where: { id: mockUserId },
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { email: session.user.email },
       select: {
         id: true,
         name: true,
@@ -19,8 +25,8 @@ export async function GET(req: NextRequest) {
         avatar: true,
         role: true,
         status: true,
-        createdAt: true,
-        updatedAt: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
@@ -31,7 +37,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ 
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        role: user.role,
+        status: user.status,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      }
+    });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     return NextResponse.json(
@@ -44,8 +62,14 @@ export async function GET(req: NextRequest) {
 // PATCH /api/user/profile - обновить профиль (кроме email)
 export async function PATCH(req: NextRequest) {
   try {
-    // TODO: Replace with real auth when NextAuth is configured
-    const mockUserId = "mock-user-id";
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
     const body = await req.json();
     const { name, phone, avatar } = body;
@@ -88,8 +112,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id: mockUserId },
+    const updatedUser = await prisma.users.update({
+      where: { email: session.user.email },
       data: updateData,
       select: {
         id: true,
@@ -99,13 +123,23 @@ export async function PATCH(req: NextRequest) {
         avatar: true,
         role: true,
         status: true,
-        createdAt: true,
-        updatedAt: true,
+        created_at: true,
+        updated_at: true,
       },
     });
 
     return NextResponse.json({ 
-      user: updatedUser,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        avatar: updatedUser.avatar,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        createdAt: updatedUser.created_at,
+        updatedAt: updatedUser.updated_at,
+      },
       message: "Profile updated successfully" 
     });
   } catch (error) {

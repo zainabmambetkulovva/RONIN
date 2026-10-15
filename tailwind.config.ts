@@ -10,20 +10,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // RONIN brand colors
+        // RONIN brand colors - Dark Theme
         ronin: {
-          black: "#0a0a0f",
-          dark: "#0d0d1a",
-          navy: "#0f0f2e",
-          purple: "#1a0a3e",
+          black: "#000000",
+          dark: "#0a0a1e",
+          navy: "#0d0d24",
+          purple: "#1a0a2e",
           "purple-mid": "#2d1b69",
           "purple-light": "#6b21a8",
-          neon: "#a855f7",
-          "neon-bright": "#c084fc",
-          "neon-glow": "#e879f9",
+          neon: "#8B5CF6",
+          "neon-bright": "#A855F7",
+          "neon-glow": "#C084FC",
           blue: "#1e40af",
-          "blue-neon": "#3b82f6",
+          "blue-neon": "#3B82F6",
+          "blue-light": "#60A5FA",
           cyan: "#06b6d4",
+        },
+        // Light Theme Colors (минимализм)
+        light: {
+          base: "#FFFFFF",
+          surface: "#F9FAFB",
+          "surface-2": "#F3F4F6",
+          border: "#E5E7EB",
+          text: "#111827",
+          "text-secondary": "#374151",
+          "text-muted": "#6B7280",
+          accent: "#7C3AED",
+          "accent-blue": "#2563EB",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -65,15 +78,22 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
-        "ronin-gradient": "linear-gradient(135deg, #0a0a0f 0%, #0f0f2e 50%, #1a0a3e 100%)",
-        "neon-glow": "linear-gradient(135deg, #6b21a8 0%, #1e40af 100%)",
-        "card-gradient": "linear-gradient(135deg, rgba(26,10,62,0.8) 0%, rgba(15,15,46,0.8) 100%)",
+        "ronin-gradient": "linear-gradient(135deg, #000000 0%, #0a0a1e 50%, #1a0a2e 100%)",
+        "ronin-gradient-blue": "linear-gradient(135deg, #0d0d24 0%, #1a0a2e 100%)",
+        "neon-glow": "linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)",
+        "card-gradient": "linear-gradient(135deg, rgba(26,10,46,0.8) 0%, rgba(13,13,36,0.8) 100%)",
+        // Light theme gradients
+        "light-gradient": "linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)",
+        "light-surface": "linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%)",
       },
       boxShadow: {
-        neon: "0 0 20px rgba(168,85,247,0.4), 0 0 40px rgba(168,85,247,0.2)",
+        neon: "0 0 20px rgba(139,92,246,0.4), 0 0 40px rgba(139,92,246,0.2)",
         "neon-blue": "0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(59,130,246,0.2)",
         "neon-cyan": "0 0 20px rgba(6,182,212,0.4)",
         card: "0 4px 24px rgba(0,0,0,0.6)",
+        // Light theme shadows
+        "light-card": "0 4px 24px rgba(139,92,246,0.1), 0 2px 8px rgba(0,0,0,0.05)",
+        "light-hover": "0 8px 32px rgba(139,92,246,0.15), 0 4px 12px rgba(0,0,0,0.08)",
       },
       animation: {
         "pulse-neon": "pulse-neon 2s ease-in-out infinite",

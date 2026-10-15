@@ -2,56 +2,73 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Home, Gamepad2, Archive, Info, User, Settings, LogOut } from "lucide-react";
 
 export function MobileMenu() {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
-  const menuItems = [
+  // Only show menu items if user is authenticated
+  const menuItems = session ? [
     {
-      icon: "🏠",
+      icon: Home,
       label: "Главная",
       href: "/dashboard",
       description: "Главная страница",
     },
     {
-      icon: "🎮",
+      icon: Gamepad2,
       label: "Забронировать",
       href: "/booking",
       description: "Создать бронирование",
     },
     {
-      icon: "📜",
+      icon: Archive,
       label: "Архив",
       href: "/archive",
       description: "История бронирований",
     },
     {
-      icon: "ℹ️",
+      icon: Info,
       label: "Информация",
       href: "/",
       description: "О компьютерном клубе",
     },
     {
-      icon: "👤",
+      icon: User,
       label: "Профиль",
       href: "/profile",
       description: "Мой профиль",
     },
     {
-      icon: "⚙️",
+      icon: Settings,
       label: "Настройки",
       href: "/settings",
       description: "Настройки приложения",
     },
-  ];
+  ] : [];
 
   const handleNavigate = (href: string) => {
     router.push(href);
     setIsOpen(false);
   };
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm("Вы точно хотите выйти?");
+    if (confirmed) {
+      await signOut({ callbackUrl: "/" });
+      setIsOpen(false);
+    }
+  };
+
+  // Don't render burger if user is not authenticated
+  if (!session) {
+    return null;
+  }
 
   return (
     <>
@@ -125,7 +142,8 @@ export function MobileMenu() {
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed top-0 right-0 bottom-0 w-full sm:w-96 z-40 overflow-y-auto"
             style={{
-              background: "linear-gradient(135deg, #0a0a1a 0%, #05050f 100%)",
+              background: "linear-gradient(135deg, rgba(10,10,26,0.98) 0%, rgba(5,5,15,0.98) 100%)",
+              backdropFilter: "blur(20px)",
               borderLeft: "1px solid rgba(59,130,246,0.2)",
             }}
           >
@@ -163,6 +181,7 @@ export function MobileMenu() {
               <div className="space-y-2">
                 {menuItems.map((item, index) => {
                   const isActive = pathname === item.href;
+                  const IconComponent = item.icon;
                   return (
                     <motion.button
                       key={item.href}
@@ -185,7 +204,7 @@ export function MobileMenu() {
                       }}
                     >
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all duration-300 ${
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                           isActive ? "scale-110" : ""
                         }`}
                         style={{
@@ -194,7 +213,7 @@ export function MobileMenu() {
                             : "rgba(59,130,246,0.1)",
                         }}
                       >
-                        {item.icon}
+                        <IconComponent className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1 text-left">
                         <h3 className="text-white font-bold text-sm mb-0.5">{item.label}</h3>
@@ -216,6 +235,30 @@ export function MobileMenu() {
 
             {/* Footer */}
             <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
+              {/* Logout button */}
+              <motion.button
+                onClick={handleLogout}
+                className="w-full p-4 rounded-2xl flex items-center gap-4 mb-4 transition-all duration-300 hover:bg-red-500/10"
+                style={{
+                  border: "1px solid rgba(239,68,68,0.3)",
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: "rgba(239,68,68,0.2)",
+                  }}
+                >
+                  <LogOut className="w-6 h-6 text-red-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-red-400 font-bold text-sm">Выйти</h3>
+                  <p className="text-gray-400 text-[10px]">Завершить сеанс</p>
+                </div>
+              </motion.button>
+              
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>© 2025 RONIN</span>
                 <span>v1.0.0</span>

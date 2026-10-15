@@ -195,9 +195,9 @@ export function BookingModal({ computer, onClose }: Props) {
 
               <button
                 onClick={() => setStep("date")}
-                className="w-full mt-6 py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold uppercase hover:scale-105 transition-all"
+                className="w-full mt-6 py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all shadow-lg shadow-blue-500/30"
               >
-                Далее: Выбрать дату
+                Далее
               </button>
             </motion.div>
           )}
@@ -219,8 +219,10 @@ export function BookingModal({ computer, onClose }: Props) {
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
+                  placeholder="ДД.ММ.ГГГГ"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-blue-500 focus:outline-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Формат: ДД.ММ.ГГГГ</p>
               </div>
 
               <div>
@@ -232,16 +234,18 @@ export function BookingModal({ computer, onClose }: Props) {
                   type="time"
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
+                  placeholder="--:--"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-blue-500 focus:outline-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Пример: 14:30</p>
               </div>
 
               <button
                 onClick={() => setStep("tariff")}
                 disabled={!selectedDate || !selectedTime}
-                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold uppercase hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
               >
-                Далее: Выбрать тариф
+                Далее
               </button>
             </motion.div>
           )}
@@ -275,29 +279,38 @@ export function BookingModal({ computer, onClose }: Props) {
                 </button>
               ))}
 
+              {/* Кнопка оплаты - ПОКАЗЫВАЕМ СРАЗУ ПОСЛЕ ВЫБОРА */}
               {selectedTariff && (
-                <div className="mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-                  <div className="text-white font-bold mb-2">Итого:</div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-gray-300">
-                      {selectedTariff.name} на компьютере #{computer.number}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 space-y-4"
+                >
+                  {/* Итого */}
+                  <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                    <div className="text-white font-bold mb-2">Итого:</div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-gray-300">
+                        {selectedTariff.name} на компьютере #{computer.number}
+                      </div>
+                      <div className="text-3xl font-black text-green-400">{selectedTariff.price} сом</div>
                     </div>
-                    <div className="text-3xl font-black text-green-400">{selectedTariff.price} сом</div>
                   </div>
-                </div>
+
+                  {/* ОПЛАТИТЬ - сразу видна */}
+                  <button
+                    onClick={handleBooking}
+                    disabled={isLoading}
+                    className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/30"
+                  >
+                    {isLoading ? "Создание..." : "Оплатить 5 сом"}
+                  </button>
+
+                  <p className="text-center text-xs text-gray-400">
+                    Тестовая оплата через Finik Pay
+                  </p>
+                </motion.div>
               )}
-
-              <button
-                onClick={handleBooking}
-                disabled={!selectedTariff || isLoading}
-                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold uppercase hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Создание..." : "Оплатить 5 сом"}
-              </button>
-
-              <p className="text-center text-xs text-gray-400 mt-2">
-                Тестовая оплата через Finik Pay
-              </p>
             </motion.div>
           )}
         </div>

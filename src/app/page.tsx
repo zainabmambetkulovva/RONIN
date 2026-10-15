@@ -1,54 +1,49 @@
+"use client";
+
 import { CyberNavbar } from "@/components/layout/CyberNavbar";
 import { CyberFooter } from "@/components/layout/CyberFooter";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { RoninHero } from "@/components/sections/RoninHero";
-import { RoninAbout } from "@/components/sections/RoninAbout";
-import { RoninBookingFlowFlip } from "@/components/sections/RoninBookingFlowFlip";
-import { RoninStats } from "@/components/sections/RoninStats";
-import { CyberGamesFlip } from "@/components/sections/CyberGamesFlip";
-import { CyberEquipment } from "@/components/sections/CyberEquipment";
-import { CyberFeatures } from "@/components/sections/CyberFeatures";
+import { CyberGames } from "@/components/sections/CyberGames";
 import { CyberTariffs } from "@/components/sections/CyberTariffs";
-import { RoninContacts } from "@/components/sections/RoninContacts";
+import { RoninBookingFlowCompact } from "@/components/sections/RoninBookingFlowCompact";
+import { RoninContactsCompact } from "@/components/sections/RoninContactsCompact";
+import { AIChatWidget } from "@/components/ai/AIChatWidget";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen text-white pb-20 md:pb-0" style={{ background: "#03030a" }}>
+    <div 
+      className="min-h-screen"
+      style={{
+        background: "radial-gradient(circle at 20% 50%, rgba(139,92,246,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.15) 0%, transparent 50%), #0a0a14"
+      }}
+    >
       <CyberNavbar />
 
       <main>
         {/* 1. Hero */}
         <RoninHero />
 
-        {/* 2. About */}
-        <RoninAbout />
+        {/* 2. Games */}
+        <CyberGames />
 
-        {/* 3. Features - 3D Carousel Animation */}
-        <CyberFeatures />
-
-        {/* 4. Booking Flow - NEW Flip Cards */}
-        <RoninBookingFlowFlip />
-
-        {/* 5. Stats + Computers */}
-        <RoninStats />
-
-        {/* 6. Games - NEW Flip Cards */}
-        <CyberGamesFlip />
-
-        {/* 7. Equipment */}
-        <CyberEquipment />
-
-        {/* 8. Tariffs */}
+        {/* 3. Tariffs */}
         <CyberTariffs />
 
-        {/* 9. Contacts */}
-        <RoninContacts />
+        {/* 4. Booking */}
+        <RoninBookingFlowCompact />
+
+        {/* 5. Contacts */}
+        <RoninContactsCompact />
       </main>
 
       <CyberFooter />
       
       {/* Mobile Bottom Navigation */}
       <BottomNav />
+
+      {/* AI Chat Widget */}
+      <AIChatWidget />
     </div>
   );
 }

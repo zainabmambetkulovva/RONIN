@@ -1,277 +1,266 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
+import { Calendar, Clock, Gamepad2, ArrowRight } from "lucide-react";
 
 export function RoninHero() {
-  const { t, language } = useLanguage();
-  
-  // Тексты карусели в зависимости от языка
-  const texts = language === 'ky' 
-    ? [
-        "ЖӨНӨКӨЙ ПК ЭМЕС",
-        "СЕНИН ARENA",
-        "ЖЕҢИШТЕР БУЛ ЖЕРДЕН БАШТАЛАТ",
-        "ЧЕКСИЗ КҮЧ",
-        "ОЮН МЕЙКИНДИГИ"
-      ]
-    : language === 'en'
-    ? [
-        "NOT JUST A PC",
-        "YOUR ARENA",
-        "VICTORIES START HERE",
-        "POWER WITHOUT LIMITS",
-        "GAMING SPACE"
-      ]
-    : [
-        "НЕ ПРОСТО ПК",
-        "ТВОЯ ARENA",
-        "ПОБЕДЫ НАЧИНАЮТСЯ ЗДЕСЬ",
-        "МОЩЬ БЕЗ ГРАНИЦ",
-        "ИГРОВОЕ ПРОСТРАНСТВО"
-      ];
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   
   useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  const heroTexts = [
+    t("hero.phrase1"),
+    t("hero.phrase2"),
+    t("hero.phrase3"),
+    t("hero.phrase4"),
+    t("hero.phrase5"),
+  ];
+  
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % texts.length);
-    }, 7000);
+      setCurrentTextIndex((prev) => (prev + 1) % heroTexts.length);
+    }, 5000); // 5 секунд как требовалось
     return () => clearInterval(interval);
-  }, [texts.length]);
+  }, [heroTexts.length, mounted]);
   
   const stats = [
-    { value: "96", label: t("stats.computers") },
-    { value: "144–240", label: t("stats.monitors") },
+    { value: "96", label: t("stats.computers"), icon: Gamepad2 },
+    { value: "240", label: t("stats.monitors"), suffix: "Hz" },
     { value: "4", label: t("stats.categories") },
-    { value: "24/7", label: t("stats.work") },
+    { value: "24/7", label: t("stats.work"), icon: Clock },
   ];
+
+  if (!mounted) {
+    // Return a simple placeholder to avoid hydration mismatch
+    return (
+      <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 py-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]">
+            <div className="space-y-8">
+              <div className="h-96" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section
-      id="hero"
-      className="relative flex items-center overflow-hidden"
-      style={{ background: "#03030a", minHeight: "100svh" }}
-    >
-      {/* RGB LED Lines */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute h-1"
-            style={{
-              left: `${i * 16}%`,
-              width: "200px",
-              background: `linear-gradient(90deg, 
-                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}00 0%, 
-                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'} 50%, 
-                ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}00 100%)`,
-              boxShadow: `0 0 20px ${i === 0 ? '#ef4444' : i === 1 ? '#f97316' : i === 2 ? '#3b82f6' : i === 3 ? '#22c55e' : i === 4 ? '#06b6d4' : '#8b5cf6'}`,
-              opacity: 0.6,
-            }}
-            animate={{
-              y: ['0vh', '100vh'],
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: 15 + i * 2,
-              repeat: Infinity,
-              ease: "linear",
-              delay: i * 1.5,
-            }}
-          />
-        ))}
+    <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      {/* Background photo */}
-      <div className="absolute inset-0">
-        <Image
-          src="/РОНИН фон.png"
-          alt="RONIN Gaming Club"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
-          style={{ filter: "blur(2px)" }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(105deg, rgba(3,3,10,0.90) 0%, rgba(3,3,10,0.75) 50%, rgba(3,3,10,0.40) 100%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-40"
-          style={{ background: "linear-gradient(to top, #03030a 0%, transparent 100%)" }}
-        />
-      </div>
+      {/* Grid pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
 
-      {/* Glows */}
-      <div
-        className="absolute top-0 right-0 w-[800px] h-[800px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 60%)" }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 65%)" }}
-      />
-
-      {/* Grid */}
-      <div
-        className="absolute inset-0 opacity-[0.06] pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(59,130,246,1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59,130,246,1) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-20">
-        <div className="py-16 sm:py-24 md:py-36">
-
-          {/* Badge */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]">
+          
+          {/* LEFT - Content */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-3 mb-6 sm:mb-8"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
           >
-            <div className="h-px w-8 sm:w-10" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
-            <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] sm:tracking-[0.3em]" style={{ color: "#60a5fa" }}>
-              Почему RONIN?
-            </span>
-          </motion.div>
-
-          {/* Main heading — с каруселью */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-6 sm:mb-8"
-          >
-            <h1
-              className="font-black leading-[0.88] tracking-tighter uppercase"
-              style={{
-                fontSize: "clamp(2rem, 8vw, 6rem)",
-                fontStretch: "expanded",
-              }}
-            >
-              <motion.span
-                key={currentTextIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="block text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.8)]"
-              >
-                {texts[currentTextIndex]}
-              </motion.span>
-              <span
-                className="block"
-                style={{
-                  background: "linear-gradient(90deg, #3b82f6 0%, #818cf8 60%, #a78bfa 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 0 40px rgba(59,130,246,0.55))",
-                }}
-              >
-                СВОЁ МЕСТО ДЛЯ ИГРЫ
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+              <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-sm font-bold uppercase tracking-wider text-purple-300">
+                {t("hero.badge")}
               </span>
-            </h1>
-          </motion.div>
+            </div>
 
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="text-gray-200 text-sm sm:text-base lg:text-lg leading-relaxed max-w-lg mb-8 sm:mb-12 font-medium"
-          >
-            Забудь про тормоза и старое железо. Здесь только новые RTX 4090, 
-            240Hz мониторы и геймерские кресла. Бронируй онлайн за 2 минуты — 
-            играй без ограничений.
-          </motion.p>
-
-          {/* Stats — адаптивная сетка */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="grid grid-cols-2 sm:flex sm:flex-wrap gap-6 sm:gap-10 mb-8 sm:mb-12"
-          >
-            {stats.map((s, i) => (
-              <div key={i} className="flex flex-col">
-                <span
-                  className="font-black leading-none"
-                  style={{
-                    fontSize: "clamp(1.5rem, 4vw, 3rem)",
-                    color: i === 3 ? "#a78bfa" : "#60a5fa",
-                    filter: `drop-shadow(0 0 14px ${i === 3 ? "rgba(167,139,250,0.7)" : "rgba(96,165,250,0.7)"})`,
-                  }}
+            {/* Heading with rotating text */}
+            <div className="h-32 sm:h-40 flex flex-col justify-center">
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={currentTextIndex}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -50 }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  className="text-5xl md:text-7xl font-black uppercase leading-[0.9]"
                 >
-                  {s.value}
-                </span>
-                <span className="text-gray-300 text-[0.65rem] sm:text-xs font-bold uppercase tracking-widest mt-1 sm:mt-1.5">
-                  {s.label}
-                </span>
-              </div>
-            ))}
+                  <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                    {heroTexts[currentTextIndex]}
+                  </span>
+                  <span className="block text-white mt-2">
+                    {t("hero.inRoninClub")}
+                  </span>
+                </motion.h1>
+              </AnimatePresence>
+            </div>
+
+            {/* Stats - E PLAY style */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {stats.map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  className="glass-card p-4 rounded-xl text-center hover:scale-105 transition-transform"
+                >
+                  {stat.icon && <stat.icon className="w-6 h-6 mx-auto mb-2 text-purple-400" />}
+                  <div className="text-3xl font-black text-white">
+                    {stat.value}
+                    {stat.suffix && <span className="text-lg text-purple-400">{stat.suffix}</span>}
+                  </div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-4">
+              <motion.a
+                href="/register"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-bold text-white uppercase tracking-wider overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex items-center gap-2">
+                  {t("hero.bookButton")}
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+              </motion.a>
+
+              <motion.a
+                href="#computers"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-4 glass-card rounded-xl font-bold text-white uppercase tracking-wider hover:bg-white/10 transition-colors flex items-center gap-2"
+              >
+                <Calendar className="w-5 h-5" />
+                {t("hero.aboutButton")}
+              </motion.a>
+            </div>
           </motion.div>
 
-          {/* CTA buttons — адаптивные */}
+          {/* RIGHT - Gaming Animation */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative hidden lg:block"
           >
-            <a
-              href="/register"
-              className="card-sweep inline-flex items-center justify-center gap-2 px-6 sm:px-10 py-3 sm:py-4 rounded-xl font-black uppercase tracking-wider text-white transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(99,102,241,0.6)] text-sm sm:text-base"
-              style={{
-                background: "linear-gradient(90deg, #1d4ed8, #7c3aed)",
-                boxShadow: "0 0 30px rgba(99,102,241,0.45)",
-              }}
-            >
-              Забронировать
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </a>
-            <a
-              href="#about"
-              className="card-sweep inline-flex items-center justify-center gap-2 px-6 sm:px-10 py-3 sm:py-4 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:text-white hover:bg-blue-500/10 text-sm sm:text-base"
-              style={{
-                border: "1px solid rgba(59,130,246,0.45)",
-                background: "rgba(59,130,246,0.07)",
-              }}
-            >
-              О клубе
-            </a>
+            <div className="relative w-full h-[500px] flex items-center justify-center">
+              {/* Animated circles */}
+              <motion.div
+                animate={{
+                  rotate: 360,
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="absolute inset-0"
+              >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-purple-500/30" />
+              </motion.div>
+              
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="absolute inset-0"
+              >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full border-2 border-pink-500/30" />
+              </motion.div>
+
+              {/* Center logo with glow */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative z-10"
+              >
+                <div className="relative w-64 h-64">
+                  <Image
+                    src="/logo-new.png"
+                    alt="RONIN"
+                    fill
+                    className="object-contain"
+                    sizes="256px"
+                    style={{
+                      filter: "drop-shadow(0 0 40px rgba(168,85,247,0.8)) drop-shadow(0 0 80px rgba(236,72,153,0.6))",
+                    }}
+                  />
+                </div>
+              </motion.div>
+
+              {/* Floating particles */}
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    y: [0, -30, 0],
+                    opacity: [0.3, 0.8, 0.3],
+                  }}
+                  transition={{
+                    duration: 3 + i * 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                  }}
+                  className="absolute w-2 h-2 rounded-full bg-purple-500"
+                  style={{
+                    left: `${20 + i * 10}%`,
+                    top: `${30 + (i % 3) * 15}%`,
+                  }}
+                />
+              ))}
+            </div>
           </motion.div>
+
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="flex flex-col items-center gap-2"
-        >
-          <span className="text-gray-400 text-xs uppercase tracking-widest">Листай вниз</span>
-          <div className="w-px h-10" style={{ background: "linear-gradient(to bottom, rgba(96,165,250,0.8), transparent)" }} />
-        </motion.div>
-      </motion.div>
+      <style jsx global>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(50px, 50px) scale(1.05); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </section>
   );
 }
+

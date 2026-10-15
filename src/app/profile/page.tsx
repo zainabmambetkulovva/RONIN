@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { FullPageLoader } from "@/components/ui/RollingLoader";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface User {
   id: string;
@@ -23,6 +26,7 @@ interface Avatar {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [avatar, setAvatar] = useState<Avatar | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +97,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#03030a" }}>
+      <DashboardNavbar />
       <MobileMenu />
       {/* Background effects */}
       <div
@@ -104,7 +109,16 @@ export default function ProfilePage() {
         style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 group"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-bold uppercase tracking-wider">Назад</span>
+        </button>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -162,6 +176,7 @@ export default function ProfilePage() {
                   onClick={() => router.push("/setup-profile")}
                   className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center transition-all hover:scale-110"
                   style={{ boxShadow: "0 0 20px rgba(59,130,246,0.6)" }}
+                  title="Изменить аватар"
                 >
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -179,26 +194,59 @@ export default function ProfilePage() {
             <div className="space-y-6">
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Имя</label>
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white font-bold text-lg">{user.name}</p>
+                <div className="relative group">
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
+                    <p className="text-white font-bold text-lg">{user.name}</p>
+                  </div>
+                  <button
+                    onClick={() => router.push("/profile/edit")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+                    title="Редактировать имя"
+                  >
+                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Email</label>
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white font-medium">
-                    {user.email || <span className="text-gray-500">Не указан</span>}
-                  </p>
+                <div className="relative group">
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
+                    <p className="text-white font-medium">
+                      {user.email || <span className="text-gray-500">Не указан</span>}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push("/profile/edit")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+                    title="Редактировать email"
+                  >
+                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-gray-400 text-sm mb-2">Телефон</label>
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white font-medium">
-                    {user.phone || <span className="text-gray-500">Не указан</span>}
-                  </p>
+                <div className="relative group">
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
+                    <p className="text-white font-medium">
+                      {user.phone || <span className="text-gray-500">Не указан</span>}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push("/profile/edit")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
+                    title="Редактировать телефон"
+                  >
+                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 

@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-
-const prisma = new PrismaClient();
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
 // PATCH /api/user/avatar - обновить аватар пользователя
 export async function PATCH(req: NextRequest) {
   try {
-    // TODO: Replace with real auth when NextAuth is configured
-    // const session = await getServerSession();
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
-    // For now, use mock user ID (replace this with real auth)
-    const mockUserId = "mock-user-id"; // This should come from session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const { avatarCode } = body;
@@ -27,11 +22,14 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Verify avatar exists
-    const avatar = await prisma.avatar.findUnique({
-      where: { code: avatarCode },
+    const avatar = await prisma.avatars.findFirst({
+      where: { 
+        code: avatarCode,
+        is_active: true
+      },
     });
 
-    if (!avatar || !avatar.isActive) {
+    if (!avatar) {
       return NextResponse.json(
         { error: "Invalid avatar code" },
         { status: 400 }
@@ -39,8 +37,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update user avatar
-    const updatedUser = await prisma.user.update({
-      where: { id: mockUserId },
+    const updatedUser = await prisma.users.update({
+      where: { id: session.user.id },
       data: { avatar: avatarCode },
       select: {
         id: true,
@@ -48,7 +46,7 @@ export async function PATCH(req: NextRequest) {
         email: true,
         phone: true,
         avatar: true,
-        createdAt: true,
+        created_at: true,
       },
     });
 

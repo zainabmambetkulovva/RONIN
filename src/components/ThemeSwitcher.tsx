@@ -10,12 +10,11 @@ export function ThemeSwitcher() {
     if (saved) {
       setTheme(saved);
       document.documentElement.classList.toggle("light", saved === "light");
-      // Apply background image for light theme
+      // Светлая тема = чистый белый фон (минимализм)
       if (saved === "light") {
-        document.body.style.backgroundImage = "url('/РОНИН фон.png')";
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-        document.body.style.backgroundAttachment = "fixed";
+        document.body.style.background = "#FFFFFF";
+      } else {
+        document.body.style.background = "#000000";
       }
     }
   }, []);
@@ -26,14 +25,12 @@ export function ThemeSwitcher() {
     localStorage.setItem("ronin-theme", newTheme);
     document.documentElement.classList.toggle("light", newTheme === "light");
     
-    // Change background for light/dark theme
+    // Светлая тема: минимализм с белым фоном
+    // Тёмная тема: чёрный фон
     if (newTheme === "light") {
-      document.body.style.backgroundImage = "url('/РОНИН фон.png')";
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.background = "#FFFFFF";
     } else {
-      document.body.style.backgroundImage = "none";
+      document.body.style.background = "#000000";
     }
   };
 

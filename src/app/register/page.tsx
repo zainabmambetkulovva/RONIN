@@ -1,4 +1,5 @@
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import Image from "next/image";
 
 export const metadata = {
   title: "Регистрация | RONIN",
@@ -26,7 +27,19 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <a href="/" className="inline-block">
+          <a href="/" className="inline-flex flex-col items-center gap-2">
+            <div className="relative w-20 h-20">
+              <Image
+                src="/logo-new.png"
+                alt="RONIN Logo"
+                fill
+                className="object-contain"
+                sizes="80px"
+                style={{
+                  filter: "drop-shadow(0 0 20px rgba(139,92,246,0.8))",
+                }}
+              />
+            </div>
             <span
               className="text-4xl font-black tracking-widest"
               style={{

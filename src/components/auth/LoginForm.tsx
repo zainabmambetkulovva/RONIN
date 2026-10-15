@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,16 +53,17 @@ export function LoginForm() {
         });
 
         if (result?.error) {
-          throw new Error("Неверный email или пароль");
+          throw new Error(t("auth.invalidCredentials") || "Неверный email или пароль");
         }
 
-        // Перенаправить в профиль
-        router.push("/profile");
+        // Ждем создания session и перенаправляем
+        await new Promise(resolve => setTimeout(resolve, 500));
+        window.location.href = "/dashboard"; // Hard redirect для загрузки session
         return;
       }
 
       // Другие ошибки
-      throw new Error(checkData.error || "Ошибка авторизации");
+      throw new Error(checkData.error || t("auth.authError") || "Ошибка авторизации");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -84,7 +87,7 @@ export function LoginForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Неверный код");
+        throw new Error(data.error || t("auth.invalidCode") || "Неверный код");
       }
 
       // Успешно - перенаправить в админку
@@ -124,7 +127,7 @@ export function LoginForm() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-bold text-white mb-2">
-              Email
+              {t("auth.email") || "Email"}
             </label>
             <input
               id="email"
@@ -143,7 +146,7 @@ export function LoginForm() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-bold text-white mb-2">
-              Пароль
+              {t("auth.password") || "Пароль"}
             </label>
             <div className="relative">
               <input
@@ -174,7 +177,7 @@ export function LoginForm() {
               href="/forgot-password"
               className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Забыли пароль?
+              {t("auth.forgotPassword") || "Забыли пароль?"}
             </a>
           </div>
 
@@ -187,14 +190,14 @@ export function LoginForm() {
               boxShadow: "0 0 24px rgba(59,130,246,0.5)",
             }}
           >
-            {isLoading ? "Проверка..." : "Войти"}
+            {isLoading ? t("auth.checking") || "Проверка..." : t("auth.loginButton") || "Войти"}
           </button>
 
           {/* Divider */}
           <div className="relative flex items-center justify-center">
             <div className="absolute w-full h-px" style={{ background: "rgba(59,130,246,0.2)" }} />
             <span className="relative px-4 text-sm text-gray-400" style={{ background: "linear-gradient(135deg, rgba(7,7,26,0.95), rgba(13,13,36,0.95))" }}>
-              или
+              {t("auth.or") || "или"}
             </span>
           </div>
 
@@ -214,7 +217,7 @@ export function LoginForm() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Войти через Google
+            {t("auth.googleLogin") || "Войти через Google"}
           </button>
         </form>
       )}
@@ -234,9 +237,9 @@ export function LoginForm() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h2 className="text-xl font-black text-white mb-2">Проверка безопасности</h2>
+            <h2 className="text-xl font-black text-white mb-2">{t("auth.security2FA") || "Проверка безопасности"}</h2>
             <p className="text-sm text-gray-400">
-              Код отправлен в ваш Telegram<br />
+              {t("auth.codeSent") || "Код отправлен в ваш Telegram"}<br />
               <span className="text-blue-400">@rrronin_bot</span>
             </p>
           </div>
@@ -256,7 +259,7 @@ export function LoginForm() {
 
           <div>
             <label className="block text-sm font-bold text-white mb-2 text-center">
-              Введите 6-значный код
+              {t("auth.enter6Code") || "Введите 6-значный код"}
             </label>
             <input
               type="text"
@@ -283,7 +286,7 @@ export function LoginForm() {
               boxShadow: "0 0 24px rgba(59,130,246,0.5)",
             }}
           >
-            {isLoading ? "Проверка..." : "Подтвердить"}
+            {isLoading ? t("auth.checking") || "Проверка..." : t("auth.confirm") || "Подтвердить"}
           </button>
 
           <button
@@ -295,7 +298,7 @@ export function LoginForm() {
             }}
             className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
-            ← Назад
+            ← {t("auth.back") || "Назад"}
           </button>
         </form>
       )}

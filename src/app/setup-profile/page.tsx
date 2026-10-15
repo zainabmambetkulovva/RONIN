@@ -2,34 +2,59 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import Image from "next/image";
+import { Plus } from "lucide-react";
 import { FullPageLoader } from "@/components/ui/RollingLoader";
 
 interface Avatar {
   id: string;
   code: string;
-  name?: string; // Optional
+  name?: string;
   imageUrl: string;
   isActive: boolean;
+  background?: string; // Character background color
 }
+
+const characterBackgrounds = [
+  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
+  "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+  "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+];
 
 export default function SetupProfilePage() {
   const router = useRouter();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
     fetchAvatars();
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const fetchAvatars = async () => {
     try {
       const response = await fetch("/api/avatars");
       const data = await response.json();
-      setAvatars(data.avatars || []);
+      // Filter out avatars without valid image URLs
+      const validAvatars = (data.avatars || []).filter(
+        (avatar: Avatar) => avatar.imageUrl && avatar.imageUrl.trim() !== ''
+      );
+      setAvatars(validAvatars);
     } catch (error) {
       console.error("Failed to fetch avatars:", error);
     } finally {
@@ -126,17 +151,20 @@ export default function SetupProfilePage() {
                   : "ring-1 ring-white/10 hover:ring-blue-400/50 hover:scale-105"
               }`}
               style={{
-                background: selectedAvatar === avatar.code
-                  ? "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))"
-                  : "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+                background: "transparent", // Фон алынды
               }}
             >
               {/* Avatar image */}
               <div className="w-full h-full relative">
-                <img 
+                <Image 
                   src={avatar.imageUrl} 
                   alt={`Avatar ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                  quality={100}
+                  priority={index < 6}
+                  className="object-contain" 
+                  style={{ imageRendering: "crisp-edges" }}
                 />
               </div>
 

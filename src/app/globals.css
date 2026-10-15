@@ -6,8 +6,9 @@
 @import '../styles/animations.css';
 
 @layer base {
+  /* Dark Theme Variables (default) */
   :root {
-    --background: 240 10% 4%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
     --card: 240 10% 7%;
     --card-foreground: 0 0% 98%;
@@ -28,6 +29,29 @@
     --ring: 271 81% 56%;
     --radius: 0.75rem;
   }
+
+  /* Light Theme Variables */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 271 81% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 220 13% 95%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 271 81% 56%;
+  }
 }
 
 @layer base {
@@ -35,11 +59,18 @@
     @apply border-border;
   }
 
+  /* Dark Theme Body */
   body {
-    @apply bg-ronin-black text-white;
+    @apply bg-black text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Light Theme Body */
+  .light body {
+    @apply bg-white text-gray-900;
+  }
+
+  /* Scrollbar - Dark Theme */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -50,19 +81,85 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-ronin-purple-mid rounded-full;
+    @apply bg-ronin-neon rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ronin-neon;
+    @apply bg-ronin-neon-bright;
+  }
+
+  /* Scrollbar - Light Theme */
+  .light ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+
+  .light ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400;
+  }
+
+  .light ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
   }
 }
 
 @layer components {
-  /* Neon glow effects */
+  /* ═══════════════════════════════════════════════════════════
+     GLASSMORPHISM CARDS - Dark & Light Theme
+     ═══════════════════════════════════════════════════════════ */
+  
+  /* Dark Theme Glassmorphism */
+  .glass-card {
+    background: rgba(13, 13, 26, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .glass-card:hover {
+    background: rgba(13, 13, 26, 0.8);
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 12px 48px rgba(139, 92, 246, 0.2);
+  }
+
+  /* Light Theme Glassmorphism */
+  .light .glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .light .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(139, 92, 246, 0.25);
+    box-shadow: 0 12px 48px rgba(139, 92, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Enhanced Glassmorphism with more blur */
+  .glass-card-strong {
+    background: rgba(10, 10, 30, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+  }
+
+  .light .glass-card-strong {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     NEON EFFECTS - Dark & Light Theme
+     ═══════════════════════════════════════════════════════════ */
+  
+  /* Dark Theme Neon */
   .neon-border {
-    border: 1px solid rgba(168, 85, 247, 0.4);
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2), inset 0 0 10px rgba(168, 85, 247, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2), inset 0 0 10px rgba(139, 92, 246, 0.05);
   }
 
   .neon-border-blue {
@@ -71,27 +168,54 @@
   }
 
   .neon-text {
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.8), 0 0 20px rgba(168, 85, 247, 0.4);
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.8), 0 0 20px rgba(139, 92, 246, 0.4);
   }
 
   .neon-text-blue {
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.4);
   }
 
-  .glass-card {
-    background: rgba(13, 13, 26, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(168, 85, 247, 0.15);
+  /* Light Theme Neon (subtle glow) */
+  .light .neon-border {
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
   }
 
+  .light .neon-border-blue {
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.15);
+  }
+
+  .light .neon-text {
+    text-shadow: 0 0 4px rgba(124, 58, 237, 0.3);
+  }
+
+  .light .neon-text-blue {
+    text-shadow: 0 0 4px rgba(37, 99, 235, 0.3);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     GRADIENT TEXT
+     ═══════════════════════════════════════════════════════════ */
+  
   .ronin-gradient-text {
-    background: linear-gradient(135deg, #a855f7, #3b82f6);
+    background: linear-gradient(135deg, #8B5CF6, #3B82F6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Status indicators */
+  .light .ronin-gradient-text {
+    background: linear-gradient(135deg, #7C3AED, #2563EB);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     STATUS INDICATORS
+     ═══════════════════════════════════════════════════════════ */
+  
   .status-available {
     @apply text-green-400;
   }
@@ -119,7 +243,10 @@
     @apply w-2.5 h-2.5 rounded-full bg-gray-500;
   }
 
-  /* Booking status */
+  /* ═══════════════════════════════════════════════════════════
+     BOOKING STATUS BADGES
+     ═══════════════════════════════════════════════════════════ */
+  
   .badge-active {
     @apply px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30;
   }
@@ -139,7 +266,32 @@
   .badge-cancelled {
     @apply px-3 py-1 rounded-full text-xs font-bold bg-gray-500/20 text-gray-400 border border-gray-500/30;
   }
+
+  /* Light Theme Badges */
+  .light .badge-active {
+    @apply bg-green-100 text-green-700 border-green-300;
+  }
+
+  .light .badge-expired {
+    @apply bg-red-100 text-red-700 border-red-300;
+  }
+
+  .light .badge-pending {
+    @apply bg-yellow-100 text-yellow-700 border-yellow-300;
+  }
+
+  .light .badge-confirmed {
+    @apply bg-blue-100 text-blue-700 border-blue-300;
+  }
+
+  .light .badge-cancelled {
+    @apply bg-gray-100 text-gray-700 border-gray-300;
+  }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
 
 /* Page transitions */
 @keyframes fadeInUp {
@@ -169,15 +321,15 @@
   animation: shimmer 1.5s infinite;
 }
 
-/* ── Border sweep animation ── */
-/* Runs a bright white/blue glow around the border on hover */
-@keyframes borderSweep {
-  0%   { background-position: 0% 0%; }
-  25%  { background-position: 100% 0%; }
-  50%  { background-position: 100% 100%; }
-  75%  { background-position: 0% 100%; }
-  100% { background-position: 0% 0%; }
+.light .skeleton {
+  background: linear-gradient(90deg, rgba(243,244,246,1) 0%, rgba(229,231,235,1) 50%, rgba(243,244,246,1) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   BORDER SWEEP ANIMATION (Card Hover)
+   ═══════════════════════════════════════════════════════════ */
 
 .card-sweep {
   position: relative;
@@ -194,9 +346,9 @@
     from var(--angle, 0deg),
     transparent 0%,
     transparent 30%,
-    rgba(255, 255, 255, 0.9) 45%,
-    rgba(147, 197, 253, 1) 50%,
-    rgba(255, 255, 255, 0.9) 55%,
+    rgba(139, 92, 246, 0.9) 45%,
+    rgba(59, 130, 246, 1) 50%,
+    rgba(139, 92, 246, 0.9) 55%,
     transparent 70%,
     transparent 100%
   );
@@ -227,14 +379,17 @@
 /* Fallback для браузеров без @property */
 @supports not (background: conic-gradient(from 0deg, red, blue)) {
   .card-sweep:hover {
-    box-shadow: 0 0 0 1px rgba(147,197,253,0.8), 0 0 16px rgba(59,130,246,0.4);
+    box-shadow: 0 0 0 1px rgba(139,92,246,0.8), 0 0 16px rgba(59,130,246,0.4);
   }
   .card-sweep::before {
     display: none;
   }
 }
 
-/* Social icons animation */
+/* ═══════════════════════════════════════════════════════════
+   SOCIAL ICONS ANIMATION
+   ═══════════════════════════════════════════════════════════ */
+
 .example-2 {
   display: flex;
   justify-content: flex-start;
@@ -277,8 +432,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: #4d4d4d;
   background-color: #fff;
@@ -292,8 +447,8 @@
 .example-2 .icon-content a svg {
   position: relative;
   z-index: 1;
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
 }
 
 .example-2 .icon-content a:hover {
@@ -335,7 +490,10 @@
   background-color: #E1306C;
 }
 
-/* Button hover animation */
+/* ═══════════════════════════════════════════════════════════
+   BUTTON HOVER ANIMATION
+   ═══════════════════════════════════════════════════════════ */
+
 .hover-button {
   color: #e1e1e1;
   font-weight: 800;
@@ -372,4 +530,41 @@
   transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-duration: 400ms;
   transition-property: width, left;
+}
+
+.light .hover-button {
+  color: #6b7280;
+}
+
+.light .hover-button:focus,
+.light .hover-button:hover {
+  color: #111827;
+}
+
+.light .hover-button:after {
+  background-color: #7C3AED;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SMOOTH SCROLL
+   ═══════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Height of navbar */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

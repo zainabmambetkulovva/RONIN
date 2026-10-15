@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Plus, Search, Trash2, Ban, CheckCircle } from "lucide-react";
 import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
@@ -18,6 +19,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function UsersPage() {
       setUsers(data.users || []);
     } catch (error: any) {
       console.error("Failed to fetch users:", error);
-      alert(`Ошибка загрузки пользователей: ${error.message}`);
+      alert(`${t("admin.loadError")}: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Удалить пользователя? Это действие нельзя отменить.")) {
+    if (!confirm(t("admin.deleteConfirm"))) {
       return;
     }
 
@@ -96,19 +98,19 @@ export default function UsersPage() {
         setUsers(users.filter((u) => u.id !== userId));
       } else {
         const data = await res.json();
-        alert(data.error || "Ошибка удаления");
+        alert(data.error || t("admin.deleteError"));
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Ошибка сети");
+      alert(t("admin.networkError"));
     }
   };
 
   const handleBlockUser = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "blocked" : "active";
-    const action = newStatus === "blocked" ? "заблокировать" : "разблокировать";
+    const confirmMsg = newStatus === "blocked" ? t("admin.blockConfirm") : t("admin.unblockConfirm");
 
-    if (!confirm(`Вы уверены что хотите ${action} этого пользователя?`)) {
+    if (!confirm(confirmMsg)) {
       return;
     }
 
@@ -127,11 +129,11 @@ export default function UsersPage() {
         );
       } else {
         const data = await res.json();
-        alert(data.error || "Ошибка изменения статуса");
+        alert(data.error || t("admin.statusError"));
       }
     } catch (error) {
       console.error("Status change error:", error);
-      alert("Ошибка сети");
+      alert(t("admin.networkError"));
     }
   };
 
@@ -140,7 +142,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <RollingLoader />
-          <p className="text-gray-400 mt-4">Загрузка пользователей...</p>
+          <p className="text-gray-400 mt-4">{t("admin.loadingUsers")}</p>
         </div>
       </div>
     );
@@ -152,10 +154,10 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
-            Пользователи
+            {t("admin.users")}
           </h1>
           <p className="text-gray-400 text-sm">
-            Управление клиентами системы • Всего: {users.length}
+            {t("admin.usersManagement")} • {t("admin.total")}: {users.length}
           </p>
         </div>
         <button
@@ -167,7 +169,7 @@ export default function UsersPage() {
           }}
         >
           <Plus className="w-5 h-5" />
-          Добавить пользователя
+          {t("admin.addUser")}
         </button>
       </div>
 
@@ -190,7 +192,7 @@ export default function UsersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Поиск по имени, email, телефону..."
+              placeholder={t("admin.searchPlaceholder")}
               className="w-full pl-12 pr-4 py-3 rounded-xl text-sm transition-all"
               style={{
                 background: "rgba(15,15,30,0.8)",
@@ -211,10 +213,10 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">Все роли</option>
-            <option value="client">Клиенты</option>
-            <option value="manager">Менеджеры</option>
-            <option value="admin">Администраторы</option>
+            <option value="all">{t("admin.allRoles")}</option>
+            <option value="client">{t("admin.clients")}</option>
+            <option value="manager">{t("admin.managers")}</option>
+            <option value="admin">{t("admin.admins")}</option>
           </select>
 
           {/* Status filter */}
@@ -228,15 +230,15 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">Все статусы</option>
-            <option value="active">Активные</option>
-            <option value="blocked">Заблокированные</option>
+            <option value="all">{t("admin.allStatuses")}</option>
+            <option value="active">{t("admin.active")}</option>
+            <option value="blocked">{t("admin.blocked")}</option>
           </select>
         </div>
 
         {/* Results count */}
         <div className="mt-4 text-sm text-gray-400">
-          Найдено: {filteredUsers.length} из {users.length}
+          {t("admin.found")}: {filteredUsers.length} {t("admin.of")} {users.length}
         </div>
       </div>
 
@@ -252,8 +254,8 @@ export default function UsersPage() {
           >
             <Search className="w-10 h-10" style={{ color: "#9ca3af" }} />
           </div>
-          <p className="text-gray-400 text-lg mb-2">Пользователи не найдены</p>
-          <p className="text-gray-500 text-sm">Попробуйте изменить фильтры</p>
+          <p className="text-gray-400 text-lg mb-2">{t("admin.notFound")}</p>
+          <p className="text-gray-500 text-sm">{t("admin.tryChangeFilters")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

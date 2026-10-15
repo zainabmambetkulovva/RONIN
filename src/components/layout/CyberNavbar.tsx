@@ -1,110 +1,205 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { t } = useLanguage();
 
+  // Hydration fix - wait for client-side mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const navLinks = [
-    { href: "#about", label: t("nav.about") },
-    { href: "#booking-flow", label: t("nav.booking") },
-    { href: "#computers", label: t("nav.computers") },
-    { href: "#tariffs", label: t("nav.tariffs") },
-    { href: "#games", label: t("nav.games") },
-    { href: "#contacts", label: t("nav.contacts") },
+    { href: "#hero", label: "HOME", id: "hero", key: "nav.home" },
+    { href: "#games", label: "ИГРЫ", id: "games", key: "nav.games" },
+    { href: "#tariffs", label: "ТАРИФЫ", id: "tariffs", key: "nav.tariffs" },
+    { href: "#booking-flow", label: "БРОНЬ", id: "booking-flow", key: "nav.booking" },
+    { href: "#contacts", label: "КОНТАКТЫ", id: "contacts", key: "nav.contacts" },
   ];
+
+  // Scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // IntersectionObserver для активной секции
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: "-20% 0px -70% 0px",
+        threshold: 0.1,
+      }
+    );
+
+    navLinks.forEach((link) => {
+      const element = document.getElementById(link.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [mounted]);
+
+  // Show loading state until mounted
+  if (!mounted) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a14]/95 backdrop-blur-xl border-b border-purple-500/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex h-16 items-center justify-between gap-4">
+            <a href="#" className="flex items-center gap-3 group shrink-0">
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <Image
+                  src="/logo-new.png"
+                  alt="RONIN Logo"
+                  fill
+                  className="object-contain"
+                  sizes="40px"
+                  priority
+                />
+              </div>
+              <span className="text-xl font-black tracking-wider bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                RONIN
+              </span>
+            </a>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl"
-      style={{
-        background: "rgba(5,5,15,0.85)",
-        borderBottom: "1px solid rgba(59,130,246,0.12)",
-      }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-[#0a0a14]/95 backdrop-blur-xl border-b border-purple-500/20"
+          : "bg-transparent"
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
+          
           {/* Logo */}
-          <a href="#hero" className="flex items-center gap-3 group shrink-0">
-            <img src="/logo.png" alt="RONIN" className="w-10 h-10 object-contain" />
-            <span
-              className="text-2xl font-black tracking-widest"
-              style={{
-                background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                filter: "drop-shadow(0 0 8px rgba(59,130,246,0.5))",
-              }}
-            >
+          <a href="#" className="flex items-center gap-3 group shrink-0">
+            <div className="relative w-10 h-10 flex-shrink-0">
+              <Image
+                src="/logo-new.png"
+                alt="RONIN Logo"
+                fill
+                className="object-contain"
+                sizes="40px"
+                priority
+              />
+            </div>
+            <span className="text-xl font-black tracking-wider bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               RONIN
             </span>
           </a>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-gray-400 hover:text-blue-400 transition-colors duration-200"
+                className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 ${
+                  activeSection === link.id
+                    ? "text-white bg-purple-600"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
               >
-                {link.label}
+                {t(link.key) || link.label}
               </a>
             ))}
           </div>
 
-          {/* Language + Theme + Auth Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right side */}
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <ThemeSwitcher />
-            <a
-              href="/login"
-              className="hover-button px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-300"
-            >
-              {t("nav.login")}
-            </a>
-            <a
-              href="/register"
-              className="px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-bold text-white uppercase tracking-wider transition-all hover:scale-105"
-              style={{
-                background: "linear-gradient(90deg, #2563eb, #7c3aed)",
-                boxShadow: "0 0 16px rgba(99,102,241,0.4)",
-              }}
-            >
-              {t("nav.register")}
-            </a>
-          </div>
+            
+            {/* Auth buttons */}
+            <div className="hidden sm:flex items-center gap-2">
+              <a
+                href="/login"
+                className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+              >
+                {t("nav.login") || "Вход"}
+              </a>
+              <a
+                href="/register"
+                className="px-4 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all"
+              >
+                {t("nav.register") || "Регистрация"}
+              </a>
+            </div>
 
-          {/* Mobile menu toggle */}
-          <button
-            className="lg:hidden text-gray-300 hover:text-white ml-2"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            {/* Mobile menu toggle */}
+            <button
+              className="lg:hidden text-gray-400 hover:text-white ml-2"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile menu — ТОЛЬКО навигационные ссылки */}
+        {/* Mobile menu */}
         {isOpen && (
-          <div
-            className="lg:hidden py-4 space-y-1"
-            style={{ borderTop: "1px solid rgba(59,130,246,0.1)" }}
-          >
+          <div className="lg:hidden py-4 space-y-1 border-t border-purple-500/20">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="block px-2 py-2.5 text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                className={`block px-3 py-2 text-xs font-bold transition-colors rounded-lg ${
+                  activeSection === link.id
+                    ? "text-white bg-purple-600"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
                 onClick={() => setIsOpen(false)}
               >
-                {link.label}
+                {t(link.key) || link.label}
               </a>
             ))}
+            
+            {/* Mobile auth buttons */}
+            <div className="pt-4 space-y-2 border-t border-purple-500/20 mt-4">
+              <a
+                href="/login"
+                className="block px-3 py-2 text-xs font-bold text-center text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+              >
+                {t("nav.login") || "Вход"}
+              </a>
+              <a
+                href="/register"
+                className="block px-4 py-2 rounded-lg text-xs font-bold text-white text-center uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600"
+              >
+                {t("nav.register") || "Регистрация"}
+              </a>
+            </div>
           </div>
         )}
       </div>

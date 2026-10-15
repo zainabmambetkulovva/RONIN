@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { FullPageLoader } from "@/components/ui/RollingLoader";
 
 function BookingSuccessContent() {
@@ -21,11 +23,24 @@ function BookingSuccessContent() {
 
   const fetchBooking = async () => {
     try {
+      console.log("🔍 Fetching booking with ID:", bookingId);
       const response = await fetch(`/api/bookings/${bookingId}`);
       const data = await response.json();
-      setBooking(data.booking);
+      
+      console.log("📦 API Response:", data);
+      
+      if (!response.ok) {
+        console.error("❌ API returned error:", data.error);
+      }
+      
+      if (data.booking) {
+        console.log("✅ Booking found:", data.booking);
+        setBooking(data.booking);
+      } else {
+        console.error("❌ No booking in response");
+      }
     } catch (error) {
-      console.error("Failed to fetch booking:", error);
+      console.error("❌ Failed to fetch booking:", error);
     } finally {
       setLoading(false);
     }
@@ -116,6 +131,7 @@ function BookingSuccessContent() {
 
   return (
     <div className="min-h-screen" style={{ background: "#03030a" }}>
+      <DashboardNavbar />
       {/* Background effects */}
       <div
         className="fixed top-0 right-0 w-[800px] h-[800px] rounded-full pointer-events-none opacity-10"
@@ -126,7 +142,16 @@ function BookingSuccessContent() {
         style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
+        {/* Back button */}
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 group"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-bold uppercase tracking-wider">На главную</span>
+        </button>
+
         {/* Success animation */}
         <motion.div
           initial={{ scale: 0 }}

@@ -1,11 +1,21 @@
-import { LoginForm } from "@/components/auth/LoginForm";
+"use client";
 
-export const metadata = {
-  title: "Вход | RONIN",
-  description: "Войдите в свой аккаунт RONIN",
-};
+import { LoginForm } from "@/components/auth/LoginForm";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function LoginPage() {
+  const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // Prevent hydration mismatch
+  }
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
@@ -26,7 +36,19 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <a href="/" className="inline-block">
+          <a href="/" className="inline-flex flex-col items-center gap-2">
+            <div className="relative w-20 h-20">
+              <Image
+                src="/logo-new.png"
+                alt="RONIN Logo"
+                fill
+                className="object-contain"
+                sizes="80px"
+                style={{
+                  filter: "drop-shadow(0 0 20px rgba(139,92,246,0.8))",
+                }}
+              />
+            </div>
             <span
               className="text-4xl font-black tracking-widest"
               style={{
@@ -39,7 +61,7 @@ export default function LoginPage() {
               RONIN
             </span>
           </a>
-          <p className="text-gray-400 mt-2">Войдите в свой аккаунт</p>
+          <p className="text-gray-400 mt-2">{t("auth.loginSubtitle")}</p>
         </div>
 
         {/* Login form */}
@@ -48,12 +70,12 @@ export default function LoginPage() {
         {/* Register link */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-400">
-            Нет аккаунта?{" "}
+            {t("auth.noAccount")}{" "}
             <a
               href="/register"
               className="font-bold text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Зарегистрироваться
+              {t("auth.registerLink")}
             </a>
           </p>
         </div>
@@ -64,7 +86,7 @@ export default function LoginPage() {
             href="/"
             className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
           >
-            ← Вернуться на главную
+            ← {t("auth.backHome")}
           </a>
         </div>
       </div>

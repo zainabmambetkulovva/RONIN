@@ -28,6 +28,12 @@ interface AnimatedReceiptProps {
 
 export function AnimatedReceipt({ booking, onView, getStatusColor, getStatusText }: AnimatedReceiptProps) {
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Check if booking has expired
+  const now = new Date();
+  const endTime = new Date(booking.endAt);
+  const isExpired = now > endTime;
+  const isActive = booking.status === "confirmed" && !isExpired && now >= new Date(booking.startAt) && now <= endTime;
 
   return (
     <>
@@ -58,6 +64,20 @@ export function AnimatedReceipt({ booking, onView, getStatusColor, getStatusText
 
         {/* Main content */}
         <div className="p-4 sm:p-6">
+          {/* Expiry badge - показывается если срок истек */}
+          {isExpired && booking.status === "confirmed" && (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/50 text-center">
+              <p className="text-red-400 font-bold text-sm uppercase">⏰ Срок истек</p>
+            </div>
+          )}
+
+          {/* Active session badge - показывается если сейчас активная сессия */}
+          {isActive && (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-green-500/20 border border-green-500/50 text-center animate-pulse">
+              <p className="text-green-400 font-bold text-sm uppercase">🎮 Активная сессия</p>
+            </div>
+          )}
+          
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Left: Main info */}
             <div className="flex-1">
@@ -68,11 +88,11 @@ export function AnimatedReceipt({ booking, onView, getStatusColor, getStatusText
                     background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
                   }}
                 >
-                  #{booking.computer.number}
+                  #{booking.computer?.number || "N/A"}
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-lg">{booking.computer.category.name}</h3>
-                  <p className="text-gray-400 text-sm">{booking.tariff.name}</p>
+                  <h3 className="text-white font-bold text-lg">{booking.computer?.category?.name || "Неизвестно"}</h3>
+                  <p className="text-gray-400 text-sm">{booking.tariff?.name || "Тариф не указан"}</p>
                 </div>
               </div>
 

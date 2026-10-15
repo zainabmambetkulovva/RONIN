@@ -4,15 +4,19 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AdminSettingsPage() {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState(true);
   const [theme, setTheme] = useState("dark");
-  const { language, setLanguage } = useLanguage();
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Настройки</h1>
-        <p className="text-gray-400">Управление параметрами системы</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t("admin.settings")}</h1>
+        <p className="text-gray-400">{t("admin.settingsDescription")}</p>
       </div>
 
       <div className="max-w-3xl space-y-6">
@@ -24,13 +28,13 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">Уведомления</h2>
+          <h2 className="text-xl font-bold text-white mb-4">{t("admin.notifications")}</h2>
           
           <div className="flex items-center justify-between py-3">
             <div>
-              <div className="text-white font-medium mb-1">Push-уведомления</div>
+              <div className="text-white font-medium mb-1">{t("admin.pushNotifications")}</div>
               <div className="text-sm text-gray-400">
-                Получать уведомления о новых бронированиях
+                {t("admin.pushNotificationsDesc")}
               </div>
             </div>
             <button
@@ -54,9 +58,9 @@ export default function AdminSettingsPage() {
           <div className="border-t mt-3 pt-3" style={{ borderColor: "rgba(59,130,246,0.1)" }}>
             <div className="flex items-center justify-between py-3">
               <div>
-                <div className="text-white font-medium mb-1">Email-уведомления</div>
+                <div className="text-white font-medium mb-1">{t("admin.emailNotifications")}</div>
                 <div className="text-sm text-gray-400">
-                  Получать ежедневные отчеты на почту
+                  {t("admin.emailNotificationsDesc")}
                 </div>
               </div>
               <button
@@ -82,30 +86,30 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">Язык интерфейса</h2>
+          <h2 className="text-xl font-bold text-white mb-4">{t("admin.interfaceLanguage")}</h2>
           
           <div className="grid grid-cols-3 gap-3">
             {[
-              { code: "ru", label: "Русский", flag: "🇷🇺" },
-              { code: "kg", label: "Кыргызча", flag: "🇰🇬" },
-              { code: "en", label: "English", flag: "🇺🇸" },
+              { code: "ru", label: t("admin.russian"), flag: "RU" },
+              { code: "ky", label: t("admin.kyrgyz"), flag: "KG" },
+              { code: "en", label: t("admin.english"), flag: "US" },
             ].map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => setLanguage(lang.code as "ru" | "en" | "kg")}
+                onClick={() => changeLanguage(lang.code)}
                 className="p-4 rounded-lg transition-all hover:scale-105"
                 style={{
                   background:
-                    language === lang.code
+                    i18n.language === lang.code
                       ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
                       : "rgba(15,15,30,0.6)",
                   border:
-                    language === lang.code
+                    i18n.language === lang.code
                       ? "2px solid rgba(59,130,246,0.5)"
                       : "1px solid rgba(59,130,246,0.2)",
                 }}
               >
-                <div className="text-3xl mb-2">{lang.flag}</div>
+                <div className="text-3xl mb-2 font-bold">{lang.flag}</div>
                 <div className="text-white font-bold text-sm">{lang.label}</div>
               </button>
             ))}
@@ -120,19 +124,19 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">Тема оформления</h2>
+          <h2 className="text-xl font-bold text-white mb-4">{t("admin.themeTitle")}</h2>
           
           <div className="grid grid-cols-2 gap-4">
             {[
               {
                 value: "dark",
-                label: "Темная",
+                label: t("admin.darkTheme"),
                 icon: "🌙",
                 gradient: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
               },
               {
                 value: "light",
-                label: "Светлая",
+                label: t("admin.lightTheme"),
                 icon: "☀️",
                 gradient: "linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)",
               },
@@ -171,7 +175,7 @@ export default function AdminSettingsPage() {
             boxShadow: "0 0 30px rgba(59,130,246,0.5)",
           }}
         >
-          Сохранить изменения
+          {t("admin.saveChanges")}
         </button>
       </div>
     </div>

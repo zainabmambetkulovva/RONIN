@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       await prisma.telegram_verifications.delete({
         where: { id: verification.id },
       });
-      global.tempSessions.delete(sessionToken);
       return NextResponse.json(
         { error: "Код истек. Пожалуйста, запросите новый" },
         { status: 401 }

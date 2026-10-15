@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { FullPageLoader } from "@/components/ui/RollingLoader";
 import { AnimatedReceipt } from "@/components/ui/AnimatedReceipt";
@@ -104,6 +105,7 @@ export default function ArchivePage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#03030a" }}>
+      <DashboardNavbar />
       <MobileMenu />
       {/* Background effects */}
       <div
@@ -115,7 +117,7 @@ export default function ArchivePage() {
         style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -1,49 +1,52 @@
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ComputersTable } from "@/components/admin/ComputersTable";
+import { RollingLoader } from "@/components/ui/RollingLoader";
 
-export default async function ComputersPage() {
-  const now = new Date();
-  
-  // Получить все компьютеры с АКТИВНЫМИ бронированиями (которые идут прямо сейчас)
-  const computersData = await prisma.computers.findMany({
-    include: {
-      bookings: {
-        where: {
-          status: {
-            in: ["confirmed"],
-          },
-          start_at: {
-            lte: now, // Бронирование уже началось
-          },
-          end_at: {
-            gte: now, // И еще не закончилось
-          },
-        },
-        orderBy: {
-          start_at: "asc",
-        },
-        take: 1,
-      },
-    },
-    orderBy: {
-      number: "asc",
-    },
-  });
+interface Computer {
+  id: string;
+  number: number;
+  name: string;
+  status: string;
+  specs: any;
+  bookings: any[];
+}
 
-  // Transform snake_case to camelCase for frontend
-  const computers = computersData.map((c) => ({
-    id: c.id,
-    number: c.number,
-    name: `Computer ${c.number}`, // You might want to add a name field to schema
-    status: c.status,
-    specs: c.specifications,
-    bookings: c.bookings.map((b) => ({
-      id: b.id,
-      startAt: b.start_at,
-      endAt: b.end_at,
-      status: b.status,
-    })),
-  }));
+export default function ComputersPage() {
+  const { t } = useLanguage();
+  const [computers, setComputers] = useState<Computer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchComputers();
+  }, []);
+
+  const fetchComputers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/computers");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setComputers(data.computers || []);
+    } catch (error) {
+      console.error("Failed to fetch computers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <RollingLoader />
+          <p className="text-gray-400 mt-4">{t("admin.loading")}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Статистика
   const stats = {
@@ -56,8 +59,8 @@ export default async function ComputersPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Компьютеры</h1>
-        <p className="text-gray-400">Управление компьютерами клуба</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t("admin.computersPage")}</h1>
+        <p className="text-gray-400">{t("admin.computersManagement")}</p>
       </div>
 
       {/* Статистика */}
@@ -69,7 +72,7 @@ export default async function ComputersPage() {
             border: "1px solid rgba(59,130,246,0.3)",
           }}
         >
-          <div className="text-sm text-gray-400 mb-1">Всего</div>
+          <div className="text-sm text-gray-400 mb-1">{t("admin.totalComputers")}</div>
           <div className="text-3xl font-black text-white">{stats.total}</div>
         </div>
 
@@ -80,7 +83,7 @@ export default async function ComputersPage() {
             border: "1px solid rgba(34,197,94,0.3)",
           }}
         >
-          <div className="text-sm text-gray-400 mb-1">Доступно</div>
+          <div className="text-sm text-gray-400 mb-1">{t("admin.availableComputers")}</div>
           <div className="text-3xl font-black" style={{ color: "#22c55e" }}>
             {stats.available}
           </div>
@@ -93,7 +96,7 @@ export default async function ComputersPage() {
             border: "1px solid rgba(239,68,68,0.3)",
           }}
         >
-          <div className="text-sm text-gray-400 mb-1">Занято</div>
+          <div className="text-sm text-gray-400 mb-1">{t("admin.occupiedComputers")}</div>
           <div className="text-3xl font-black" style={{ color: "#ef4444" }}>
             {stats.occupied}
           </div>
@@ -106,7 +109,7 @@ export default async function ComputersPage() {
             border: "1px solid rgba(251,146,60,0.3)",
           }}
         >
-          <div className="text-sm text-gray-400 mb-1">На ремонте</div>
+          <div className="text-sm text-gray-400 mb-1">{t("admin.maintenanceComputers")}</div>
           <div className="text-3xl font-black" style={{ color: "#fb923c" }}>
             {stats.maintenance}
           </div>

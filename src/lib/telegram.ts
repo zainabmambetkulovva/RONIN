@@ -99,3 +99,73 @@ export async function getChatInfo(chatId: string): Promise<any> {
     return null;
   }
 }
+
+/**
+ * Отправить уведомление о новой регистрации
+ */
+export async function sendNewUserNotification(
+  adminChatId: string,
+  userData: {
+    name: string;
+    email?: string;
+    phone?: string;
+  }
+): Promise<boolean> {
+  const message = `
+🎉 <b>Новая регистрация!</b>
+
+👤 Имя: <b>${userData.name}</b>
+${userData.email ? `📧 Email: ${userData.email}` : ""}
+${userData.phone ? `📱 Телефон: ${userData.phone}` : ""}
+🕐 Время: ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Bishkek" })}
+
+Добро пожаловать в RONIN! 🎮
+  `.trim();
+
+  return sendTelegramMessage(adminChatId, message);
+}
+
+/**
+ * Отправить уведомление о новом бронировании
+ */
+export async function sendNewBookingNotification(
+  adminChatId: string,
+  bookingData: {
+    bookingCode: string;
+    userName: string;
+    computerName: string;
+    computerNumber: number;
+    tariffName: string;
+    startAt: Date;
+    endAt: Date;
+    price: string;
+  }
+): Promise<boolean> {
+  const startTime = new Date(bookingData.startAt).toLocaleString("ru-RU", { 
+    timeZone: "Asia/Bishkek",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  const endTime = new Date(bookingData.endAt).toLocaleTimeString("ru-RU", { 
+    timeZone: "Asia/Bishkek",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const message = `
+💰 <b>Новое бронирование!</b>
+
+📋 Код: <b>${bookingData.bookingCode}</b>
+👤 Клиент: ${bookingData.userName}
+🖥 Компьютер: <b>${bookingData.computerName} #${bookingData.computerNumber}</b>
+📊 Тариф: ${bookingData.tariffName}
+⏰ Время: ${startTime} - ${endTime}
+💵 Сумма: <b>${bookingData.price} сом</b>
+
+✅ Оплачено и подтверждено
+  `.trim();
+
+  return sendTelegramMessage(adminChatId, message);
+}

@@ -100,6 +100,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    console.log("✅ Booking created successfully:", {
+      id: booking.id,
+      bookingNumber: booking.booking_number,
+      bookingCode: booking.booking_code,
+      userId: booking.user_id,
+      computerId: booking.computer_id,
+    });
+
     return NextResponse.json({
       success: true,
       booking,

@@ -29,11 +29,7 @@ export function CyberAboutSection() {
       description: t("about.feature4.desc")
     }
   ];
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-
+  
   return (
     <section className="py-20 relative bg-black" ref={ref}>
       <div className="container mx-auto px-4">

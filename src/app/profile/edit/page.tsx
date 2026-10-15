@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { FullPageLoader } from "@/components/ui/RollingLoader";
 
@@ -173,7 +174,7 @@ export default function EditProfilePage() {
                     key={avatar.code}
                     type="button"
                     onClick={() => setFormData({ ...formData, avatar: avatar.code })}
-                    className={`aspect-square rounded-xl overflow-hidden transition-all hover:scale-105 ${
+                    className={`aspect-square rounded-xl overflow-hidden transition-all hover:scale-105 relative ${
                       formData.avatar === avatar.code ? "ring-4 ring-blue-500" : ""
                     }`}
                     style={{
@@ -183,10 +184,13 @@ export default function EditProfilePage() {
                       border: `2px solid ${formData.avatar === avatar.code ? "#3b82f6" : "rgba(255,255,255,0.1)"}`,
                     }}
                   >
-                    <img 
+                    <Image 
                       src={avatar.imageUrl} 
                       alt={avatar.code}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 640px) 25vw, 16vw"
+                      quality={100}
+                      className="object-cover"
                     />
                   </button>
                 ))}

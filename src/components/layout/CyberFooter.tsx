@@ -1,54 +1,80 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ArrowUp } from "lucide-react";
+import Image from "next/image";
 
 export function CyberFooter() {
   const { t } = useLanguage();
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (!mounted) return null;
   
   return (
-    <footer
-      className="relative overflow-hidden"
-      style={{
-        background: "linear-gradient(180deg, #05050f 0%, #0a0a1a 100%)",
-        borderTop: "1px solid rgba(59,130,246,0.1)",
-      }}
-    >
+    <footer className="relative overflow-hidden bg-gradient-to-b from-gray-950 to-black dark:from-gray-950 dark:to-black light:from-gray-50 light:to-white border-t border-blue-500/10 dark:border-blue-500/10 light:border-purple-200/30">
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-6 z-50 p-4 rounded-full transition-all hover:scale-110 shadow-xl"
+          style={{
+            background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+            boxShadow: "0 0 30px rgba(59,130,246,0.5)",
+          }}
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-6 h-6 text-white" />
+        </button>
+      )}
+      
       {/* Gradient overlay */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.3), transparent)" }}
-      />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-600/30 dark:via-purple-600/30 light:via-purple-400/40 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           
           {/* Brand + Description */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{
-                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-              }}>
-                <span className="text-white font-black text-base">R</span>
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 flex-shrink-0">
+                <Image
+                  src="/logo-new.png"
+                  alt="RONIN Logo"
+                  fill
+                  className="object-contain"
+                  sizes="40px"
+                />
               </div>
-              <span
-                className="text-xl font-black tracking-wider"
-                style={{
-                  background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
+              <span className="text-xl font-black tracking-wider bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 RONIN
               </span>
             </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 leading-relaxed">
               {t("footer.description")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Quick Links</h4>
+            <h4 className="text-white dark:text-white light:text-gray-900 font-bold text-xs uppercase tracking-wider">Quick Links</h4>
             <ul className="space-y-1.5">
               {[
                 { href: "#hero", label: "Home" },
@@ -59,7 +85,7 @@ export function CyberFooter() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    className="text-xs text-gray-400 hover:text-blue-400 transition-colors inline-block"
+                    className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors inline-block"
                   >
                     {link.label}
                   </a>
@@ -70,34 +96,34 @@ export function CyberFooter() {
 
           {/* Support */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Support</h4>
+            <h4 className="text-white dark:text-white light:text-gray-900 font-bold text-xs uppercase tracking-wider">Support</h4>
             <ul className="space-y-1.5">
               <li>
-                <a href="#booking-flow" className="text-xs text-gray-400 hover:text-blue-400 transition-colors inline-block">
+                <a href="#booking-flow" className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors inline-block">
                   {t("nav.booking")}
                 </a>
               </li>
               <li>
-                <a href="#contacts" className="text-xs text-gray-400 hover:text-blue-400 transition-colors inline-block">
+                <a href="#contacts" className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors inline-block">
                   Help Center
                 </a>
               </li>
               <li>
-                <a href="/login" className="text-xs text-gray-400 hover:text-blue-400 transition-colors inline-block">
+                <a href="/login" className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors inline-block">
                   {t("nav.login")}
                 </a>
               </li>
               <li>
-                <a href="/register" className="text-xs text-gray-400 hover:text-blue-400 transition-colors inline-block">
+                <a href="/register" className="text-xs text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors inline-block">
                   {t("nav.register")}
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Follow Us */}
+          {/* Follow Us - Иконки 36x36px */}
           <div className="space-y-3">
-            <h4 className="text-white font-bold text-xs uppercase tracking-wider">Мы в соцсетях</h4>
+            <h4 className="text-white dark:text-white light:text-gray-900 font-bold text-xs uppercase tracking-wider">Мы в соцсетях</h4>
             <ul className="example-2">
               {/* Telegram */}
               <li className="icon-content">
@@ -170,18 +196,15 @@ export function CyberFooter() {
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div
-          className="mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3"
-          style={{ borderTop: "1px solid rgba(59,130,246,0.1)" }}
-        >
-          <p className="text-xs text-gray-500">
+        {/* Bottom bar - Компактный дизайн */}
+        <div className="mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-blue-500/10 dark:border-blue-500/10 light:border-purple-200/30">
+          <p className="text-xs text-gray-500 dark:text-gray-500 light:text-gray-600">
             © 2025 RONIN. {t("footer.rights")}
           </p>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <a href="#" className="hover:text-blue-400 transition-colors">Privacy Policy</a>
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 light:text-gray-600">
+            <a href="#" className="hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors">Privacy Policy</a>
             <span>•</span>
-            <a href="#" className="hover:text-blue-400 transition-colors">Terms & Conditions</a>
+            <a href="#" className="hover:text-blue-400 dark:hover:text-blue-400 light:hover:text-purple-600 transition-colors">Terms & Conditions</a>
             <span>•</span>
             <span>{t("footer.location")}</span>
           </div>

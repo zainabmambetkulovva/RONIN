@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { sendNewUserNotification } from "@/lib/telegram";
 
 export async function POST(req: NextRequest) {
   try {
@@ -72,6 +73,18 @@ export async function POST(req: NextRequest) {
         created_at: true,
       },
     });
+
+    // Отправить уведомление в Telegram (не блокируем ответ если ошибка)
+    const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+    if (adminChatId) {
+      sendNewUserNotification(adminChatId, {
+        name: user.name,
+        email: user.email || undefined,
+        phone: user.phone || undefined,
+      }).catch((error) => {
+        console.error("Failed to send Telegram notification:", error);
+      });
+    }
 
     return NextResponse.json({
       success: true,

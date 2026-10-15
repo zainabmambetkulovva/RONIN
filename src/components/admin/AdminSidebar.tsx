@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import {
   LayoutDashboardIcon,
@@ -22,49 +23,50 @@ interface AdminUser {
   avatar?: string | null;
 }
 
-const navItems = [
-  {
-    label: "Overview",
-    href: "/admin",
-    icon: LayoutDashboardIcon,
-    exact: true,
-  },
-  {
-    label: "Пользователи",
-    href: "/admin/users",
-    icon: UsersIcon,
-  },
-  {
-    label: "Компьютеры",
-    href: "/admin/computers",
-    icon: MonitorIcon,
-  },
-  {
-    label: "Бронирования",
-    href: "/admin/bookings",
-    icon: CalendarIcon,
-  },
-  {
-    label: "Тарифы",
-    href: "/admin/tariffs",
-    icon: CreditCardIcon,
-  },
-  {
-    label: "Менеджеры",
-    href: "/admin/managers",
-    icon: UserCogIcon,
-  },
-  {
-    label: "Настройки",
-    href: "/admin/settings",
-    icon: SettingsIcon,
-  },
-];
-
 export function AdminSidebar() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<AdminUser | null>(null);
+  
+  const navItems = [
+    {
+      label: t("admin.dashboard") || "Overview",
+      href: "/admin",
+      icon: LayoutDashboardIcon,
+      exact: true,
+    },
+    {
+      label: t("admin.users") || "Пользователи",
+      href: "/admin/users",
+      icon: UsersIcon,
+    },
+    {
+      label: t("admin.computers") || "Компьютеры",
+      href: "/admin/computers",
+      icon: MonitorIcon,
+    },
+    {
+      label: t("admin.bookings") || "Бронирования",
+      href: "/admin/bookings",
+      icon: CalendarIcon,
+    },
+    {
+      label: t("admin.tariffs") || "Тарифы",
+      href: "/admin/tariffs",
+      icon: CreditCardIcon,
+    },
+    {
+      label: t("admin.managers") || "Менеджеры",
+      href: "/admin/managers",
+      icon: UserCogIcon,
+    },
+    {
+      label: t("admin.settings") || "Настройки",
+      href: "/admin/settings",
+      icon: SettingsIcon,
+    },
+  ];
 
   useEffect(() => {
     // Получить данные пользователя из токена
@@ -139,7 +141,7 @@ export function AdminSidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="mb-2 px-3">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Основное
+            {t("admin.main") || "Основное"}
           </span>
         </div>
         {navItems.map((item) => {
@@ -179,7 +181,7 @@ export function AdminSidebar() {
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
           >
             <LogOutIcon className="w-5 h-5" />
-            <span>Выйти</span>
+            <span>{t("admin.logout") || "Выйти"}</span>
           </button>
         </div>
       </nav>

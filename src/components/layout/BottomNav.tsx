@@ -3,6 +3,7 @@
 import { Home, Calendar, Receipt, User, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 
 const navItems = [
@@ -14,9 +15,15 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  // Don't show bottom nav if user is not authenticated or loading
+  if (status === "loading" || !session) {
+    return null;
+  }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] md:hidden">
       <div 
         className="flex items-center justify-around px-2 py-3"
         style={{

@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MotivationalCarousel } from "@/components/dashboard/MotivationalCarousel";
-import { PopularGamesSection } from "@/components/dashboard/PopularGamesSection";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { MobileMenu } from "@/components/layout/MobileMenu";
+import { CyberGames } from "@/components/sections/CyberGames";
+import { AIChatWidget } from "@/components/ai/AIChatWidget";
+import { Gamepad2, Calendar, User } from "lucide-react";
 
 export default function DashboardPage() {
   return (
     <div className="min-h-screen" style={{ background: "#03030a" }}>
+      <DashboardNavbar />
       <MobileMenu />
       {/* Background effects */}
       <div
@@ -32,7 +35,7 @@ export default function DashboardPage() {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -56,9 +59,6 @@ export default function DashboardPage() {
           </p>
         </motion.div>
 
-        {/* Motivational Carousel */}
-        <MotivationalCarousel />
-
         {/* Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -67,21 +67,21 @@ export default function DashboardPage() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12"
         >
           <QuickActionCard
-            icon="🎮"
+            icon={Gamepad2}
             title="Забронировать ПК"
             description="Выбери время и компьютер"
             href="/booking"
             gradient="from-blue-600 to-blue-800"
           />
           <QuickActionCard
-            icon="📜"
+            icon={Calendar}
             title="Мои бронирования"
             description="История и активные чеки"
             href="/archive"
             gradient="from-purple-600 to-purple-800"
           />
           <QuickActionCard
-            icon="👤"
+            icon={User}
             title="Профиль"
             description="Настройки и персонаж"
             href="/profile"
@@ -89,21 +89,24 @@ export default function DashboardPage() {
           />
         </motion.div>
 
-        {/* Popular Games Section */}
-        <PopularGamesSection />
+        {/* Games Carousel */}
+        <CyberGames />
       </div>
+
+      {/* AI Chat Widget */}
+      <AIChatWidget />
     </div>
   );
 }
 
 function QuickActionCard({
-  icon,
+  icon: Icon,
   title,
   description,
   href,
   gradient,
 }: {
-  icon: string;
+  icon: React.ElementType;
   title: string;
   description: string;
   href: string;
@@ -120,9 +123,9 @@ function QuickActionCard({
     >
       <div className="flex items-start gap-4">
         <div
-          className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 bg-gradient-to-br ${gradient}`}
+          className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${gradient}`}
         >
-          {icon}
+          <Icon className="w-7 h-7 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-white font-bold text-lg mb-1">{title}</h3>

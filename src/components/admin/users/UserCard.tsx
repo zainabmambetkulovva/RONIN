@@ -1,8 +1,9 @@
 "use client";
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Trash2, Ban, CheckCircle, Mail, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ru, enUS, ky as kyLocale } from "date-fns/locale";
 
 interface UserCardProps {
   user: {
@@ -20,6 +21,8 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
+  const { t } = useLanguage();
+  
   const roleColors: Record<string, string> = {
     client: "#3b82f6",
     manager: "#8b5cf6",
@@ -27,13 +30,26 @@ export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
   };
 
   const roleLabels: Record<string, string> = {
-    client: "Клиент",
-    manager: "Менеджер",
-    admin: "Администратор",
+    client: t("admin.clients") || "Клиент",
+    manager: t("admin.managers") || "Менеджер",
+    admin: t("admin.admins") || "Администратор",
   };
+  
+  const statusLabel = user.status === "active" ? t("admin.active") : t("admin.blocked");
 
   const roleColor = roleColors[user.role] || "#6b7280";
   const statusColor = user.status === "active" ? "#10b981" : "#ef4444";
+  
+  const getDateLocale = () => {
+    switch (i18n.language) {
+      case "ru":
+        return ru;
+      case "ky":
+        return ru; // fallback to ru for kyrgyz
+      default:
+        return enUS;
+    }
+  };
 
   const getAvatarGradient = () => {
     const num = user.id.charCodeAt(0);
@@ -87,7 +103,7 @@ export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
                 border: `1px solid ${statusColor}44`,
               }}
             >
-              {user.status === "active" ? "Активен" : "Заблокирован"}
+              {statusLabel}
             </span>
           </div>
         </div>
@@ -110,7 +126,7 @@ export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Calendar className="w-4 h-4 flex-shrink-0" />
           <span>
-            {format(new Date(user.createdAt), "dd MMM yyyy", { locale: ru })}
+            {format(new Date(user.createdAt), "dd MMM yyyy", { locale: getDateLocale() })}
           </span>
         </div>
       </div>

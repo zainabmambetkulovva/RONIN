@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { CyberNavbar } from "@/components/layout/CyberNavbar";
-import { CyberFooter } from "@/components/layout/CyberFooter";
 import { BottomNav } from "@/components/layout/BottomNav";
 
 export default function ReceiptsPage() {
@@ -27,7 +26,6 @@ export default function ReceiptsPage() {
         </div>
       </main>
 
-      <CyberFooter />
       <BottomNav />
     </div>
   );

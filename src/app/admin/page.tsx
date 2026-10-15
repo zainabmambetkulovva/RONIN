@@ -1,29 +1,53 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { StatCard } from "@/components/admin/dashboard/StatCard";
 import { UpcomingBookings } from "@/components/admin/dashboard/UpcomingBookings";
 import { RecentUsers } from "@/components/admin/dashboard/RecentUsers";
 
-async function getStats() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/admin/stats`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch stats');
-    return await res.json();
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    return null;
-  }
-}
+export default function AdminDashboard() {
+  const { t } = useLanguage();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function AdminDashboard() {
-  const data = await getStats();
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch stats');
+        const result = await res.json();
+        setData(result);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">{t("admin.loading") || "Загрузка..."}</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!data) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Не удалось загрузить данные</h2>
-          <p className="text-gray-400">Проверьте подключение к базе данных</p>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {t("admin.errorLoad") || "Не удалось загрузить данные"}
+          </h2>
+          <p className="text-gray-400">
+            {t("admin.checkConnection") || "Проверьте подключение к базе данных"}
+          </p>
         </div>
       </div>
     );
@@ -33,44 +57,48 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Dashboard</h1>
-        <p className="text-gray-400 text-sm">Статистика за сегодня</p>
+        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
+          {t("admin.dashboard") || "DASHBOARD"}
+        </h1>
+        <p className="text-gray-400 text-sm">
+          {t("admin.statsToday") || "Статистика за сегодня"}
+        </p>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
-          label="Клиентов сегодня"
+          label={t("admin.clientsToday") || "Клиентов сегодня"}
           value={data.clients.today}
-          subtitle={`Всего: ${data.clients.total}`}
+          subtitle={`${t("admin.total") || "Всего"}: ${data.clients.total}`}
           icon="users"
           color="#ef4444"
         />
         <StatCard
-          label="Менеджеров"
+          label={t("admin.managers") || "Менеджеров"}
           value={data.managers.active}
-          subtitle={`Всего: ${data.managers.total}`}
+          subtitle={`${t("admin.total") || "Всего"}: ${data.managers.total}`}
           icon="shield"
           color="#8b5cf6"
         />
         <StatCard
-          label="Играют сейчас"
+          label={t("admin.playingNow") || "Играют сейчас"}
           value={data.bookings.active}
-          subtitle={`Активных сессий`}
+          subtitle={t("admin.activeSessions") || "Активных сессий"}
           icon="calendar"
           color="#ec4899"
         />
         <StatCard
-          label="Забронировали"
+          label={t("admin.booked") || "Забронировали"}
           value={data.bookings.today}
-          subtitle={`Бронирований сегодня`}
+          subtitle={t("admin.bookingsToday") || "Бронирований сегодня"}
           icon="monitor"
           color="#3b82f6"
         />
         <StatCard
-          label="Компьютеров"
+          label={t("admin.computers") || "Компьютеров"}
           value={data.computers.available}
-          subtitle={`Доступно`}
+          subtitle={t("admin.available") || "Доступно"}
           icon="tag"
           color="#06b6d4"
         />

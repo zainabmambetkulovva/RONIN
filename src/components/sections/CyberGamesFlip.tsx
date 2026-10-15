@@ -6,16 +6,17 @@ import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const games = [
-  { name: "Counter-Strike 2", genre: "FPS", image: "/games/placeholder.svg", description: "30 мин | 1-5 игроков" },
-  { name: "Dota 2", genre: "MOBA", image: "/games/placeholder.svg", description: "45 мин | 1-5 игроков" },
-  { name: "League of Legends", genre: "MOBA", image: "/games/placeholder.svg", description: "35 мин | 1-5 игроков" },
-  { name: "Fortnite", genre: "Battle Royale", image: "/games/placeholder.svg", description: "20 мин | 1-4 игроков" },
-  { name: "Overwatch 2", genre: "FPS", image: "/games/placeholder.svg", description: "25 мин | 1-6 игроков" },
-  { name: "Cyberpunk 2077", genre: "RPG", image: "/games/placeholder.svg", description: "60+ мин | 1 игрок" },
-  { name: "Elden Ring", genre: "RPG", image: "/games/placeholder.svg", description: "90+ мин | 1-3 игроков" },
-  { name: "Red Dead Redemption 2", genre: "Action", image: "/games/placeholder.svg", description: "120+ мин | 1 игрок" },
-  { name: "Minecraft", genre: "Sandbox", image: "/games/placeholder.svg", description: "∞ мин | 1-8 игроков" },
-  { name: "Valorant", genre: "FPS", image: "/games/placeholder.svg", description: "40 мин | 1-5 игроков" },
+  { name: "Counter-Strike 2", genre: "FPS", image: "/Counter-Strike 2 (FPS).jpg", description: "30 мин | 1-5 игроков" },
+  { name: "Dota 2", genre: "MOBA", image: "/Dota 2 (MOBA).jpg", description: "45 мин | 1-5 игроков" },
+  { name: "League of Legends", genre: "MOBA", image: "/League of Legends (MOBA).jpg", description: "35 мин | 1-5 игроков" },
+  { name: "Fortnite", genre: "Battle Royale", image: "/Fortnite (Battle Royale).jpg", description: "20 мин | 1-4 игроков" },
+  { name: "Overwatch 2", genre: "FPS", image: "/Overwatch 2 (FPS).jpg", description: "25 мин | 1-6 игроков" },
+  { name: "Cyberpunk 2077", genre: "RPG", image: "/Cyberpunk 2077 (RPG).jpg", description: "60+ мин | 1 игрок" },
+  { name: "Elden Ring", genre: "RPG", image: "/Elden Ring (RPG).jpg", description: "90+ мин | 1-3 игроков" },
+  { name: "Red Dead Redemption 2", genre: "Action", image: "/Red Dead Redemption 2 (Action.jpg", description: "120+ мин | 1 игрок" },
+  { name: "Minecraft", genre: "Sandbox", image: "/Minecraft (Sandbox).jpg", description: "∞ мин | 1-8 игроков" },
+  { name: "Valorant", genre: "FPS", image: "/Valorant.png", description: "40 мин | 1-5 игроков" },
+  { name: "Apex Legends", genre: "Battle Royale", image: "/Apex Legends.png", description: "25 мин | 1-3 игроков" },
 ];
 
 export function CyberGamesFlip() {

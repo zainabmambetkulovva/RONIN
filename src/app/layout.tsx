@@ -1,12 +1,13 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/typography.css";
 import { Toaster } from "react-hot-toast";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SessionProvider } from "next-auth/react";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { useEffect } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className="dark">
       <body className={`${inter.variable} font-sans antialiased bg-ronin-black`}>
+        <LoadingScreen />
         <SessionProvider>
           <LanguageProvider>
             {children}

@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { ComputerGrid } from "@/components/booking/ComputerGrid";
 import { BookingModal } from "@/components/booking/BookingModal";
-import { CyberNavbar } from "@/components/layout/CyberNavbar";
-import { CyberFooter } from "@/components/layout/CyberFooter";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { BottomNav } from "@/components/layout/BottomNav";
 
 interface Computer {
@@ -85,7 +85,7 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen pb-20 md:pb-0" style={{ background: "#03030a" }}>
-      <CyberNavbar />
+      <DashboardNavbar />
 
       <main className="pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -96,6 +96,15 @@ export default function BookingPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
+            {/* Back button */}
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4 group"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-bold uppercase tracking-wider">Назад</span>
+            </button>
+
             <div className="flex items-center gap-3 mb-4">
               <div className="h-px w-12" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
               <span className="text-sm font-bold uppercase tracking-[0.3em] text-blue-400">
@@ -180,8 +189,6 @@ export default function BookingPage() {
         )}
       </AnimatePresence>
 
-      <CyberFooter />
-      
       {/* Mobile Bottom Navigation */}
       <BottomNav />
     </div>

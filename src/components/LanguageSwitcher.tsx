@@ -6,9 +6,9 @@ export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   const languages = [
-    { code: "ru" as const, label: "RU" },
-    { code: "en" as const, label: "EN" },
-    { code: "ky" as const, label: "KG" },
+    { code: "ru", label: "RU" },
+    { code: "en", label: "EN" },
+    { code: "ky", label: "KG" },
   ];
 
   return (
@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
       {languages.map((lang) => (
         <button
           key={lang.code}
-          onClick={() => setLanguage(lang.code)}
+          onClick={() => setLanguage(lang.code as "ru" | "en" | "ky")}
           className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all ${
             language === lang.code
               ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
