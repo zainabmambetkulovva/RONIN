@@ -34,7 +34,7 @@ API Key появится на экране. Он должен:
 
 **Пример правильного ключа:**
 ```
-AIzaSyDaGmWKa4JsXZ-HjGw7_SzSb9uNmOe6789
+AIzaSy...остальная_часть_ключа...
 ```
 
 **Примеры НЕПРАВИЛЬНЫХ ключей:**
@@ -49,7 +49,7 @@ ya29.a0...     ❌ (это access token)
 Откройте файл `ronin/.env` и замените строку:
 
 ```bash
-GEMINI_API_KEY="AIzaSyDaGmWKa4JsXZ-HjGw7_SzSb9uNmOe6789"
+GEMINI_API_KEY="AIzaSy...остальная_часть_ключа..."
 ```
 
 **ВАЖНО**: 

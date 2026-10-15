@@ -13,12 +13,12 @@ DIRECT_URL="postgresql://neondb_owner:npg_WdI8regtZC2G@ep-billowing-bird-b5l08v6
 NEXTAUTH_URL="https://your-vercel-domain.vercel.app"  # ВАЖНО: замените на ваш домен!
 NEXTAUTH_SECRET="2a3/JO8FlzMH7txi7s4tPOFQ7wX5inZ6eoZqQG1Qcsk="
 
-# Google OAuth
-GOOGLE_CLIENT_ID="4993317352-llih20bl4v59kdjp3q5ffrbk889k3lt2.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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"
+# Google OAuth (получите на https://console.cloud.google.com)
+GOOGLE_CLIENT_ID="your_google_client_id_here"
+GOOGLE_CLIENT_SECRET="your_google_client_secret_here"
 
-# Resend Email API
-RESEND_API_KEY="re_jP9j1cMi_7y11WCDNQ6h2jp6AGAzksovZ"
+# Resend Email API (получите на https://resend.com)
+RESEND_API_KEY="your_resend_api_key_here"
 EMAIL_FROM="noreply@ronin.kg"
 
 # Telegram Bot для 2FA

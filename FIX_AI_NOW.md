@@ -15,7 +15,7 @@ https://aistudio.google.com/apikey
 
 **Ключ должен выглядеть так:**
 ```
-AIzaSyDaGmWKa4JsXZ-HjGw7_SzSb9uNmOe6789
+AIzaSy...остальная_часть_ключа...
 ```
 (Начинается с `AIza`)
 
