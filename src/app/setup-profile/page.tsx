@@ -74,10 +74,16 @@ export default function SetupProfilePage() {
       });
 
       if (response.ok) {
-        router.push("/dashboard");
+        // Refresh the page to update session
+        window.location.href = "/dashboard";
+      } else {
+        const error = await response.json();
+        console.error("Failed to save avatar:", error);
+        alert("Не удалось сохранить аватар. Попробуйте снова.");
       }
     } catch (error) {
       console.error("Failed to save avatar:", error);
+      alert("Произошла ошибка при сохранении аватара.");
     } finally {
       setSaving(false);
     }
@@ -136,52 +142,60 @@ export default function SetupProfilePage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 mb-10"
+          className="mb-10"
         >
-          {avatars.map((avatar, index) => (
-            <motion.button
-              key={avatar.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              onClick={() => setSelectedAvatar(avatar.code)}
-              className={`relative group rounded-2xl overflow-hidden transition-all duration-300 aspect-square ${
-                selectedAvatar === avatar.code
-                  ? "ring-4 ring-blue-500 scale-105"
-                  : "ring-1 ring-white/10 hover:ring-blue-400/50 hover:scale-105"
-              }`}
-              style={{
-                background: "transparent", // Фон алынды
-              }}
-            >
-              {/* Avatar image */}
-              <div className="w-full h-full relative">
-                <Image 
-                  src={avatar.imageUrl} 
-                  alt={`Avatar ${index + 1}`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                  quality={100}
-                  priority={index < 6}
-                  className="object-contain" 
-                  style={{ imageRendering: "crisp-edges" }}
-                />
-              </div>
-
-              {/* Selected checkmark */}
-              {selectedAvatar === avatar.code && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center"
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
+            <div className="flex gap-4 sm:gap-6 pb-4 min-w-max px-2">
+              {avatars.map((avatar, index) => (
+                <motion.button
+                  key={avatar.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  onClick={() => setSelectedAvatar(avatar.code)}
+                  className={`relative group rounded-2xl overflow-hidden transition-all duration-300 flex-shrink-0 ${
+                    selectedAvatar === avatar.code
+                      ? "ring-4 ring-blue-500 scale-105"
+                      : "ring-1 ring-white/10 hover:ring-blue-400/50 hover:scale-105"
+                  }`}
+                  style={{
+                    background: "transparent",
+                    width: "150px",
+                    height: "150px",
+                  }}
                 >
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </motion.div>
-              )}
-            </motion.button>
-          ))}
+                  {/* Avatar image */}
+                  <div className="w-full h-full relative">
+                    <Image 
+                      src={avatar.imageUrl} 
+                      alt={`Avatar ${index + 1}`}
+                      fill
+                      sizes="150px"
+                      quality={100}
+                      priority={index < 6}
+                      className="object-contain" 
+                      style={{ imageRendering: "crisp-edges" }}
+                      unoptimized
+                    />
+                  </div>
+
+                  {/* Selected checkmark */}
+                  {selectedAvatar === avatar.code && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center"
+                    >
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+          <p className="text-center text-gray-400 text-sm mt-4">← Прокрутите, чтобы увидеть все аватары →</p>
         </motion.div>
 
         {/* Action buttons */}

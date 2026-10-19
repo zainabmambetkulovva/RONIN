@@ -54,14 +54,17 @@ class GeminiService {
     }
 
     try {
+      // Gemini API accepts API keys via query parameter (not Authorization header)
       const url = `${this.baseURL}/models/${this.model}:generateContent?key=${this.apiKey}`;
-      console.log('Calling Gemini API:', { model: this.model, url: url.replace(this.apiKey, 'HIDDEN') });
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      console.log('Calling Gemini API:', { model: this.model, url: url.replace(this.apiKey, '***') });
       
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           contents: [{
             parts: [{
@@ -80,6 +83,21 @@ class GeminiService {
       if (!response.ok) {
         console.error('Gemini API error response:', data);
         const errorMessage = data.error?.message || 'Gemini API error';
+        
+        // Provide user-friendly error messages
+        if (errorMessage.includes('API key not valid')) {
+          return {
+            text: 'AI недоступен: неверный API ключ. Обратитесь к администратору.',
+            error: 'Invalid API key'
+          };
+        }
+        if (errorMessage.includes('quota')) {
+          return {
+            text: 'AI временно недоступен из-за превышения лимита запросов. Попробуйте позже.',
+            error: 'Quota exceeded'
+          };
+        }
+        
         throw new Error(errorMessage);
       }
 
@@ -92,7 +110,7 @@ class GeminiService {
     } catch (error: any) {
       console.error('Gemini API error:', error);
       return {
-        text: 'Произошла ошибка при обращении к AI. Проверьте правильность API ключа.',
+        text: 'Произошла ошибка при обращении к AI. Проверьте подключение к интернету.',
         error: error.message
       };
     }

@@ -137,7 +137,7 @@ export function CyberTariffs() {
               <button
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center transition-all hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Previous"
               >
                 <ChevronLeft className="w-6 h-6 text-white" />
@@ -145,7 +145,7 @@ export function CyberTariffs() {
               <button
                 onClick={handleNext}
                 disabled={currentIndex === maxIndex}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center transition-all hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-20 w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Next"
               >
                 <ChevronRight className="w-6 h-6 text-white" />
@@ -174,9 +174,10 @@ export function CyberTariffs() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 * i }}
+                whileHover={{ scale: 1.05, y: -8 }}
                 className={`relative group flex-shrink-0 ${isMobile ? 'w-full' : 'w-[calc(33.333%-16px)]'} ${isPopular ? 'md:scale-105' : ''}`}
               >
-                <div className={`relative h-full rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950 border-2 ${isPopular ? 'border-purple-500' : 'border-gray-800'} hover:border-purple-500/50 transition-all duration-300 hover:scale-[1.02]`}>
+                <div className={`relative h-full rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950 border-2 ${isPopular ? 'border-purple-500' : 'border-gray-800'} transition-all duration-300 hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]`}>
                   
                   {/* Popular badge */}
                   {isPopular && (
@@ -187,7 +188,7 @@ export function CyberTariffs() {
                     </div>
                   )}
 
-                  <div className={`p-8 ${isPopular ? 'pt-14' : ''}`}>
+                  <div className={`p-6 ${isPopular ? 'pt-12' : ''}`}>
                     
                     {/* Icon */}
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br ${tariff.gradient} group-hover:scale-110 transition-transform`}>

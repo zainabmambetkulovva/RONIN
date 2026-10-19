@@ -14,6 +14,14 @@ export async function GET(
     const booking = await prisma.bookings.findUnique({
       where: { id: params.id },
       include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
         computers: {
           include: {
             computer_categories: true,
@@ -49,6 +57,13 @@ export async function GET(
       durationMinutes: booking.duration_minutes,
       price: booking.price,
       status: booking.status,
+      createdAt: booking.created_at,
+      user: {
+        id: booking.users.id,
+        name: booking.users.name,
+        email: booking.users.email,
+        avatar: booking.users.avatar,
+      },
       computer: {
         id: booking.computers.id,
         number: booking.computers.number,

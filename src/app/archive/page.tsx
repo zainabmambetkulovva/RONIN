@@ -117,27 +117,27 @@ export default function ArchivePage() {
         style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-20 sm:pt-24 pb-24 sm:pb-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
           <h1
             className="font-black uppercase leading-tight tracking-tighter mb-2"
             style={{
-              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              fontSize: "clamp(1.5rem, 5vw, 3.5rem)",
               background: "linear-gradient(90deg, #3b82f6, #818cf8, #a78bfa)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
           >
-            Архив бронирований
+            Мои чеки
           </h1>
-          <p className="text-gray-400 text-sm sm:text-base">
-            История всех твоих бронирований в RONIN
+          <p className="text-gray-400 text-xs sm:text-sm">
+            Здесь будут отображаться ваши электронные чеки после оплаты
           </p>
         </motion.div>
 
@@ -146,7 +146,7 @@ export default function ArchivePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="flex flex-wrap gap-3 mb-8"
+          className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8"
         >
           {[
             { value: "all", label: "Все", count: bookings.length },
@@ -169,7 +169,7 @@ export default function ArchivePage() {
             <button
               key={f.value}
               onClick={() => setFilter(f.value as any)}
-              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all ${
                 filter === f.value
                   ? "text-white"
                   : "text-gray-400 hover:text-white"
@@ -179,7 +179,10 @@ export default function ArchivePage() {
                 border: `1px solid ${filter === f.value ? "transparent" : "rgba(59,130,246,0.3)"}`,
               }}
             >
-              {f.label} <span className="ml-1">({f.count})</span>
+              <span className="hidden sm:inline">{f.label}</span>
+              <span className="sm:hidden">{f.label.substring(0, 4)}</span>
+              {" "}
+              <span className="ml-1">({f.count})</span>
             </button>
           ))}
         </motion.div>
@@ -202,10 +205,10 @@ export default function ArchivePage() {
                 />
               </svg>
             </div>
-            <p className="text-gray-400 text-lg mb-4">Нет бронирований</p>
+            <p className="text-gray-400 text-base sm:text-lg mb-4">Нет бронирований</p>
             <button
               onClick={() => router.push("/booking")}
-              className="px-6 py-3 rounded-xl font-bold text-white transition-all hover:scale-105"
+              className="px-4 sm:px-6 py-3 rounded-xl font-bold text-white text-sm sm:text-base transition-all hover:scale-105"
               style={{
                 background: "linear-gradient(90deg, #1d4ed8, #7c3aed)",
                 boxShadow: "0 0 30px rgba(99,102,241,0.3)",

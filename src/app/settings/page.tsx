@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { MobileMenu } from "@/components/layout/MobileMenu";
+import { Globe, Bell, User } from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -81,10 +82,10 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3 mb-4">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
               >
-                🌍
+                <Globe className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h2 className="text-white font-bold text-lg">Язык</h2>
@@ -129,10 +130,10 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3 mb-6">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
               >
-                🔔
+                <Bell className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h2 className="text-white font-bold text-lg">Уведомления</h2>
@@ -206,10 +207,10 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3 mb-6">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                className="w-12 h-12 rounded-xl flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
               >
-                👤
+                <User className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h2 className="text-white font-bold text-lg">Аккаунт</h2>

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSession } from "next-auth/react";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ export function CyberNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { t } = useLanguage();
+  const { data: session, status } = useSession();
 
   // Hydration fix - wait for client-side mount
   useEffect(() => {
@@ -140,21 +142,50 @@ export function CyberNavbar() {
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             
-            {/* Auth buttons */}
-            <div className="hidden sm:flex items-center gap-2">
+            {/* User profile - для авторизованных */}
+            {status !== "loading" && session && (
               <a
-                href="/login"
-                className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+                href="/profile"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
               >
-                {t("nav.login") || "Вход"}
+                {session.user?.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt={session.user?.name || 'User'}
+                    width={28}
+                    height={28}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">
+                      {session.user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                )}
+                <span className="text-xs font-bold text-white">
+                  {session.user?.name}
+                </span>
               </a>
-              <a
-                href="/register"
-                className="px-4 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all"
-              >
-                {t("nav.register") || "Регистрация"}
-              </a>
-            </div>
+            )}
+            
+            {/* Auth buttons - только для неавторизованных */}
+            {status !== "loading" && !session && (
+              <div className="hidden sm:flex items-center gap-2">
+                <a
+                  href="/login"
+                  className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+                >
+                  {t("nav.login") || "Вход"}
+                </a>
+                <a
+                  href="/register"
+                  className="px-4 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all"
+                >
+                  {t("nav.register") || "Регистрация"}
+                </a>
+              </div>
+            )}
 
             {/* Mobile menu toggle */}
             <button
@@ -185,21 +216,50 @@ export function CyberNavbar() {
               </a>
             ))}
             
-            {/* Mobile auth buttons */}
-            <div className="pt-4 space-y-2 border-t border-purple-500/20 mt-4">
-              <a
-                href="/login"
-                className="block px-3 py-2 text-xs font-bold text-center text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
-              >
-                {t("nav.login") || "Вход"}
-              </a>
-              <a
-                href="/register"
-                className="block px-4 py-2 rounded-lg text-xs font-bold text-white text-center uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600"
-              >
-                {t("nav.register") || "Регистрация"}
-              </a>
-            </div>
+            {/* Mobile auth/profile - зависит от статуса авторизации */}
+            {status !== "loading" && session ? (
+              <div className="pt-4 border-t border-purple-500/20 mt-4">
+                <a
+                  href="/profile"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {session.user?.image ? (
+                    <Image
+                      src={session.user.image}
+                      alt={session.user?.name || 'User'}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">
+                        {session.user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-sm font-bold text-white">
+                    {session.user?.name || 'Профиль'}
+                  </span>
+                </a>
+              </div>
+            ) : status !== "loading" && !session && (
+              <div className="pt-4 space-y-2 border-t border-purple-500/20 mt-4">
+                <a
+                  href="/login"
+                  className="block px-3 py-2 text-xs font-bold text-center text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                >
+                  {t("nav.login") || "Вход"}
+                </a>
+                <a
+                  href="/register"
+                  className="block px-4 py-2 rounded-lg text-xs font-bold text-white text-center uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600"
+                >
+                  {t("nav.register") || "Регистрация"}
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>

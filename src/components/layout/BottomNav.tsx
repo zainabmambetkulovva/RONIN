@@ -1,16 +1,16 @@
 "use client";
 
-import { Home, Calendar, Receipt, User, Settings } from "lucide-react";
+import { Home, Gamepad2, ReceiptText, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: Calendar, label: "Booking", href: "/booking" },
-  { icon: Receipt, label: "Receipts", href: "/receipts" },
-  { icon: User, label: "Profile", href: "/profile" },
+  { icon: Home, label: "Главная", href: "/" },
+  { icon: Gamepad2, label: "Booking", href: "/booking" },
+  { icon: ReceiptText, label: "Чеки", href: "/archive" },
+  { icon: User, label: "Профиль", href: "/profile" },
 ];
 
 export function BottomNav() {

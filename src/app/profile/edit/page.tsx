@@ -79,8 +79,19 @@ export default function EditProfilePage() {
       newErrors.name = "Имя обязательно";
     }
 
-    if (formData.phone && !/^\+?[0-9\s\-()]+$/.test(formData.phone)) {
-      newErrors.phone = "Неверный формат телефона";
+    if (formData.phone) {
+      // Remove all spaces, dashes, brackets
+      const cleanPhone = formData.phone.replace(/[\s\-()]/g, '');
+      
+      // Check if phone starts with + and has 10-15 digits
+      if (!/^\+?[0-9]{10,15}$/.test(cleanPhone)) {
+        newErrors.phone = "Введите корректный номер телефона (например: +996555123456)";
+      } else if (cleanPhone.startsWith('+996')) {
+        // Kyrgyz number validation
+        if (!/^\+996[0-9]{9}$/.test(cleanPhone)) {
+          newErrors.phone = "Номер Кыргызстана должен быть в формате +996XXXXXXXXX (12 цифр)";
+        }
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -191,6 +202,7 @@ export default function EditProfilePage() {
                       sizes="(max-width: 640px) 25vw, 16vw"
                       quality={100}
                       className="object-cover"
+                      unoptimized
                     />
                   </button>
                 ))}

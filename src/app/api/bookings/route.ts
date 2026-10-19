@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 
@@ -137,12 +137,47 @@ export async function GET(req: NextRequest) {
       where: {
         user_id: session.user.id,
       },
+      include: {
+        computers: {
+          include: {
+            computer_categories: true,
+          },
+        },
+        tariffs: true,
+        payments: true,
+      },
       orderBy: {
         created_at: "desc",
       },
     });
 
-    return NextResponse.json({ bookings, total: bookings.length });
+    // Transform to match expected format
+    const transformedBookings = bookings.map((booking) => ({
+      id: booking.id,
+      bookingNumber: booking.booking_number,
+      bookingCode: booking.booking_code,
+      startAt: booking.start_at,
+      endAt: booking.end_at,
+      durationMinutes: booking.duration_minutes,
+      price: booking.price.toString(),
+      status: booking.status,
+      isExpired: booking.is_expired,
+      computer: {
+        number: booking.computers.number,
+        category: {
+          name: booking.computers.computer_categories.name,
+        },
+      },
+      tariff: {
+        name: booking.tariffs.name,
+      },
+      payments: booking.payments.map((p) => ({
+        status: p.status,
+        paidAt: p.paid_at,
+      })),
+    }));
+
+    return NextResponse.json({ bookings: transformedBookings, total: transformedBookings.length });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     return NextResponse.json(

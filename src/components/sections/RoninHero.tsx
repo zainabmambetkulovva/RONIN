@@ -28,7 +28,7 @@ export function RoninHero() {
     if (!mounted) return;
     const interval = setInterval(() => {
       setCurrentTextIndex((prev) => (prev + 1) % heroTexts.length);
-    }, 5000); // 5 секунд как требовалось
+    }, 7000); // 7 секунд
     return () => clearInterval(interval);
   }, [heroTexts.length, mounted]);
   
@@ -55,7 +55,7 @@ export function RoninHero() {
   }
 
   return (
-    <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16">
+    <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16 pb-24 md:pb-32">
       {/* Animated gradient background */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
@@ -66,7 +66,7 @@ export function RoninHero() {
       {/* Grid pattern */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 py-20 md:py-32">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]">
           
           {/* LEFT - Content */}
@@ -85,21 +85,18 @@ export function RoninHero() {
             </div>
 
             {/* Heading with rotating text */}
-            <div className="h-32 sm:h-40 flex flex-col justify-center">
+            <div className="h-24 sm:h-28 flex flex-col justify-center">
               <AnimatePresence mode="wait">
                 <motion.h1
                   key={currentTextIndex}
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -50 }}
+                  exit={{ opacity: 0, y: -30 }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
-                  className="text-5xl md:text-7xl font-black uppercase leading-[0.9]"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-tight"
                 >
                   <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                     {heroTexts[currentTextIndex]}
-                  </span>
-                  <span className="block text-white mt-2">
-                    {t("hero.inRoninClub")}
                   </span>
                 </motion.h1>
               </AnimatePresence>

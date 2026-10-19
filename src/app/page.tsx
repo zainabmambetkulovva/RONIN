@@ -9,6 +9,7 @@ import { CyberTariffs } from "@/components/sections/CyberTariffs";
 import { RoninBookingFlowCompact } from "@/components/sections/RoninBookingFlowCompact";
 import { RoninContactsCompact } from "@/components/sections/RoninContactsCompact";
 import { AIChatWidget } from "@/components/ai/AIChatWidget";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function HomePage() {
   return (
@@ -44,6 +45,9 @@ export default function HomePage() {
 
       {/* AI Chat Widget */}
       <AIChatWidget />
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }

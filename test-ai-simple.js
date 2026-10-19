@@ -27,16 +27,10 @@ console.log('');
 // Проверки
 const checks = [
   {
-    name: 'Начинается с AIza',
-    test: apiKey.startsWith('AIza'),
-    good: '✅ Правильно! Это Gemini API key',
-    bad: '❌ ОШИБКА! Ключ должен начинаться с "AIza"'
-  },
-  {
-    name: 'Не старый формат AQ.',
-    test: !apiKey.startsWith('AQ.'),
-    good: '✅ Не OAuth token',
-    bad: '❌ Это OAuth token, не Gemini API key!'
+    name: 'Правильный формат',
+    test: apiKey.startsWith('AIza') || apiKey.startsWith('AQ.'),
+    good: apiKey.startsWith('AIza') ? '✅ API Key формат (AIza)' : '✅ OAuth формат (AQ) - новый тип ключа',
+    bad: '❌ ОШИБКА! Ключ должен начинаться с "AIza" или "AQ."'
   },
   {
     name: 'Не placeholder',
@@ -46,7 +40,7 @@ const checks = [
   },
   {
     name: 'Правильная длина',
-    test: apiKey.length >= 35 && apiKey.length <= 45,
+    test: apiKey.length >= 35 && apiKey.length <= 60,
     good: '✅ Длина в пределах нормы',
     bad: '⚠️  Необычная длина, может быть ошибка'
   }
@@ -81,12 +75,24 @@ console.log('🔄 Теперь тестируем API запрос...\n');
 
 // Тестовый запрос
 async function testAPI() {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const isOAuthKey = apiKey.startsWith('AQ.');
+  
+  let url, headers;
+  if (isOAuthKey) {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+    headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    };
+  } else {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    headers = { 'Content-Type': 'application/json' };
+  }
   
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         contents: [{ parts: [{ text: 'Скажи просто "Работает"' }] }]
       })

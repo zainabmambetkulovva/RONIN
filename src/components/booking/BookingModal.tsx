@@ -31,7 +31,8 @@ interface Props {
 
 export function BookingModal({ computer, onClose }: Props) {
   const router = useRouter();
-  const [step, setStep] = useState<"specs" | "date" | "tariff">("specs");
+  const [step, setStep] = useState<"info" | "date" | "tariff">("info");
+  const [showFullSpecs, setShowFullSpecs] = useState(false);
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -130,8 +131,9 @@ export function BookingModal({ computer, onClose }: Props) {
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-6"
+        className="relative w-full max-w-3xl flex flex-col rounded-2xl"
         style={{
+          maxHeight: "90vh",
           background: "linear-gradient(135deg, rgba(7,7,26,0.95), rgba(13,13,36,0.95))",
           border: "1px solid rgba(59,130,246,0.2)",
           boxShadow: "0 0 40px rgba(59,130,246,0.3)",
@@ -141,63 +143,89 @@ export function BookingModal({ computer, onClose }: Props) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
         >
           <X className="w-6 h-6 text-gray-400" />
         </button>
 
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
+        {/* Fixed Header */}
+        <div className="p-6 pb-4">
+          <div className="flex items-center gap-3 mb-4">
             <div className="text-5xl font-black text-blue-400">#{computer.number}</div>
             <div>
               <div className="text-2xl font-black text-white uppercase">{computer.category.name}</div>
               <div className="text-sm text-gray-400">{computer.category.description}</div>
             </div>
           </div>
+
+          {/* Steps */}
+          <div className="flex gap-2">
+            {[
+              { key: "info", label: "1. Характеристики" },
+              { key: "date", label: "2. Дата/Время" },
+              { key: "tariff", label: "3. Тариф" }
+            ].map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setStep(s.key as any)}
+                className={`flex-1 py-2 px-2 rounded-lg font-bold text-xs uppercase transition-all ${
+                  step === s.key
+                    ? "bg-blue-600 text-white"
+                    : "bg-white/5 text-gray-400 hover:bg-white/10"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Steps */}
-        <div className="flex gap-2 mb-6">
-          {["specs", "date", "tariff"].map((s, i) => (
-            <button
-              key={s}
-              onClick={() => setStep(s as any)}
-              className={`flex-1 py-2 px-4 rounded-lg font-bold text-sm uppercase transition-all ${
-                step === s
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10"
-              }`}
-            >
-              {i + 1}. {s === "specs" ? "Характеристики" : s === "date" ? "Дата/Время" : "Тариф"}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="min-h-[300px]">
-          {/* Шаг 1: Характеристики */}
-          {step === "specs" && (
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          {/* Шаг 1: Краткая информация + полные характеристики */}
+          {step === "info" && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
-              <SpecRow icon={<Cpu />} label="Процессор" value={specs.cpu} />
-              <SpecRow icon={<Monitor />} label="Видеокарта" value={specs.gpu} />
-              <SpecRow icon={<MemoryStick />} label="Оперативная память" value={specs.ram} />
-              <SpecRow icon={<Monitor />} label="Монитор" value={specs.monitor} />
-              <SpecRow icon={<Keyboard />} label="Клавиатура" value={specs.keyboard} />
-              <SpecRow icon={<Mouse />} label="Мышь" value={specs.mouse} />
-              {specs.chair && <SpecRow icon={<span>🪑</span>} label="Кресло" value={specs.chair} />}
-              {specs.microphone && <SpecRow icon={<span>🎤</span>} label="Микрофон" value={specs.microphone} />}
-              {specs.camera && <SpecRow icon={<span>📷</span>} label="Камера" value={specs.camera} />}
+              {/* Краткая информация */}
+              <div className="space-y-3">
+                <SpecRow icon={<Cpu />} label="Процессор" value={specs.cpu} />
+                <SpecRow icon={<Monitor />} label="Видеокарта" value={specs.gpu} />
+                <SpecRow icon={<MemoryStick />} label="Оперативная память" value={specs.ram} />
+              </div>
+
+              {/* Кнопка для показа всех характеристик */}
+              <button
+                onClick={() => setShowFullSpecs(!showFullSpecs)}
+                className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all"
+              >
+                {showFullSpecs ? "Скрыть характеристики" : "Читать все характеристики →"}
+              </button>
+
+              {/* Полные характеристики (сворачиваемые) */}
+              {showFullSpecs && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-3 pt-2"
+                >
+                  <SpecRow icon={<Monitor />} label="Монитор" value={specs.monitor} />
+                  <SpecRow icon={<Keyboard />} label="Клавиатура" value={specs.keyboard} />
+                  <SpecRow icon={<Mouse />} label="Мышь" value={specs.mouse} />
+                  {specs.chair && <SpecRow icon={<span>🪑</span>} label="Кресло" value={specs.chair} />}
+                  {specs.microphone && <SpecRow icon={<span>🎤</span>} label="Микрофон" value={specs.microphone} />}
+                  {specs.camera && <SpecRow icon={<span>📷</span>} label="Камера" value={specs.camera} />}
+                </motion.div>
+              )}
 
               <button
                 onClick={() => setStep("date")}
-                className="w-full mt-6 py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all shadow-lg shadow-blue-500/30"
+                className="w-full mt-4 py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all shadow-lg shadow-blue-500/30"
               >
-                Далее
+                Далее →
               </button>
             </motion.div>
           )}
@@ -245,7 +273,7 @@ export function BookingModal({ computer, onClose }: Props) {
                 disabled={!selectedDate || !selectedTime}
                 className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
               >
-                Далее
+                Далее →
               </button>
             </motion.div>
           )}
@@ -255,7 +283,7 @@ export function BookingModal({ computer, onClose }: Props) {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
+              className="space-y-4 pb-4"
             >
               {tariffs.map((tariff) => (
                 <button
@@ -279,25 +307,25 @@ export function BookingModal({ computer, onClose }: Props) {
                 </button>
               ))}
 
-              {/* Кнопка оплаты - ПОКАЗЫВАЕМ СРАЗУ ПОСЛЕ ВЫБОРА */}
+              {/* Кнопка оплаты */}
               {selectedTariff && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 space-y-4"
+                  className="space-y-4 pt-2"
                 >
                   {/* Итого */}
                   <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                     <div className="text-white font-bold mb-2">Итого:</div>
                     <div className="flex justify-between items-center">
-                      <div className="text-gray-300">
+                      <div className="text-gray-300 text-sm">
                         {selectedTariff.name} на компьютере #{computer.number}
                       </div>
-                      <div className="text-3xl font-black text-green-400">{selectedTariff.price} сом</div>
+                      <div className="text-2xl font-black text-green-400">{selectedTariff.price} сом</div>
                     </div>
                   </div>
 
-                  {/* ОПЛАТИТЬ - сразу видна */}
+                  {/* ОПЛАТИТЬ */}
                   <button
                     onClick={handleBooking}
                     disabled={isLoading}

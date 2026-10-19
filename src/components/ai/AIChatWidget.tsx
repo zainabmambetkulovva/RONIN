@@ -104,7 +104,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
     : "bottom-4 left-4 sm:bottom-6 sm:left-6";
 
   return (
-    <div className={`fixed ${positionClasses} z-40`}>
+    <div className={`fixed ${positionClasses} z-[60] mb-20 sm:mb-4`}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -307,20 +307,6 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Notification badge */}
-        {!isOpen && messages.length === 1 && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center shadow-lg"
-            style={{
-              boxShadow: "0 0 12px rgba(239, 68, 68, 0.8)"
-            }}
-          >
-            <span className="text-white text-xs font-bold">!</span>
-          </motion.div>
-        )}
       </motion.button>
     </div>
   );

@@ -109,13 +109,15 @@ export async function POST(req: NextRequest) {
 
     // Создать audit log
     try {
-      await prisma.auditLog.create({
+      await prisma.audit_logs.create({
         data: {
-          userId: user.id,
+          id: require('crypto').randomUUID(),
+          user_id: user.id,
           action: "ADMIN_LOGIN",
-          entityType: "Auth",
-          entityId: user.id,
-          newData: { timestamp: new Date().toISOString() },
+          entity_type: "Auth",
+          entity_id: user.id,
+          new_data: { timestamp: new Date().toISOString() },
+          created_at: new Date(),
         },
       });
     } catch (auditError) {

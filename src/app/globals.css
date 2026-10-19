@@ -568,3 +568,25 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* Scrollbar styles for horizontal avatar carousel */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.7);
+  border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.9);
+}
+.scrollbar-track-gray-800::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+}
+.scrollbar-thumb-purple-600::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.7);
+}

@@ -1,135 +1,168 @@
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
-import { prisma } from "./prisma";
-import { UserRole } from "@prisma/client";
+import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "ronin-super-secret-key-change-in-production"
-);
+export const authOptions: NextAuthOptions = {
+  providers: [
+    // Google OAuth Provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
+    }),
 
-const COOKIE_NAME = "ronin_session";
-const SESSION_DURATION = 60 * 60 * 24 * 30; // 30 days
+    // Credentials Provider (email/password)
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password required");
+        }
 
-export interface SessionUser {
-  id: string;
-  name: string;
-  phone: string;
-  role: UserRole;
-}
+        const user = await prisma.users.findFirst({
+          where: { email: credentials.email },
+        });
 
-export async function createSession(userId: string): Promise<string> {
-  const token = crypto.randomBytes(32).toString("hex");
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+        if (!user || !user.password) {
+          throw new Error("Invalid credentials");
+        }
 
-  const expiresAt = new Date(Date.now() + SESSION_DURATION * 1000);
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
 
-  await prisma.session.create({
-    data: {
-      userId,
-      tokenHash,
-      expiresAt,
+        if (!isPasswordValid) {
+          throw new Error("Invalid credentials");
+        }
+
+        if (user.status === "blocked") {
+          throw new Error("Account is blocked");
+        }
+
+        return {
+          id: user.id,
+          email: user.email!,
+          name: user.name,
+          role: user.role,
+          avatar: user.avatar,
+        };
+      },
+    }),
+  ],
+
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      // Если вход через Google
+      if (account?.provider === "google") {
+        try {
+          // Проверяем существует ли пользователь
+          const existingUser = await prisma.users.findFirst({
+            where: { email: user.email! },
+          });
+
+          // Если пользователь новый - создаем
+          if (!existingUser) {
+            await prisma.users.create({
+              data: {
+                id: crypto.randomUUID(),
+                email: user.email!,
+                name: user.name || "Пользователь",
+                avatar: "default",
+                role: "client",
+                status: "active",
+                email_verified: new Date(),
+                image: user.image,
+                created_at: new Date(),
+                updated_at: new Date(),
+              },
+            });
+          } else {
+            // Обновляем последнюю активность
+            await prisma.users.update({
+              where: { id: existingUser.id },
+              data: {
+                updated_at: new Date(),
+              },
+            });
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Error in signIn callback:", error);
+          return false;
+        }
+      }
+
+      return true;
     },
-  });
 
-  const jwt = await new SignJWT({ sub: userId, tokenHash })
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("30d")
-    .setIssuedAt()
-    .sign(JWT_SECRET);
+    async jwt({ token, user, trigger, session }) {
+      // При первом входе добавляем данные пользователя в токен
+      if (user) {
+        const dbUser = await prisma.users.findFirst({
+          where: { email: user.email! },
+        });
 
-  return jwt;
-}
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.avatar = dbUser.avatar;
+          token.status = dbUser.status;
+        }
+      }
 
-export async function getSession(): Promise<SessionUser | null> {
-  try {
-    const cookieStore = cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
-    if (!token) return null;
+      // Если обновление сессии
+      if (trigger === "update" && session) {
+        token = { ...token, ...session };
+      }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    const tokenHash = payload.tokenHash as string;
-    const userId = payload.sub as string;
+      return token;
+    },
 
-    const session = await prisma.session.findFirst({
-      where: {
-        userId,
-        tokenHash,
-        expiresAt: { gt: new Date() },
-        revokedAt: null,
-      },
-      include: {
-        user: {
-          select: { id: true, name: true, phone: true, role: true, status: true },
-        },
-      },
-    });
+    async session({ session, token }) {
+      // Добавляем данные из токена в сессию
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.avatar = token.avatar as string;
+        session.user.status = token.status as string;
+      }
 
-    if (!session || session.user.status !== "active") return null;
+      return session;
+    },
 
-    return {
-      id: session.user.id,
-      name: session.user.name,
-      phone: session.user.phone,
-      role: session.user.role,
-    };
-  } catch {
-    return null;
-  }
-}
+    async redirect({ url, baseUrl }) {
+      // После успешного входа редирект на профиль
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/profile`;
+    },
+  },
 
-export async function revokeSession(): Promise<void> {
-  try {
-    const cookieStore = cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
-    if (!token) return;
+  pages: {
+    signIn: "/login",
+    signOut: "/",
+    error: "/login",
+  },
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    const tokenHash = payload.tokenHash as string;
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
 
-    await prisma.session.updateMany({
-      where: { tokenHash },
-      data: { revokedAt: new Date() },
-    });
-  } catch {
-    // ignore
-  }
-}
-
-export function setSessionCookie(token: string): void {
-  cookies().set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: SESSION_DURATION,
-    path: "/",
-  });
-}
-
-export function clearSessionCookie(): void {
-  cookies().delete(COOKIE_NAME);
-}
-
-export async function requireAuth(allowedRoles?: UserRole[]): Promise<SessionUser> {
-  const session = await getSession();
-  if (!session) {
-    throw new Error("UNAUTHORIZED");
-  }
-  if (allowedRoles && !allowedRoles.includes(session.role)) {
-    throw new Error("FORBIDDEN");
-  }
-  return session;
-}
-
-export function hashOtp(otp: string): string {
-  return bcrypt.hashSync(otp, 10);
-}
-
-export function verifyOtp(otp: string, hash: string): boolean {
-  return bcrypt.compareSync(otp, hash);
-}
-
-export function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
+};
