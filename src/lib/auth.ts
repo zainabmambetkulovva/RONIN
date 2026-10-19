@@ -73,14 +73,14 @@ export const authOptions: NextAuthOptions = {
             where: { email: user.email! },
           });
 
-          // Если пользователь новый - создаем
+          // Если пользователь новый - создаем без имени (заполнит в setup-profile)
           if (!existingUser) {
             await prisma.users.create({
               data: {
                 id: crypto.randomUUID(),
                 email: user.email!,
-                name: user.name || "Пользователь",
-                avatar: "default",
+                name: null, // Будет заполнено в setup-profile
+                avatar: null, // Будет выбрано в setup-profile
                 role: "client",
                 status: "active",
                 email_verified: new Date(),
@@ -145,10 +145,20 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // После успешного входа редирект на профиль
+      // Если авторизация через Google и профиль не настроен - на setup-profile
+      if (url.includes("callback") && url.includes("google")) {
+        return `${baseUrl}/setup-profile`;
+      }
+      
+      // После успешного credentials входа - на главную (не на профиль)
+      if (url === `${baseUrl}/profile` || url === `${baseUrl}/api/auth/callback/credentials`) {
+        return baseUrl;
+      }
+      
+      // После успешной регистрации - на главную
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/profile`;
+      return baseUrl;
     },
   },
 

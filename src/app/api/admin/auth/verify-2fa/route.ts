@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { serialize } from "cookie";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
         );
       }
     } catch (error) {
+      console.error('JWT verification failed:', error);
       return NextResponse.json(
         { error: "Сессия истекла или неверна" },
         { status: 401 }
@@ -82,9 +84,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user || user.role !== "admin") {
+    if (!user || (user.role !== "admin" && user.role !== "manager")) {
       return NextResponse.json(
-        { error: "Пользователь не найден или не является администратором" },
+        { error: "Пользователь не найден или не имеет прав" },
         { status: 403 }
       );
     }
@@ -94,18 +96,18 @@ export async function POST(req: NextRequest) {
       where: { id: verification.id },
     });
 
-    // Создать JWT token
-    const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        type: "admin",
+    // Создать NextAuth session в БД
+    const sessionTokenStr = require('crypto').randomUUID();
+    const sessionExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
+
+    await prisma.sessions.create({
+      data: {
+        id: require('crypto').randomUUID(),
+        session_token: sessionTokenStr,
+        user_id: user.id,
+        expires: sessionExpires,
       },
-      jwtSecret,
-      { expiresIn: "7d" } // Токен действителен 7 дней
-    );
+    });
 
     // Создать audit log
     try {
@@ -124,9 +126,9 @@ export async function POST(req: NextRequest) {
       console.warn("Failed to create audit log:", auditError);
     }
 
-    return NextResponse.json({
+    // Установить session cookie
+    const response = NextResponse.json({
       success: true,
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -135,6 +137,25 @@ export async function POST(req: NextRequest) {
         avatar: user.avatar,
       },
     });
+
+    // Устанавливаем session cookie для NextAuth
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieName = isProduction 
+      ? '__Secure-next-auth.session-token'
+      : 'next-auth.session-token';
+
+    response.headers.append(
+      'Set-Cookie',
+      serialize(cookieName, sessionTokenStr, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax',
+        path: '/',
+        expires: sessionExpires,
+      })
+    );
+
+    return response;
   } catch (error: any) {
     console.error("2FA verification error:", error);
     return NextResponse.json(

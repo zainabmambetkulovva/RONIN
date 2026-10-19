@@ -12,7 +12,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
-  const [userId, setUserId] = useState("");
+  const [sessionToken, setSessionToken] = useState("");
   const [userRole, setUserRole] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +36,7 @@ export function LoginForm() {
 
       // Если это админ/менеджер - требуется 2FA
       if (checkResponse.ok) {
-        setUserId(checkData.userId);
+        setSessionToken(checkData.sessionToken);
         setUserRole(checkData.role || "admin");
         setStep("2fa");
         setIsLoading(false);
@@ -81,7 +81,7 @@ export function LoginForm() {
       const response = await fetch("/api/admin/auth/verify-2fa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, code }),
+        body: JSON.stringify({ sessionToken, code }),
       });
 
       const data = await response.json();
@@ -90,9 +90,12 @@ export function LoginForm() {
         throw new Error(data.error || t("auth.invalidCode") || "Неверный код");
       }
 
-      // Успешно - перенаправить в админку
+      // Успешно - перенаправить в админку (cookie установлен сервером)
+      // Ждем немного для установки cookie
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       const redirectPath = userRole === "admin" ? "/admin" : "/manager";
-      window.location.href = redirectPath; // Прямое перенаправление без NextAuth
+      window.location.href = redirectPath; // Hard redirect для загрузки session
     } catch (err: any) {
       setError(err.message);
     } finally {

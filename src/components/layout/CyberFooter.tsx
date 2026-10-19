@@ -34,7 +34,7 @@ export function CyberFooter() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-24 sm:bottom-24 right-6 z-[55] p-4 rounded-full transition-all hover:scale-110 shadow-xl mb-0 sm:mb-0"
+          className="fixed bottom-24 sm:bottom-24 right-6 z-[65] p-4 rounded-full transition-all hover:scale-110 shadow-xl mb-0 sm:mb-0"
           style={{
             background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
             boxShadow: "0 0 30px rgba(59,130,246,0.5)",
