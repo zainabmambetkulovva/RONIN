@@ -7,8 +7,15 @@ export default withAuth(
     const path = req.nextUrl.pathname;
 
     // Если пользователь залогинен и профиль не настроен
-    if (token && token.needsSetup && path !== "/setup-profile" && !path.startsWith("/api")) {
-      // Редирект на setup-profile только если это не уже эта страница
+    // НО исключаем админов и менеджеров - у них профиль опционален
+    if (
+      token && 
+      token.needsSetup && 
+      token.role === "client" && // Только для клиентов
+      path !== "/setup-profile" && 
+      !path.startsWith("/api")
+    ) {
+      // Редирект на setup-profile только для клиентов
       return NextResponse.redirect(new URL("/setup-profile", req.url));
     }
 

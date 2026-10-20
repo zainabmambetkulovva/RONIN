@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-import { serialize } from "cookie";
 
 export async function POST(req: NextRequest) {
   try {
@@ -96,19 +95,18 @@ export async function POST(req: NextRequest) {
       where: { id: verification.id },
     });
 
-    // Создать NextAuth session в БД
-    const sessionTokenStr = require('crypto').randomUUID();
-    const sessionExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
-    const tokenHash = require('crypto').createHash('sha256').update(sessionTokenStr).digest('hex');
-
-    await prisma.sessions.create({
-      data: {
-        id: require('crypto').randomUUID(),
-        user_id: user.id,
-        token_hash: tokenHash,
-        expires_at: sessionExpires,
+    // Создать JWT токен для админ панели
+    const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
+    const adminToken = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        type: "admin_session"
       },
-    });
+      jwtSecret,
+      { expiresIn: "7d" }
+    );
 
     // Создать audit log
     try {
@@ -127,9 +125,10 @@ export async function POST(req: NextRequest) {
       console.warn("Failed to create audit log:", auditError);
     }
 
-    // Установить session cookie
-    const response = NextResponse.json({
+    // Вернуть токен клиенту
+    return NextResponse.json({
       success: true,
+      token: adminToken,
       user: {
         id: user.id,
         name: user.name,
@@ -138,25 +137,6 @@ export async function POST(req: NextRequest) {
         avatar: user.avatar,
       },
     });
-
-    // Устанавливаем session cookie для NextAuth
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cookieName = isProduction 
-      ? '__Secure-next-auth.session-token'
-      : 'next-auth.session-token';
-
-    response.headers.append(
-      'Set-Cookie',
-      serialize(cookieName, sessionTokenStr, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax',
-        path: '/',
-        expires: sessionExpires,
-      })
-    );
-
-    return response;
   } catch (error: any) {
     console.error("2FA verification error:", error);
     return NextResponse.json(
