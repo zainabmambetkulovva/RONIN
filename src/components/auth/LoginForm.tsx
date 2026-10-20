@@ -57,8 +57,15 @@ export function LoginForm() {
         }
 
         // Ждем создания session и перенаправляем
-        await new Promise(resolve => setTimeout(resolve, 500));
-        window.location.href = "/dashboard"; // Hard redirect для загрузки session
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Проверяем что session создана
+        const checkSession = await fetch('/api/auth/session');
+        if (checkSession.ok) {
+          window.location.href = "/"; // Hard redirect на главную
+        } else {
+          throw new Error("Session не создана");
+        }
         return;
       }
 

@@ -40,7 +40,7 @@ export function LoadingScreen() {
             }}
             className="absolute"
           >
-            <div className="w-64 h-64 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500" />
+            <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500" />
           </motion.div>
 
           <motion.div
@@ -54,7 +54,7 @@ export function LoadingScreen() {
             }}
             className="absolute"
           >
-            <div className="w-80 h-80 rounded-full border-4 border-transparent border-b-blue-500 border-l-purple-500" />
+            <div className="w-56 h-56 sm:w-80 sm:h-80 rounded-full border-4 border-transparent border-b-blue-500 border-l-purple-500" />
           </motion.div>
 
           {/* Logo */}
@@ -67,7 +67,7 @@ export function LoadingScreen() {
               damping: 15,
               duration: 1,
             }}
-            className="relative z-10"
+            className="relative z-10 flex items-center justify-center"
           >
             <motion.div
               animate={{
@@ -78,14 +78,14 @@ export function LoadingScreen() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative w-32 h-32"
+              className="relative w-24 h-24 sm:w-32 sm:h-32"
             >
               <Image
                 src="/logo-new.png"
                 alt="RONIN"
                 fill
                 className="object-contain"
-                sizes="128px"
+                sizes="(max-width: 640px) 96px, 128px"
                 style={{
                   filter: "drop-shadow(0 0 40px rgba(168,85,247,1)) drop-shadow(0 0 80px rgba(236,72,153,0.8))",
                 }}

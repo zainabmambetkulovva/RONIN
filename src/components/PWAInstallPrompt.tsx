@@ -60,9 +60,9 @@ export function PWAInstallPrompt() {
       // Показываем нативный промпт браузера
       await deferredPrompt.prompt();
 
-      // Ждём выбор пользователя (с timeout 10 секунд)
+      // Ждём выбор пользователя (с timeout 5 секунд)
       const timeoutPromise = new Promise<{ outcome: 'timeout' }>((resolve) => {
-        setTimeout(() => resolve({ outcome: 'timeout' }), 10000);
+        setTimeout(() => resolve({ outcome: 'timeout' }), 5000);
       });
 
       const result = await Promise.race([
@@ -72,8 +72,11 @@ export function PWAInstallPrompt() {
       
       if (result.outcome === 'accepted') {
         console.log('✅ Пользователь принял установку');
+        // Установка началась, закрываем промпт
+        setShowPrompt(false);
       } else if (result.outcome === 'timeout') {
-        console.log('⏱️ Timeout при ожидании выбора пользователя');
+        console.log('⏱️ Timeout - закрываем промпт');
+        setShowPrompt(false);
       } else {
         console.log('❌ Пользователь отклонил установку');
       }
@@ -82,7 +85,6 @@ export function PWAInstallPrompt() {
     } finally {
       setIsLoading(false);
       setDeferredPrompt(null);
-      setShowPrompt(false);
     }
   };
 
