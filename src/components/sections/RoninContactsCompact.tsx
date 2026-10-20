@@ -54,28 +54,28 @@ export function RoninContactsCompact() {
                   icon: Phone,
                   label: t("contacts.phone"),
                   value: "+996 501 004 700",
-                  sub: "Звони с 10:00 до 02:00",
+                  subKey: "contacts.phone.subtitle",
                   href: "tel:+996501004700",
                 },
                 {
                   icon: Send,
                   label: "Telegram",
                   value: "@ronin_support",
-                  sub: "Быстрые ответы на все вопросы",
+                  subKey: "contacts.telegram.subtitle",
                   href: "https://t.me/ronin_support",
                 },
                 {
                   icon: Mail,
                   label: "Email",
                   value: "info@ronin.kg",
-                  sub: "Отвечаем в течение 1 часа",
+                  subKey: "contacts.email.subtitle",
                   href: "mailto:info@ronin.kg",
                 },
                 {
                   icon: MapPin,
                   label: t("contacts.address"),
                   value: t("contacts.addressValue"),
-                  sub: "Удобное расположение в центре города",
+                  subKey: "contacts.address.subtitle",
                   href: "https://2gis.kg/bishkek/geo/70000001083373538",
                 },
               ].map((c, i) => {
@@ -99,7 +99,7 @@ export function RoninContactsCompact() {
                       <p className="text-white font-bold mb-1 group-hover:text-purple-400 transition-colors break-words">
                         {c.value}
                       </p>
-                      <p className="text-xs text-gray-500">{c.sub}</p>
+                      <p className="text-xs text-gray-500">{t(c.subKey)}</p>
                     </div>
                   </motion.a>
                 );
@@ -118,7 +118,7 @@ export function RoninContactsCompact() {
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all hover:scale-105"
               >
                 <Phone className="w-4 h-4" />
-                Позвонить
+                {t("contacts.callButton")}
               </a>
 
               <a
@@ -128,7 +128,7 @@ export function RoninContactsCompact() {
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-purple-400 bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-all hover:scale-105"
               >
                 <Send className="w-4 h-4" />
-                WhatsApp
+                {t("contacts.whatsappButton")}
               </a>
             </motion.div>
           </motion.div>
@@ -146,7 +146,7 @@ export function RoninContactsCompact() {
                 RONIN
               </h1>
               <p className="text-sm font-bold uppercase tracking-[0.3em] text-purple-500/70 mt-2">
-                Твой компьютерный клуб
+                {t("contacts.subtitle")}
               </p>
 
               {/* Decorative line */}
@@ -160,17 +160,17 @@ export function RoninContactsCompact() {
               <div className="flex items-center justify-center gap-8 mt-8">
                 <div className="text-center">
                   <div className="text-3xl font-black text-purple-400">50+</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">Компьютеров</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">{t("contacts.stat.computers")}</div>
                 </div>
                 <div className="w-px h-12 bg-purple-500/30" />
                 <div className="text-center">
                   <div className="text-3xl font-black text-pink-400">24/7</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">Работаем</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">{t("contacts.stat.working")}</div>
                 </div>
                 <div className="w-px h-12 bg-purple-500/30" />
                 <div className="text-center">
                   <div className="text-3xl font-black text-blue-400">5★</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">Рейтинг</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider">{t("contacts.stat.rating")}</div>
                 </div>
               </div>
             </div>

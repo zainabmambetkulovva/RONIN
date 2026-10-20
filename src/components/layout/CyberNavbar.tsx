@@ -95,11 +95,7 @@ export function CyberNavbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#0a0a14]/95 backdrop-blur-xl border-b border-purple-500/20"
-          : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#1a0b2e]/95 backdrop-blur-xl border-b border-purple-500/30`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">

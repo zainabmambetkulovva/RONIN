@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
         session_token: sessionTokenStr,
         user_id: user.id,
         expires: sessionExpires,
+        expires_at: sessionExpires,
         token_hash: tokenHash,
       },
     });

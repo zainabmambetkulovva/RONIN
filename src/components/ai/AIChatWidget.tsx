@@ -104,7 +104,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
     : "bottom-4 left-4 sm:bottom-6 sm:left-6";
 
   return (
-    <div className={`fixed ${positionClasses} z-[60] mb-32 sm:mb-4`}>
+    <div className={`fixed ${positionClasses} z-[60] mb-20 sm:mb-4`}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
