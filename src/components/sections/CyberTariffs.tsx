@@ -117,9 +117,9 @@ export function CyberTariffs() {
             </span>
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-black uppercase mb-6">
-            <span className="block text-white">{t("tariffs.title1") || "Выгодные"}</span>
-            <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase mb-6 px-4">
+            <span className="block text-white break-words">{t("tariffs.title1") || "Выгодные"}</span>
+            <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent break-words">
               {t("tariffs.title") || "Тарифы"}
             </span>
           </h2>
