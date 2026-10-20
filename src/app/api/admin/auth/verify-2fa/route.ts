@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
     // Создать NextAuth session в БД
     const sessionTokenStr = require('crypto').randomUUID();
     const sessionExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 дней
+    const tokenHash = require('crypto').createHash('sha256').update(sessionTokenStr).digest('hex');
 
     await prisma.sessions.create({
       data: {
@@ -106,6 +107,7 @@ export async function POST(req: NextRequest) {
         session_token: sessionTokenStr,
         user_id: user.id,
         expires: sessionExpires,
+        token_hash: tokenHash,
       },
     });
 

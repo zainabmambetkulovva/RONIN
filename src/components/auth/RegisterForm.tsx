@@ -27,9 +27,19 @@ export function RegisterForm() {
     e.preventDefault();
     setError("");
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError("Пароли не совпадают");
+    // Frontend валидация
+    if (!formData.name.trim() || formData.name.length < 2) {
+      setError("Имя должно быть минимум 2 символа");
+      return;
+    }
+
+    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setError("Неверный формат email");
+      return;
+    }
+
+    if (!formData.phone.match(/^[\d\s\+\-\(\)]{10,}$/)) {
+      setError("Неверный формат телефона (минимум 10 цифр)");
       return;
     }
 
@@ -38,17 +48,21 @@ export function RegisterForm() {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      setError("Пароли не совпадают");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // TODO: Replace with real API call to /api/auth/register
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim(),
           password: formData.password,
         }),
       });
@@ -58,15 +72,8 @@ export function RegisterForm() {
         throw new Error(data.error || "Ошибка регистрации");
       }
 
-      // Success — redirect to setup profile
-      const data = await response.json();
-      
-      // Save token if provided
-      if (data.token) {
-        localStorage.setItem("auth_token", data.token);
-      }
-      
-      router.push("/setup-profile");
+      // Success — redirect to login
+      router.push("/login?registered=true");
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при регистрации");
       setIsLoading(false);
