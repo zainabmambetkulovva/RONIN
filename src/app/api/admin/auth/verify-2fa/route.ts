@@ -104,11 +104,9 @@ export async function POST(req: NextRequest) {
     await prisma.sessions.create({
       data: {
         id: require('crypto').randomUUID(),
-        session_token: sessionTokenStr,
         user_id: user.id,
-        expires: sessionExpires,
-        expires_at: sessionExpires,
         token_hash: tokenHash,
+        expires_at: sessionExpires,
       },
     });
 

@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: string;
       avatar: string;
       status: string;
+      needsSetup?: boolean;
     } & DefaultSession["user"];
   }
 
@@ -24,5 +25,7 @@ declare module "next-auth/jwt" {
     role: string;
     avatar: string;
     status: string;
+    name?: string | null;
+    needsSetup?: boolean;
   }
 }

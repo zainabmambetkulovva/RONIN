@@ -109,7 +109,7 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session, account }) {
       // При первом входе добавляем данные пользователя в токен
       if (user) {
         const dbUser = await prisma.users.findFirst({
@@ -121,6 +121,8 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
           token.avatar = dbUser.avatar;
           token.status = dbUser.status;
+          token.name = dbUser.name;
+          token.needsSetup = !dbUser.name || !dbUser.avatar; // флаг нужен ли setup
         }
       }
 
@@ -139,19 +141,21 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.avatar = token.avatar as string;
         session.user.status = token.status as string;
+        session.user.needsSetup = token.needsSetup as boolean;
       }
 
       return session;
     },
 
     async redirect({ url, baseUrl }) {
-      // Если авторизация через Google и профиль не настроен - на setup-profile
-      if (url.includes("callback") && url.includes("google")) {
-        return `${baseUrl}/setup-profile`;
-      }
-      
       // После успешного credentials входа - на главную (не на профиль)
       if (url === `${baseUrl}/profile` || url === `${baseUrl}/api/auth/callback/credentials`) {
+        return baseUrl;
+      }
+      
+      // Для Google login - редирект будет определен на клиенте через middleware
+      // Здесь просто отправляем на главную, а middleware проверит needsSetup
+      if (url.includes("callback") && url.includes("google")) {
         return baseUrl;
       }
       
