@@ -8,7 +8,7 @@ export function RegisterForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phone: "+996", // Auto-start with +996
     password: "",
     confirmPassword: "",
   });
@@ -17,9 +17,33 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Телефон форматтоо
+    if (name === "phone") {
+      // Убираем все кроме цифр и +
+      let cleaned = value.replace(/[^\d+]/g, "");
+      
+      // Если пользователь удалил +996, вернем обратно
+      if (!cleaned.startsWith("+996")) {
+        cleaned = "+996" + cleaned.replace(/^\+996/, "");
+      }
+      
+      // Ограничиваем длину: +996 (4 символа) + 9 цифр = 13
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
+      
+      setFormData((prev) => ({
+        ...prev,
+        phone: cleaned,
+      }));
+      return;
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
@@ -38,8 +62,8 @@ export function RegisterForm() {
       return;
     }
 
-    if (!formData.phone.match(/^[\d\s\+\-\(\)]{10,}$/)) {
-      setError("Неверный формат телефона (минимум 10 цифр)");
+    if (!formData.phone.match(/^\+996\d{9}$/)) {
+      setError("Неверный формат телефона. Пример: +996501234567");
       return;
     }
 
@@ -156,12 +180,15 @@ export function RegisterForm() {
           value={formData.phone}
           onChange={handleChange}
           required
+          placeholder="+996501234567"
+          maxLength={13}
           className="w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
           style={{
             background: "rgba(15,15,30,0.6)",
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         />
+        <p className="text-xs text-gray-500 mt-1">Формат: +996501234567</p>
       </div>
 
       {/* Password field */}

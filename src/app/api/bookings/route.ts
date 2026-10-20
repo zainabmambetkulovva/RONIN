@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { sendNewBookingNotification } from "@/lib/telegram";
 
 // POST /api/bookings - создать новое бронирование
 export async function POST(req: NextRequest) {
@@ -107,6 +108,43 @@ export async function POST(req: NextRequest) {
       userId: booking.user_id,
       computerId: booking.computer_id,
     });
+
+    // Получить данные для уведомления
+    const bookingWithDetails = await prisma.bookings.findUnique({
+      where: { id: booking.id },
+      include: {
+        users: {
+          select: { name: true }
+        },
+        computers: {
+          include: {
+            computer_categories: {
+              select: { name: true }
+            }
+          }
+        },
+        tariffs: {
+          select: { name: true }
+        }
+      }
+    });
+
+    // Отправить уведомление в Telegram (не блокируем ответ если ошибка)
+    const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+    if (adminChatId && bookingWithDetails) {
+      sendNewBookingNotification(adminChatId, {
+        bookingCode: bookingWithDetails.booking_code,
+        userName: bookingWithDetails.users.name,
+        computerName: bookingWithDetails.computers.computer_categories.name,
+        computerNumber: bookingWithDetails.computers.number,
+        tariffName: bookingWithDetails.tariffs.name,
+        startAt: bookingWithDetails.start_at,
+        endAt: bookingWithDetails.end_at,
+        price: bookingWithDetails.price.toString(),
+      }).catch((error) => {
+        console.error("Failed to send Telegram booking notification:", error);
+      });
+    }
 
     return NextResponse.json({
       success: true,

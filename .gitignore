@@ -44,3 +44,8 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Documentation with secrets
+VERCEL_SETUP.md
+FIX_AI_NOW.md
+STEP_3_COMPLETE.md
