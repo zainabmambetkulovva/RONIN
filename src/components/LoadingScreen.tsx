@@ -28,7 +28,7 @@ export function LoadingScreen() {
             background: "radial-gradient(circle at center, #1a0b2e 0%, #0a0a14 100%)",
           }}
         >
-          {/* Animated circles */}
+          {/* Animated circles - centered */}
           <motion.div
             animate={{
               rotate: 360,
@@ -38,7 +38,7 @@ export function LoadingScreen() {
               repeat: Infinity,
               ease: "linear",
             }}
-            className="absolute"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500" />
           </motion.div>
@@ -52,12 +52,12 @@ export function LoadingScreen() {
               repeat: Infinity,
               ease: "linear",
             }}
-            className="absolute"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <div className="w-56 h-56 sm:w-80 sm:h-80 rounded-full border-4 border-transparent border-b-blue-500 border-l-purple-500" />
           </motion.div>
 
-          {/* Logo */}
+          {/* Logo - perfectly centered */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -67,7 +67,7 @@ export function LoadingScreen() {
               damping: 15,
               duration: 1,
             }}
-            className="relative z-10 flex items-center justify-center"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
           >
             <motion.div
               animate={{
@@ -78,7 +78,7 @@ export function LoadingScreen() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative w-24 h-24 sm:w-32 sm:h-32"
+              className="relative w-24 h-24 sm:w-32 sm:h-32 mx-auto"
             >
               <Image
                 src="/logo-new.png"
