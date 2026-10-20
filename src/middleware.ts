@@ -6,6 +6,11 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
+    // Полностью пропускаем все admin роуты
+    if (path.startsWith("/admin")) {
+      return NextResponse.next();
+    }
+
     // Если пользователь залогинен и профиль не настроен
     // НО исключаем админов и менеджеров - у них профиль опционален
     if (
