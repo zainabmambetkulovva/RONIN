@@ -139,7 +139,7 @@ export function CyberNavbar() {
             <LanguageSwitcher />
             
             {/* User profile - для авторизованных */}
-            {status !== "loading" && session && (
+            {session && (
               <a
                 href="/profile"
                 className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
@@ -166,7 +166,7 @@ export function CyberNavbar() {
             )}
             
             {/* Auth buttons - только для неавторизованных */}
-            {status !== "loading" && !session && (
+            {!session && (
               <div className="hidden sm:flex items-center gap-2">
                 <a
                   href="/login"
@@ -213,7 +213,7 @@ export function CyberNavbar() {
             ))}
             
             {/* Mobile auth/profile - зависит от статуса авторизации */}
-            {status !== "loading" && session ? (
+            {session ? (
               <div className="pt-4 border-t border-purple-500/20 mt-4">
                 <a
                   href="/profile"
@@ -240,17 +240,19 @@ export function CyberNavbar() {
                   </span>
                 </a>
               </div>
-            ) : status !== "loading" && !session && (
+            ) : (
               <div className="pt-4 space-y-2 border-t border-purple-500/20 mt-4">
                 <a
                   href="/login"
                   className="block px-3 py-2 text-xs font-bold text-center text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                  onClick={() => setIsOpen(false)}
                 >
                   {t("nav.login") || "Вход"}
                 </a>
                 <a
                   href="/register"
                   className="block px-4 py-2 rounded-lg text-xs font-bold text-white text-center uppercase tracking-wider bg-gradient-to-r from-purple-600 to-pink-600"
+                  onClick={() => setIsOpen(false)}
                 >
                   {t("nav.register") || "Регистрация"}
                 </a>

@@ -25,7 +25,9 @@ export function useSession() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/user/profile');
+        const response = await fetch('/api/user/profile', {
+          credentials: 'include' // Important for cookies
+        });
         
         if (response.ok) {
           const userData = await response.json();
@@ -44,6 +46,7 @@ export function useSession() {
           setStatus("unauthenticated");
         }
       } catch (error) {
+        console.error('[useSession] Error:', error);
         setSession(null);
         setStatus("unauthenticated");
       }
