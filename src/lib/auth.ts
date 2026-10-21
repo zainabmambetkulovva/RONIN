@@ -28,8 +28,7 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code",
-          redirect_uri: `${baseUrl}/api/auth/callback/google`
+          response_type: "code"
         }
       }
     }),
@@ -232,4 +231,5 @@ export const authOptions: NextAuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
   debug: true, // Always enable debug to see logs
+  trustHost: true, // Required for Vercel deployment
 };
