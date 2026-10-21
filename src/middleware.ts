@@ -6,6 +6,8 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
+    console.log('Middleware:', { path, hasToken: !!token });
+
     // Пропускаем все публичные страницы и API
     if (
       path === "/" ||
@@ -13,7 +15,9 @@ export default withAuth(
       path === "/register" ||
       path === "/forgot-password" ||
       path.startsWith("/api") ||
-      path.startsWith("/admin")
+      path.startsWith("/admin") ||
+      path.startsWith("/_next") ||
+      path.includes(".")  // Static files
     ) {
       return NextResponse.next();
     }
@@ -30,12 +34,14 @@ export default withAuth(
       token.role === "client" && // Только для клиентов
       path !== "/setup-profile"
     ) {
+      console.log('Redirecting to setup-profile');
       // Редирект на setup-profile только для клиентов
       return NextResponse.redirect(new URL("/setup-profile", req.url));
     }
 
     // Если профиль настроен и пользователь на setup-profile - на главную
     if (!token.needsSetup && path === "/setup-profile") {
+      console.log('Redirecting from setup-profile to home');
       return NextResponse.redirect(new URL("/", req.url));
     }
 
@@ -60,7 +66,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - api (API routes including NextAuth)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

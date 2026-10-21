@@ -4,6 +4,20 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+// Определяем base URL для разных окружений
+const getBaseUrl = () => {
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+};
+
+const baseUrl = getBaseUrl();
+console.log('NextAuth base URL:', baseUrl);
+
 export const authOptions: NextAuthOptions = {
   providers: [
     // Google OAuth Provider
@@ -14,13 +28,10 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
+          response_type: "code",
+          redirect_uri: `${baseUrl}/api/auth/callback/google`
         }
-      },
-      // Явно указываем redirect URL
-      ...(process.env.NEXTAUTH_URL && {
-        redirectProxyUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
-      })
+      }
     }),
 
     // Credentials Provider (email/password)
