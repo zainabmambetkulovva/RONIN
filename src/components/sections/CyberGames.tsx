@@ -144,19 +144,19 @@ export function CyberGames() {
             <motion.div
               className="flex gap-6"
               animate={{
-                x: isPaused ? undefined : [0, -100 * games.length + '%']
+                x: isPaused ? undefined : [0, `-${100 * games.length}%`]
               }}
               transition={{
                 x: {
                   repeat: Infinity,
                   repeatType: "loop",
-                  duration: games.length * 10,  // 8 games × 10s = 80s (slower)
+                  duration: games.length * 5,  // 8 games × 5s = 40s
                   ease: "linear"
                 }
               }}
             >
-              {/* Duplicate games for seamless loop */}
-              {[...games, ...games].map((game, i) => (
+              {/* Triple duplicate games for seamless infinite loop */}
+              {[...games, ...games, ...games].map((game, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 30 }}
