@@ -60,3 +60,31 @@ export function getBookingStatus(startAt: Date | string, endAt: Date | string): 
 export function calculateEndTime(startAt: Date, durationMinutes: number): Date {
   return new Date(new Date(startAt).getTime() + durationMinutes * 60 * 1000);
 }
+
+/**
+ * Get base URL for the application
+ * Works with Vercel, ngrok, and localhost
+ */
+export function getBaseUrl(): string {
+  // 1. Priority: NEXT_PUBLIC_APP_URL (for ngrok testing)
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+
+  // 2. Vercel deployment
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // 3. Localhost
+  return 'http://localhost:3000';
+}
+
+/**
+ * Get full URL with path
+ */
+export function getFullUrl(path: string): string {
+  const base = getBaseUrl();
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${cleanPath}`;
+}

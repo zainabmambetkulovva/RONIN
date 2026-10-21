@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/hooks/useSession";
 
 export function CyberNavbar() {
   const [isOpen, setIsOpen] = useState(false);
