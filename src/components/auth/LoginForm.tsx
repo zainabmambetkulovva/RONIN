@@ -214,7 +214,7 @@ export function LoginForm() {
           {/* Google OAuth Button */}
           <button
             type="button"
-            onClick={() => signIn("google", { callbackUrl: "/profile" })}
+            onClick={() => signIn("google", { callbackUrl: "/" })}
             className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
             style={{
               background: "rgba(255,255,255,0.05)",

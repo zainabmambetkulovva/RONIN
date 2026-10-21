@@ -148,20 +148,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // После успешного credentials входа - на главную (не на профиль)
-      if (url === `${baseUrl}/profile` || url === `${baseUrl}/api/auth/callback/credentials`) {
-        return baseUrl;
-      }
-      
-      // Для Google login - редирект будет определен на клиенте через middleware
-      // Здесь просто отправляем на главную, а middleware проверит needsSetup
-      if (url.includes("callback") && url.includes("google")) {
-        return baseUrl;
-      }
-      
-      // После успешной регистрации - на главную
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
+      // Всегда редиректим на главную страницу
+      // Middleware сам решит куда отправить пользователя (setup-profile или главная)
       return baseUrl;
     },
   },
