@@ -7,19 +7,10 @@ import Image from "next/image";
 
 export function CyberFooter() {
   const { t } = useLanguage();
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
@@ -30,21 +21,6 @@ export function CyberFooter() {
   
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-gray-950 to-black dark:from-gray-950 dark:to-black light:from-gray-50 light:to-white border-t border-blue-500/10 dark:border-blue-500/10 light:border-purple-200/30">
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-28 sm:bottom-24 right-6 z-[65] p-4 rounded-full transition-all hover:scale-110 shadow-xl"
-          style={{
-            background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-            boxShadow: "0 0 30px rgba(59,130,246,0.5)",
-          }}
-          aria-label="Scroll to top"
-        >
-          <ArrowUp className="w-6 h-6 text-white" />
-        </button>
-      )}
-      
       {/* Gradient overlay */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-600/30 dark:via-purple-600/30 light:via-purple-400/40 to-transparent" />
 
@@ -208,6 +184,19 @@ export function CyberFooter() {
             <span>•</span>
             <span>{t("footer.location")}</span>
           </div>
+          
+          {/* Scroll to Top Button - встроенная в футер */}
+          <button
+            onClick={scrollToTop}
+            className="p-3 rounded-full transition-all hover:scale-110 shadow-lg"
+            style={{
+              background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+              boxShadow: "0 0 20px rgba(59,130,246,0.4)",
+            }}
+            aria-label="Scroll to top"
+          >
+            <ArrowUp className="w-5 h-5 text-white" />
+          </button>
         </div>
       </div>
     </footer>
