@@ -7,12 +7,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export function LoginForm() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [sessionToken, setSessionToken] = useState("");
-  const [userRole, setUserRole] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,52 +20,23 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Проверить является ли пользователь админом/менеджером
-      const checkResponse = await fetch("/api/admin/auth/send-2fa", {
+      // Проверяем credentials через API
+      const loginResponse = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const checkData = await checkResponse.json();
+      const loginData = await loginResponse.json();
 
-      // Если это админ/менеджер - требуется 2FA
-      if (checkResponse.ok) {
-        setSessionToken(checkData.sessionToken);
-        setUserRole(checkData.role || "admin");
-        setStep("2fa");
-        setIsLoading(false);
-        return;
+      if (!loginResponse.ok) {
+        throw new Error(loginData.error || t("auth.invalidCredentials") || "Неверный email или пароль");
       }
 
-      // Если это обычный клиент - вход без 2FA
-      if (checkResponse.status === 403 || checkData.error?.includes("Доступ запрещен")) {
-        // Обычная авторизация для клиентов
-        const result = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-        });
-
-        if (result?.error) {
-          throw new Error(t("auth.invalidCredentials") || "Неверный email или пароль");
-        }
-
-        // Ждем создания session и перенаправляем
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Проверяем что session создана
-        const checkSession = await fetch('/api/auth/session');
-        if (checkSession.ok) {
-          window.location.href = "/"; // Hard redirect на главную
-        } else {
-          throw new Error("Session не создана");
-        }
-        return;
-      }
-
-      // Другие ошибки
-      throw new Error(checkData.error || t("auth.authError") || "Ошибка авторизации");
+      // Успешный login - session cookie уже установлен сервером
+      // Перенаправляем на главную (middleware решит куда дальше)
+      window.location.href = "/";
+      
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -118,9 +85,7 @@ export function LoginForm() {
         boxShadow: "0 0 40px rgba(59,130,246,0.15)",
       }}
     >
-      {/* Шаг 1: Email/Пароль */}
-      {step === "credentials" && (
-        <form onSubmit={handleCredentialsSubmit} className="space-y-6">
+      <form onSubmit={handleCredentialsSubmit} className="space-y-6">
           {error && (
             <div
               className="p-4 rounded-lg text-sm"
@@ -229,88 +194,6 @@ export function LoginForm() {
             {t("auth.googleLogin") || "Войти через Google"}
           </button>
         </form>
-      )}
-
-      {/* Шаг 2: 2FA Код (только для админов/менеджеров) */}
-      {step === "2fa" && (
-        <form onSubmit={handle2FASubmit} className="space-y-6">
-          <div className="text-center mb-6">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{
-                background: "rgba(59,130,246,0.1)",
-                border: "1px solid rgba(59,130,246,0.3)",
-              }}
-            >
-              <svg className="w-8 h-8" style={{ color: "#3b82f6" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-black text-white mb-2">{t("auth.security2FA") || "Проверка безопасности"}</h2>
-            <p className="text-sm text-gray-400">
-              {t("auth.codeSent") || "Код отправлен в ваш Telegram"}<br />
-              <span className="text-blue-400">@rrronin_bot</span>
-            </p>
-          </div>
-
-          {error && (
-            <div
-              className="p-4 rounded-lg text-sm"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                color: "#ef4444",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-bold text-white mb-2 text-center">
-              {t("auth.enter6Code") || "Введите 6-значный код"}
-            </label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              required
-              maxLength={6}
-              className="w-full px-4 py-4 rounded-xl text-white text-center text-2xl font-black tracking-widest placeholder-gray-600 outline-none focus:ring-2 focus:ring-blue-500"
-              style={{
-                background: "rgba(15,15,30,0.6)",
-                border: "1px solid rgba(59,130,246,0.2)",
-              }}
-              placeholder="000000"
-              autoFocus
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading || code.length !== 6}
-            className="w-full py-3 rounded-xl font-black uppercase text-white transition-all hover:scale-105 disabled:opacity-50"
-            style={{
-              background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
-              boxShadow: "0 0 24px rgba(59,130,246,0.5)",
-            }}
-          >
-            {isLoading ? t("auth.checking") || "Проверка..." : t("auth.confirm") || "Подтвердить"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setStep("credentials");
-              setCode("");
-              setError("");
-            }}
-            className="w-full py-2 text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            ← {t("auth.back") || "Назад"}
-          </button>
-        </form>
-      )}
     </div>
   );
 }
