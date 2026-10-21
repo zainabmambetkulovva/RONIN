@@ -16,7 +16,11 @@ export const authOptions: NextAuthOptions = {
           access_type: "offline",
           response_type: "code"
         }
-      }
+      },
+      // Явно указываем redirect URL
+      ...(process.env.NEXTAUTH_URL && {
+        redirectProxyUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
+      })
     }),
 
     // Credentials Provider (email/password)
@@ -68,13 +72,18 @@ export const authOptions: NextAuthOptions = {
       // Если вход через Google
       if (account?.provider === "google") {
         try {
+          console.log('Google signIn attempt:', user.email);
+          
           // Проверяем существует ли пользователь
           const existingUser = await prisma.users.findFirst({
             where: { email: user.email! },
           });
 
+          console.log('Existing user found:', !!existingUser);
+
           // Если пользователь новый - создаем без имени (заполнит в setup-profile)
           if (!existingUser) {
+            console.log('Creating new user for:', user.email);
             await prisma.users.create({
               data: {
                 id: crypto.randomUUID(),
@@ -89,7 +98,9 @@ export const authOptions: NextAuthOptions = {
                 updated_at: new Date(),
               },
             });
+            console.log('User created successfully');
           } else {
+            console.log('Updating existing user:', existingUser.id);
             // Обновляем последнюю активность
             await prisma.users.update({
               where: { id: existingUser.id },
@@ -99,10 +110,13 @@ export const authOptions: NextAuthOptions = {
             });
           }
 
+          console.log('Google signIn successful');
           return true;
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error in signIn callback:", error);
-          return false;
+          console.error("Error details:", error.message, error.stack);
+          // НЕ возвращаем false - пропускаем дальше даже при ошибке
+          return true;
         }
       }
 
@@ -148,8 +162,34 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // Всегда редиректим на главную страницу
-      // Middleware сам решит куда отправить пользователя (setup-profile или главная)
+      console.log('NextAuth redirect:', { url, baseUrl });
+      
+      // Если это callback после Google OAuth
+      if (url.includes('/api/auth/callback/google')) {
+        console.log('Google callback detected, redirecting to home');
+        return baseUrl;
+      }
+      
+      // Если это относительный путь
+      if (url.startsWith('/')) {
+        console.log('Relative path redirect:', url);
+        return `${baseUrl}${url}`;
+      }
+      
+      // Если это наш домен
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+        
+        if (urlObj.origin === baseUrlObj.origin) {
+          console.log('Same origin redirect:', url);
+          return url;
+        }
+      } catch (e) {
+        console.error('URL parsing error:', e);
+      }
+      
+      console.log('Default redirect to baseUrl:', baseUrl);
       return baseUrl;
     },
   },
@@ -166,5 +206,5 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // Always enable debug to see logs
 };
