@@ -51,7 +51,7 @@ export default function UsersPage() {
       setUsers(data.users || []);
     } catch (error: any) {
       console.error("Failed to fetch users:", error);
-      alert(`${t("admin.loadError")}: ${error.message}`);
+      alert(`Load Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm(t("admin.deleteConfirm"))) {
+    if (!confirm("Are you sure you want to delete this user?")) {
       return;
     }
 
@@ -98,17 +98,17 @@ export default function UsersPage() {
         setUsers(users.filter((u) => u.id !== userId));
       } else {
         const data = await res.json();
-        alert(data.error || t("admin.deleteError"));
+        alert(data.error || "Delete error");
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert(t("admin.networkError"));
+      alert("Network error");
     }
   };
 
   const handleBlockUser = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "blocked" : "active";
-    const confirmMsg = newStatus === "blocked" ? t("admin.blockConfirm") : t("admin.unblockConfirm");
+    const confirmMsg = newStatus === "blocked" ? "Block this user?" : "Unblock this user?";
 
     if (!confirm(confirmMsg)) {
       return;
@@ -129,11 +129,11 @@ export default function UsersPage() {
         );
       } else {
         const data = await res.json();
-        alert(data.error || t("admin.statusError"));
+        alert(data.error || "Status change error");
       }
     } catch (error) {
       console.error("Status change error:", error);
-      alert(t("admin.networkError"));
+      alert("Network error");
     }
   };
 
@@ -142,7 +142,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <RollingLoader />
-          <p className="text-gray-400 mt-4">{t("admin.loadingUsers")}</p>
+          <p className="text-gray-400 mt-4">Loading users...</p>
         </div>
       </div>
     );
@@ -154,10 +154,10 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
-            {t("admin.users")}
+            USERS
           </h1>
           <p className="text-gray-400 text-sm">
-            {t("admin.usersManagement")} • {t("admin.total")}: {users.length}
+            User Management • Total: {users.length}
           </p>
         </div>
         <button
@@ -169,7 +169,7 @@ export default function UsersPage() {
           }}
         >
           <Plus className="w-5 h-5" />
-          {t("admin.addUser")}
+          Add User
         </button>
       </div>
 
@@ -192,7 +192,7 @@ export default function UsersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("admin.searchPlaceholder")}
+              placeholder="Search users by name, email or phone..."
               className="w-full pl-12 pr-4 py-3 rounded-xl text-sm transition-all"
               style={{
                 background: "rgba(15,15,30,0.8)",
@@ -213,10 +213,10 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">{t("admin.allRoles")}</option>
-            <option value="client">{t("admin.clients")}</option>
-            <option value="manager">{t("admin.managers")}</option>
-            <option value="admin">{t("admin.admins")}</option>
+            <option value="all">All Roles</option>
+            <option value="client">Clients</option>
+            <option value="manager">Managers</option>
+            <option value="admin">Admins</option>
           </select>
 
           {/* Status filter */}
@@ -230,15 +230,15 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">{t("admin.allStatuses")}</option>
-            <option value="active">{t("admin.active")}</option>
-            <option value="blocked">{t("admin.blocked")}</option>
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="blocked">Blocked</option>
           </select>
         </div>
 
         {/* Results count */}
         <div className="mt-4 text-sm text-gray-400">
-          {t("admin.found")}: {filteredUsers.length} {t("admin.of")} {users.length}
+          Found: {filteredUsers.length} of {users.length}
         </div>
       </div>
 
@@ -254,8 +254,8 @@ export default function UsersPage() {
           >
             <Search className="w-10 h-10" style={{ color: "#9ca3af" }} />
           </div>
-          <p className="text-gray-400 text-lg mb-2">{t("admin.notFound")}</p>
-          <p className="text-gray-500 text-sm">{t("admin.tryChangeFilters")}</p>
+          <p className="text-gray-400 text-lg mb-2">No users found</p>
+          <p className="text-gray-500 text-sm">Try changing your search filters</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
