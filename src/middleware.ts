@@ -1,73 +1,56 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
+export async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  console.log('Middleware:', { path });
 
-    console.log('Middleware:', { path, hasToken: !!token });
+  // Пропускаем публичные пути
+  if (
+    path === "/" ||
+    path === "/login" ||
+    path === "/register" ||
+    path === "/forgot-password" ||
+    path.startsWith("/api") ||
+    path.startsWith("/admin") ||
+    path.startsWith("/_next") ||
+    path.includes(".")
+  ) {
+    return NextResponse.next();
+  }
 
-    // Пропускаем все публичные страницы и API
-    if (
-      path === "/" ||
-      path === "/login" ||
-      path === "/register" ||
-      path === "/forgot-password" ||
-      path.startsWith("/api") ||
-      path.startsWith("/admin") ||
-      path.startsWith("/_next") ||
-      path.includes(".")  // Static files
-    ) {
-      return NextResponse.next();
-    }
+  // Проверяем session token
+  const token = req.cookies.get('session-token')?.value;
+  
+  if (!token) {
+    return NextResponse.next();
+  }
 
-    // Если НЕТ токена - разрешаем доступ (публичные страницы)
-    if (!token) {
-      return NextResponse.next();
-    }
-
-    // Если пользователь залогинен и профиль не настроен
-    // НО исключаем админов и менеджеров - у них профиль опционален
-    if (
-      token.needsSetup && 
-      token.role === "client" && // Только для клиентов
-      path !== "/setup-profile"
-    ) {
+  try {
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    
+    // Если профиль не настроен и это клиент
+    if (payload.needsSetup && payload.role === 'client' && path !== "/setup-profile") {
       console.log('Redirecting to setup-profile');
-      // Редирект на setup-profile только для клиентов
       return NextResponse.redirect(new URL("/setup-profile", req.url));
     }
 
-    // Если профиль настроен и пользователь на setup-profile - на главную
-    if (!token.needsSetup && path === "/setup-profile") {
+    // Если профиль настроен и пользователь на setup-profile
+    if (!payload.needsSetup && path === "/setup-profile") {
       console.log('Redirecting from setup-profile to home');
       return NextResponse.redirect(new URL("/", req.url));
     }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Всегда разрешаем доступ - логику проверяем в middleware функции
-        return true;
-      },
-    },
+  } catch (error) {
+    console.error('JWT verify error:', error);
   }
-);
 
-// Применяем middleware только к определенным путям
+  return NextResponse.next();
+}
+
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - api (API routes including NextAuth)
-     */
     "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
