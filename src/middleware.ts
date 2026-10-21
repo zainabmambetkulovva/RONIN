@@ -6,26 +6,36 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // Полностью пропускаем все admin роуты
-    if (path.startsWith("/admin")) {
+    // Пропускаем все публичные страницы и API
+    if (
+      path === "/" ||
+      path === "/login" ||
+      path === "/register" ||
+      path === "/forgot-password" ||
+      path.startsWith("/api") ||
+      path.startsWith("/admin")
+    ) {
+      return NextResponse.next();
+    }
+
+    // Если НЕТ токена - разрешаем доступ (публичные страницы)
+    if (!token) {
       return NextResponse.next();
     }
 
     // Если пользователь залогинен и профиль не настроен
     // НО исключаем админов и менеджеров - у них профиль опционален
     if (
-      token && 
       token.needsSetup && 
       token.role === "client" && // Только для клиентов
-      path !== "/setup-profile" && 
-      !path.startsWith("/api")
+      path !== "/setup-profile"
     ) {
       // Редирект на setup-profile только для клиентов
       return NextResponse.redirect(new URL("/setup-profile", req.url));
     }
 
     // Если профиль настроен и пользователь на setup-profile - на главную
-    if (token && !token.needsSetup && path === "/setup-profile") {
+    if (!token.needsSetup && path === "/setup-profile") {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
@@ -33,8 +43,8 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => {
-        // Разрешаем доступ всем (защищенные роуты проверяются отдельно)
+      authorized: ({ token, req }) => {
+        // Всегда разрешаем доступ - логику проверяем в middleware функции
         return true;
       },
     },

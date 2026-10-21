@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Camera, User, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { RollingLoader } from "@/components/ui/RollingLoader";
 
 const AVATAR_OPTIONS = [
   "/avatars/avatar1.png",
@@ -88,7 +89,12 @@ export default function SetupProfilePage() {
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#03030a" }}>
-        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+        <div className="text-center">
+          <RollingLoader />
+          <p className="text-gray-400 mt-4 text-sm animate-pulse">
+            {t("setup.loading") || "Загрузка профиля..."}
+          </p>
+        </div>
       </div>
     );
   }
