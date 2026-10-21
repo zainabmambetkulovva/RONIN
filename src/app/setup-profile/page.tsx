@@ -28,7 +28,7 @@ export default function SetupProfilePage() {
 
   useEffect(() => {
     // Если пользователь уже настроил профиль, перенаправляем на главную
-    if (session?.user?.name && session?.user?.image) {
+    if (session?.user && !session.user.needsSetup) {
       router.push("/");
     }
 
@@ -71,7 +71,8 @@ export default function SetupProfilePage() {
         user: {
           ...session?.user,
           name: name.trim(),
-          image: selectedAvatar,
+          avatar: selectedAvatar,
+          needsSetup: false, // Profile is now complete
         },
       });
 

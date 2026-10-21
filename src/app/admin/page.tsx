@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { StatCard } from "@/components/admin/dashboard/StatCard";
 import { UpcomingBookings } from "@/components/admin/dashboard/UpcomingBookings";
 import { RecentUsers } from "@/components/admin/dashboard/RecentUsers";
 
 export default function AdminDashboard() {
-  const { t } = useLanguage();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +30,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">{t("admin.loading") || "Загрузка..."}</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -43,10 +41,10 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-2">
-            {t("admin.errorLoad") || "Не удалось загрузить данные"}
+            Failed to load data
           </h2>
           <p className="text-gray-400">
-            {t("admin.checkConnection") || "Проверьте подключение к базе данных"}
+            Check database connection
           </p>
         </div>
       </div>
@@ -58,47 +56,47 @@ export default function AdminDashboard() {
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
-          {t("admin.dashboard") || "DASHBOARD"}
+          DASHBOARD
         </h1>
         <p className="text-gray-400 text-sm">
-          {t("admin.statsToday") || "Статистика за сегодня"}
+          Statistics for today
         </p>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard
-          label={t("admin.clientsToday") || "Клиентов сегодня"}
+          label="Clients Today"
           value={data.clients.today}
-          subtitle={`${t("admin.total") || "Всего"}: ${data.clients.total}`}
+          subtitle={`Total: ${data.clients.total}`}
           icon="users"
           color="#ef4444"
         />
         <StatCard
-          label={t("admin.managers") || "Менеджеров"}
+          label="Managers"
           value={data.managers.active}
-          subtitle={`${t("admin.total") || "Всего"}: ${data.managers.total}`}
+          subtitle={`Total: ${data.managers.total}`}
           icon="shield"
           color="#8b5cf6"
         />
         <StatCard
-          label={t("admin.playingNow") || "Играют сейчас"}
+          label="Playing Now"
           value={data.bookings.active}
-          subtitle={t("admin.activeSessions") || "Активных сессий"}
+          subtitle="Active Sessions"
           icon="calendar"
           color="#ec4899"
         />
         <StatCard
-          label={t("admin.booked") || "Забронировали"}
+          label="Booked"
           value={data.bookings.today}
-          subtitle={t("admin.bookingsToday") || "Бронирований сегодня"}
+          subtitle="Bookings Today"
           icon="monitor"
           color="#3b82f6"
         />
         <StatCard
-          label={t("admin.computers") || "Компьютеров"}
+          label="Computers"
           value={data.computers.available}
-          subtitle={t("admin.available") || "Доступно"}
+          subtitle="Available"
           icon="tag"
           color="#06b6d4"
         />
