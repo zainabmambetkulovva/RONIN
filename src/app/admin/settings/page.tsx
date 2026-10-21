@@ -4,19 +4,19 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AdminSettingsPage() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [notifications, setNotifications] = useState(true);
   const [theme, setTheme] = useState("dark");
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+  const changeLanguage = (lng: "ru" | "en" | "ky") => {
+    setLanguage(lng);
   };
 
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">{t("admin.settings")}</h1>
-        <p className="text-gray-400">{t("admin.settingsDescription")}</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
+        <p className="text-gray-400">Manage your admin panel preferences</p>
       </div>
 
       <div className="max-w-3xl space-y-6">
@@ -28,13 +28,13 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">{t("admin.notifications")}</h2>
+          <h2 className="text-xl font-bold text-white mb-4">Notifications</h2>
           
           <div className="flex items-center justify-between py-3">
             <div>
-              <div className="text-white font-medium mb-1">{t("admin.pushNotifications")}</div>
+              <div className="text-white font-medium mb-1">Push Notifications</div>
               <div className="text-sm text-gray-400">
-                {t("admin.pushNotificationsDesc")}
+                Receive push notifications about new bookings
               </div>
             </div>
             <button
@@ -58,9 +58,9 @@ export default function AdminSettingsPage() {
           <div className="border-t mt-3 pt-3" style={{ borderColor: "rgba(59,130,246,0.1)" }}>
             <div className="flex items-center justify-between py-3">
               <div>
-                <div className="text-white font-medium mb-1">{t("admin.emailNotifications")}</div>
+                <div className="text-white font-medium mb-1">Email Notifications</div>
                 <div className="text-sm text-gray-400">
-                  {t("admin.emailNotificationsDesc")}
+                  Receive email notifications about system updates
                 </div>
               </div>
               <button
@@ -86,13 +86,13 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">{t("admin.interfaceLanguage")}</h2>
+          <h2 className="text-xl font-bold text-white mb-4">Interface Language</h2>
           
           <div className="grid grid-cols-3 gap-3">
             {[
-              { code: "ru", label: t("admin.russian"), flag: "RU" },
-              { code: "ky", label: t("admin.kyrgyz"), flag: "KG" },
-              { code: "en", label: t("admin.english"), flag: "US" },
+              { code: "ru", label: "Русский", flag: "🇷🇺" },
+              { code: "ky", label: "Кыргызча", flag: "🇰🇬" },
+              { code: "en", label: "English", flag: "🇺🇸" },
             ].map((lang) => (
               <button
                 key={lang.code}
@@ -100,11 +100,11 @@ export default function AdminSettingsPage() {
                 className="p-4 rounded-lg transition-all hover:scale-105"
                 style={{
                   background:
-                    i18n.language === lang.code
+                    language === lang.code
                       ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
                       : "rgba(15,15,30,0.6)",
                   border:
-                    i18n.language === lang.code
+                    language === lang.code
                       ? "2px solid rgba(59,130,246,0.5)"
                       : "1px solid rgba(59,130,246,0.2)",
                 }}
@@ -124,43 +124,43 @@ export default function AdminSettingsPage() {
             border: "1px solid rgba(59,130,246,0.2)",
           }}
         >
-          <h2 className="text-xl font-bold text-white mb-4">{t("admin.themeTitle")}</h2>
+          <h2 className="text-xl font-bold text-white mb-4">Theme</h2>
           
           <div className="grid grid-cols-2 gap-4">
             {[
               {
                 value: "dark",
-                label: t("admin.darkTheme"),
+                label: "Dark Theme",
                 icon: "🌙",
                 gradient: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
               },
               {
                 value: "light",
-                label: t("admin.lightTheme"),
+                label: "Light Theme",
                 icon: "☀️",
                 gradient: "linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)",
               },
-            ].map((t) => (
+            ].map((themeOption) => (
               <button
-                key={t.value}
-                onClick={() => setTheme(t.value)}
+                key={themeOption.value}
+                onClick={() => setTheme(themeOption.value)}
                 className="p-6 rounded-lg transition-all hover:scale-105"
                 style={{
                   background:
-                    theme === t.value
+                    theme === themeOption.value
                       ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
                       : "rgba(15,15,30,0.6)",
                   border:
-                    theme === t.value
+                    theme === themeOption.value
                       ? "2px solid rgba(59,130,246,0.5)"
                       : "1px solid rgba(59,130,246,0.2)",
                 }}
               >
-                <div className="text-4xl mb-3">{t.icon}</div>
-                <div className="text-white font-bold">{t.label}</div>
+                <div className="text-4xl mb-3">{themeOption.icon}</div>
+                <div className="text-white font-bold">{themeOption.label}</div>
                 <div
                   className="mt-3 h-8 rounded"
-                  style={{ background: t.gradient }}
+                  style={{ background: themeOption.gradient }}
                 />
               </button>
             ))}
@@ -175,7 +175,7 @@ export default function AdminSettingsPage() {
             boxShadow: "0 0 30px rgba(59,130,246,0.5)",
           }}
         >
-          {t("admin.saveChanges")}
+          Save Changes
         </button>
       </div>
     </div>

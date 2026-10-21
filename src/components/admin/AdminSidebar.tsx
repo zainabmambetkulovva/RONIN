@@ -31,38 +31,38 @@ export function AdminSidebar() {
   
   const navItems = [
     {
-      label: t("admin.dashboard") || "Overview",
+      label: "Dashboard",
       href: "/admin",
       icon: LayoutDashboardIcon,
       exact: true,
     },
     {
-      label: t("admin.users") || "Пользователи",
+      label: "Users",
       href: "/admin/users",
       icon: UsersIcon,
     },
     {
-      label: t("admin.computers") || "Компьютеры",
+      label: "Computers",
       href: "/admin/computers",
       icon: MonitorIcon,
     },
     {
-      label: t("admin.bookings") || "Бронирования",
+      label: "Bookings",
       href: "/admin/bookings",
       icon: CalendarIcon,
     },
     {
-      label: t("admin.tariffs") || "Тарифы",
+      label: "Tariffs",
       href: "/admin/tariffs",
       icon: CreditCardIcon,
     },
     {
-      label: t("admin.managers") || "Менеджеры",
+      label: "Managers",
       href: "/admin/managers",
       icon: UserCogIcon,
     },
     {
-      label: t("admin.settings") || "Настройки",
+      label: "Settings",
       href: "/admin/settings",
       icon: SettingsIcon,
     },
@@ -141,7 +141,7 @@ export function AdminSidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="mb-2 px-3">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            {t("admin.main") || "Основное"}
+            ADMIN.MAIN
           </span>
         </div>
         {navItems.map((item) => {
@@ -181,7 +181,7 @@ export function AdminSidebar() {
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
           >
             <LogOutIcon className="w-5 h-5" />
-            <span>{t("admin.logout") || "Выйти"}</span>
+            <span>Logout</span>
           </button>
         </div>
       </nav>
