@@ -1,82 +1,76 @@
 import React from "react";
+import Image from "next/image";
 
 export function RollingLoader() {
   return (
     <div className="rolling-loader-container">
-      <div className="rolling-loader"></div>
+      {/* RONIN Logo с пульсацией */}
+      <div className="logo-pulse">
+        <Image
+          src="/logo-new.png"
+          alt="RONIN"
+          width={80}
+          height={80}
+          className="logo-image"
+          priority
+        />
+      </div>
+      
+      {/* Вращающееся кольцо вокруг логотипа */}
+      <div className="spinner-ring"></div>
+      
       <style jsx>{`
         .rolling-loader-container {
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
           min-height: 100px;
+          width: 120px;
+          height: 120px;
         }
 
-        .rolling-loader {
-          position: relative;
-          font-size: 16px;
-          width: 5.5em;
-          height: 5.5em;
-        }
-
-        .rolling-loader:before {
-          content: '';
+        .logo-pulse {
           position: absolute;
-          transform: translate(-50%, -50%) rotate(45deg);
-          height: 100%;
-          width: 4px;
-          background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-          left: 50%;
-          top: 50%;
-          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+          z-index: 2;
+          animation: pulse 2s ease-in-out infinite;
         }
 
-        .rolling-loader:after {
-          content: '';
+        .logo-image {
+          filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8));
+        }
+
+        .spinner-ring {
           position: absolute;
-          left: 0.2em;
-          bottom: 0.18em;
-          width: 1em;
-          height: 1em;
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-          border-radius: 15%;
-          box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-          animation: rollingRock 2.5s cubic-bezier(.79, 0, .47, .97) infinite;
+          width: 100px;
+          height: 100px;
+          border: 3px solid transparent;
+          border-top-color: #3b82f6;
+          border-right-color: #8b5cf6;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          box-shadow: 
+            0 0 20px rgba(59, 130, 246, 0.4),
+            inset 0 0 20px rgba(139, 92, 246, 0.2);
         }
 
-        @keyframes rollingRock {
+        @keyframes spin {
           0% {
-            transform: translate(0, -1em) rotate(-45deg);
-          }
-          5% {
-            transform: translate(0, -1em) rotate(-50deg);
-          }
-          20% {
-            transform: translate(1em, -2em) rotate(47deg);
-          }
-          25% {
-            transform: translate(1em, -2em) rotate(45deg);
-          }
-          30% {
-            transform: translate(1em, -2em) rotate(40deg);
-          }
-          45% {
-            transform: translate(2em, -3em) rotate(137deg);
-          }
-          50% {
-            transform: translate(2em, -3em) rotate(135deg);
-          }
-          55% {
-            transform: translate(2em, -3em) rotate(130deg);
-          }
-          70% {
-            transform: translate(3em, -4em) rotate(217deg);
-          }
-          75% {
-            transform: translate(3em, -4em) rotate(220deg);
+            transform: rotate(0deg);
           }
           100% {
-            transform: translate(0, -1em) rotate(-225deg);
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(0.95);
           }
         }
       `}</style>
@@ -88,15 +82,21 @@ export function RollingLoader() {
 export function FullPageLoader({ text }: { text?: string }) {
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center" 
+      className="min-h-screen flex flex-col items-center justify-center gap-6" 
       style={{ background: "#03030a" }}
     >
       <RollingLoader />
       {text && (
-        <p className="text-gray-400 mt-6 text-sm sm:text-base animate-pulse">
-          {text}
-        </p>
+        <div className="text-center">
+          <p className="text-gray-400 text-base sm:text-lg font-medium animate-pulse">
+            {text}
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            RONIN Gaming Club
+          </p>
+        </div>
       )}
     </div>
   );
 }
+
