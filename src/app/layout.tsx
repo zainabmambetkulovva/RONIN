@@ -27,6 +27,15 @@ export default function RootLayout({
         .then((registration) => {
           console.log('✅ Service Worker зарегистрирован:', registration);
           
+          // Проверка обновлений каждые 5 минут
+          setInterval(() => {
+            registration.update().then(() => {
+              console.log('🔄 Проверка обновлений Service Worker...');
+            }).catch(err => {
+              console.error('Ошибка проверки обновлений:', err);
+            });
+          }, 5 * 60 * 1000);
+          
           // Обновление Service Worker
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
@@ -35,10 +44,11 @@ export default function RootLayout({
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   // Новая версия доступна
                   console.log('🔄 Новая версия приложения доступна');
-                  if (confirm('Доступна новая версия приложения. Обновить сейчас?')) {
-                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  // Автоматически обновляем без подтверждения
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  setTimeout(() => {
                     window.location.reload();
-                  }
+                  }, 1000);
                 }
               });
             }

@@ -1,6 +1,6 @@
 // RONIN Gaming Club - Service Worker
 // Версия кэша - обновляйте при изменениях
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.1';
 const CACHE_NAME = `ronin-cache-${CACHE_VERSION}`;
 
 // Файлы для кэширования при установке

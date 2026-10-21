@@ -2,6 +2,7 @@
   "name": "RONIN Gaming Club",
   "short_name": "RONIN",
   "description": "Компьютерный клуб в Бишкеке - Мощные игровые ПК, комфортная атмосфера, онлайн бронирование",
+  "version": "1.0.1",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
