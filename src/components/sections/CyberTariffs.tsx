@@ -188,43 +188,43 @@ export function CyberTariffs() {
                     </div>
                   )}
 
-                  <div className={`p-5 ${isPopular ? 'pt-10' : ''}`}>
+                  <div className={`p-4 ${isPopular ? 'pt-9' : ''}`}>
                     
                     {/* Icon */}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br ${tariff.gradient} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br ${tariff.gradient} group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
 
                     {/* Name */}
-                    <h3 className="text-2xl font-black text-white mb-2 uppercase">
+                    <h3 className="text-xl font-black text-white mb-2 uppercase">
                       {t(tariff.nameKey)}
                     </h3>
 
                     {/* Time */}
-                    <div className="flex items-center gap-2 mb-4 p-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <Clock className="w-4 h-4 text-purple-400" />
-                      <span className="text-white font-bold text-sm">
+                    <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-white/5 border border-white/10">
+                      <Clock className="w-3.5 h-3.5 text-purple-400" />
+                      <span className="text-white font-bold text-xs">
                         {tariff.timeFrom} - {tariff.timeTo}
                       </span>
                     </div>
 
                     {/* Price */}
-                    <div className="mb-4 pb-4 border-b border-gray-800">
+                    <div className="mb-3 pb-3 border-b border-gray-800">
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-4xl font-black bg-gradient-to-r ${tariff.gradient} bg-clip-text text-transparent`}>
+                        <span className={`text-3xl font-black bg-gradient-to-r ${tariff.gradient} bg-clip-text text-transparent`}>
                           {tariff.price}
                         </span>
-                        <span className="text-gray-400 text-base">
+                        <span className="text-gray-400 text-sm">
                           {t(tariff.priceUnitKey)}
                         </span>
                       </div>
                     </div>
 
                     {/* Features */}
-                    <ul className="space-y-2 mb-6">
+                    <ul className="space-y-1.5 mb-4">
                       {tariff.featuresKeys.map((featureKey, j) => (
                         <li key={j} className="flex items-center gap-2">
-                          <CheckCircle2 className={`w-4 h-4 text-purple-400 shrink-0`} />
+                          <CheckCircle2 className={`w-3.5 h-3.5 text-purple-400 shrink-0`} />
                           <span className="text-gray-300 text-xs">{t(featureKey)}</span>
                         </li>
                       ))}
@@ -235,14 +235,14 @@ export function CyberTariffs() {
                       href="#booking-flow"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`w-full px-5 py-3 rounded-xl font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all ${
+                      className={`w-full px-4 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 transition-all ${
                         isPopular
                           ? `bg-gradient-to-r ${tariff.gradient} text-white shadow-lg shadow-purple-500/50`
                           : 'bg-white/5 text-white border-2 border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500'
                       }`}
                     >
                       {t("tariffs.button") || "Забронировать"}
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </motion.a>
 
                   </div>

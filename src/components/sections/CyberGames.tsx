@@ -99,7 +99,7 @@ export function CyberGames() {
   return (
     <section 
       id="games" 
-      className="pt-24 pb-12 relative overflow-hidden" 
+      className="pt-32 md:pt-40 pb-12 relative overflow-hidden" 
       ref={ref}
     >
       {/* Gradient line */}
