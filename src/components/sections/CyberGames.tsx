@@ -150,7 +150,7 @@ export function CyberGames() {
                 x: {
                   repeat: Infinity,
                   repeatType: "loop",
-                  duration: games.length * 5,  // 8 games × 5s = 40s
+                  duration: games.length * 10,  // 8 games × 10s = 80s (жайыраак)
                   ease: "linear"
                 }
               }}

@@ -103,7 +103,7 @@ export function RoninHero() {
             </div>
 
             {/* Stats - E PLAY style */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
               {stats.map((stat, i) => (
                 <motion.div
                   key={i}
@@ -137,16 +137,6 @@ export function RoninHero() {
                   {t("hero.bookButton")}
                   <ArrowRight className="w-5 h-5" />
                 </div>
-              </motion.a>
-
-              <motion.a
-                href="#computers"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 glass-card rounded-xl font-bold text-white uppercase tracking-wider hover:bg-white/10 transition-colors flex items-center gap-2"
-              >
-                <Calendar className="w-5 h-5" />
-                {t("hero.aboutButton")}
               </motion.a>
             </div>
           </motion.div>

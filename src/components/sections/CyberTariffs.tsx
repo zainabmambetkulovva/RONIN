@@ -174,7 +174,6 @@ export function CyberTariffs() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 * i }}
-                whileHover={{ scale: 1.05, y: -8 }}
                 className={`relative group flex-shrink-0 ${isMobile ? 'w-full' : 'w-[calc(33.333%-16px)]'} ${isPopular ? 'md:scale-105' : ''}`}
               >
                 <div className={`relative h-full rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950 border-2 ${isPopular ? 'border-purple-500' : 'border-gray-800'} transition-all duration-300 hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]`}>
