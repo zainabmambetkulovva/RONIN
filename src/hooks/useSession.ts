@@ -57,3 +57,24 @@ export function useSession() {
 
   return { data: session, status };
 }
+
+/**
+ * Custom signOut function
+ * Replaces next-auth signOut
+ */
+export async function signOut(options?: { callbackUrl?: string }) {
+  try {
+    // Call logout API
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    
+    // Redirect to callback URL or home
+    window.location.href = options?.callbackUrl || '/';
+  } catch (error) {
+    console.error('[signOut] Error:', error);
+    // Even on error, redirect
+    window.location.href = options?.callbackUrl || '/';
+  }
+}

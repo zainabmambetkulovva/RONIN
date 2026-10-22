@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/hooks/useSession";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ComputerGrid } from "@/components/booking/ComputerGrid";

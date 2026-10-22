@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/hooks/useSession";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 

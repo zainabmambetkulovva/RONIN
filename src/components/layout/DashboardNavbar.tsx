@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
 import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "@/hooks/useSession";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
