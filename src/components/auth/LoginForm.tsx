@@ -1,17 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check for OAuth errors in URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        'no_code': 'Код авторизации не получен от Google',
+        'token_exchange': 'Ошибка обмена токенов с Google',
+        'user_info': 'Не удалось получить данные пользователя',
+        'oauth_error': 'Ошибка OAuth авторизации',
+        'access_denied': 'Вы отклонили доступ к Google аккаунту',
+        'config': 'Ошибка конфигурации OAuth (свяжитесь с администратором)'
+      };
+      setError(errorMessages[errorParam] || 'Ошибка авторизации через Google');
+    }
+  }, [searchParams]);
 
   // Шаг 1: Проверка логина/пароля
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
