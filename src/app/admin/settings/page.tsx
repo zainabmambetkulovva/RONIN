@@ -116,57 +116,6 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* Тема */}
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(59,130,246,0.2)",
-          }}
-        >
-          <h2 className="text-xl font-bold text-white mb-4">Theme</h2>
-          
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              {
-                value: "dark",
-                label: "Dark Theme",
-                icon: "🌙",
-                gradient: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
-              },
-              {
-                value: "light",
-                label: "Light Theme",
-                icon: "☀️",
-                gradient: "linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)",
-              },
-            ].map((themeOption) => (
-              <button
-                key={themeOption.value}
-                onClick={() => setTheme(themeOption.value)}
-                className="p-6 rounded-lg transition-all hover:scale-105"
-                style={{
-                  background:
-                    theme === themeOption.value
-                      ? "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)"
-                      : "rgba(15,15,30,0.6)",
-                  border:
-                    theme === themeOption.value
-                      ? "2px solid rgba(59,130,246,0.5)"
-                      : "1px solid rgba(59,130,246,0.2)",
-                }}
-              >
-                <div className="text-4xl mb-3">{themeOption.icon}</div>
-                <div className="text-white font-bold">{themeOption.label}</div>
-                <div
-                  className="mt-3 h-8 rounded"
-                  style={{ background: themeOption.gradient }}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Сохранить */}
         <button
           className="w-full py-4 rounded-lg font-black text-white text-lg transition-all hover:scale-105"

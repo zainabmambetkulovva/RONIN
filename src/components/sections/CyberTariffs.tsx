@@ -188,49 +188,44 @@ export function CyberTariffs() {
                     </div>
                   )}
 
-                  <div className={`p-6 ${isPopular ? 'pt-12' : ''}`}>
+                  <div className={`p-5 ${isPopular ? 'pt-10' : ''}`}>
                     
                     {/* Icon */}
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br ${tariff.gradient} group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-8 h-8 text-white" />
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br ${tariff.gradient} group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
 
                     {/* Name */}
-                    <h3 className="text-3xl font-black text-white mb-2 uppercase">
+                    <h3 className="text-2xl font-black text-white mb-2 uppercase">
                       {t(tariff.nameKey)}
                     </h3>
 
-                    {/* Description */}
-                    <p className="text-gray-400 text-sm mb-6">
-                      {t(tariff.descriptionKey)}
-                    </p>
-
                     {/* Time */}
-                    <div className="flex items-center gap-2 mb-6 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <Clock className="w-5 h-5 text-purple-400" />
-                      <span className="text-white font-bold">
+                    <div className="flex items-center gap-2 mb-4 p-2.5 rounded-lg bg-white/5 border border-white/10">
+                      <Clock className="w-4 h-4 text-purple-400" />
+                      <span className="text-white font-bold text-sm">
                         {tariff.timeFrom} - {tariff.timeTo}
                       </span>
                     </div>
 
                     {/* Price */}
-                    <div className="mb-6 pb-6 border-b border-gray-800">
-                      <div className="flex items-baseline gap-2">
-                        <span className={`text-5xl font-black bg-gradient-to-r ${tariff.gradient} bg-clip-text text-transparent`}>
+                    <div className="mb-4 pb-4 border-b border-gray-800">
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-4xl font-black bg-gradient-to-r ${tariff.gradient} bg-clip-text text-transparent`}>
                           {tariff.price}
                         </span>
-                        <span className="text-gray-400 text-lg">
+                        <span className="text-gray-400 text-base">
                           {t(tariff.priceUnitKey)}
                         </span>
                       </div>
                     </div>
 
                     {/* Features */}
-                    <ul className="space-y-3 mb-8">
+                    <ul className="space-y-2 mb-6">
                       {tariff.featuresKeys.map((featureKey, j) => (
-                        <li key={j} className="flex items-center gap-3">
-                          <CheckCircle2 className={`w-5 h-5 text-purple-400 shrink-0`} />
-                          <span className="text-gray-300 text-sm">{t(featureKey)}</span>
+                        <li key={j} className="flex items-center gap-2">
+                          <CheckCircle2 className={`w-4 h-4 text-purple-400 shrink-0`} />
+                          <span className="text-gray-300 text-xs">{t(featureKey)}</span>
                         </li>
                       ))}
                     </ul>
@@ -240,14 +235,14 @@ export function CyberTariffs() {
                       href="#booking-flow"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`w-full px-6 py-4 rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+                      className={`w-full px-5 py-3 rounded-xl font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all ${
                         isPopular
                           ? `bg-gradient-to-r ${tariff.gradient} text-white shadow-lg shadow-purple-500/50`
                           : 'bg-white/5 text-white border-2 border-purple-500/30 hover:bg-purple-500/10 hover:border-purple-500'
                       }`}
                     >
                       {t("tariffs.button") || "Забронировать"}
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4" />
                     </motion.a>
 
                   </div>

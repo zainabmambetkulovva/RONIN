@@ -224,7 +224,7 @@ function BookingSuccessContent() {
             {/* RONIN Logo Header */}
             <div className="text-center mb-6 pb-6 border-b-2 border-purple-500/30">
               <h2 
-                className="text-2xl font-black uppercase mb-1"
+                className="text-2xl font-black uppercase"
                 style={{
                   background: "linear-gradient(90deg, #a78bfa, #ec4899)",
                   WebkitBackgroundClip: "text",
@@ -233,7 +233,6 @@ function BookingSuccessContent() {
               >
                 RONIN
               </h2>
-              <p className="text-purple-300 text-xs font-bold uppercase tracking-widest">GAMING CLUB</p>
             </div>
 
             {/* User info */}

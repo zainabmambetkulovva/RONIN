@@ -169,7 +169,6 @@ export function MobileMenu() {
                   >
                     RONIN
                   </h2>
-                  <p className="text-gray-400 text-[10px]">Gaming Club</p>
                 </div>
               </div>
             </div>

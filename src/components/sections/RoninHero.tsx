@@ -55,7 +55,7 @@ export function RoninHero() {
   }
 
   return (
-    <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16 pb-24 md:pb-32">
+    <section id="hero" className="relative min-h-[80vh] flex items-center overflow-hidden pt-16 pb-32 md:pb-48">
       {/* Animated gradient background */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />

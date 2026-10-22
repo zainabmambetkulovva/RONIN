@@ -33,7 +33,9 @@ export function RecentUsers({ users }: RecentUsersProps) {
           </h3>
           <p className="text-xs text-gray-500">Последние регистрации</p>
         </div>
-        <button className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors"
+        <a 
+          href="/admin/users"
+          className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors hover:scale-105"
           style={{
             background: "rgba(59,130,246,0.1)",
             border: "1px solid rgba(59,130,246,0.3)",
@@ -41,7 +43,7 @@ export function RecentUsers({ users }: RecentUsersProps) {
           }}
         >
           Все →
-        </button>
+        </a>
       </div>
 
       {/* Table Header */}
