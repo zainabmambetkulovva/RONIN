@@ -8,13 +8,15 @@ export function RegisterForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "+996", // Auto-start with +996
+    phone: "+996",
     password: "",
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [useEmail, setUseEmail] = useState(false);
+  const [usePhone, setUsePhone] = useState(true);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,12 +59,20 @@ export function RegisterForm() {
       return;
     }
 
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    // Валидация email или телефона (хотя бы одно обязательно)
+    if (!useEmail && !usePhone) {
+      setError("Email или телефон обязательны");
+      return;
+    }
+
+    // Если выбран email, проверяем его
+    if (useEmail && formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       setError("Неверный формат email");
       return;
     }
 
-    if (!formData.phone.match(/^\+996\d{9}$/)) {
+    // Если выбран телефон, проверяем его
+    if (usePhone && formData.phone && !formData.phone.match(/^\+996\d{9}$/)) {
       setError("Неверный формат телефона. Пример: +996501234567");
       return;
     }
@@ -85,8 +95,8 @@ export function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone.trim(),
+          email: useEmail ? formData.email.trim().toLowerCase() : undefined,
+          phone: usePhone ? formData.phone.trim() : undefined,
           password: formData.password,
         }),
       });
@@ -149,46 +159,80 @@ export function RegisterForm() {
       </div>
 
       {/* Email field */}
-      <div>
-        <label htmlFor="email" className="block text-sm font-bold text-white mb-2">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          className="w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
-          style={{
-            background: "rgba(15,15,30,0.6)",
-            border: "1px solid rgba(59,130,246,0.2)",
-          }}
-        />
-      </div>
+      {useEmail && (
+        <div>
+          <label htmlFor="email" className="block text-sm font-bold text-white mb-2">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+            style={{
+              background: "rgba(15,15,30,0.6)",
+              border: "1px solid rgba(59,130,246,0.2)",
+            }}
+          />
+        </div>
+      )}
 
       {/* Phone field */}
-      <div>
-        <label htmlFor="phone" className="block text-sm font-bold text-white mb-2">
-          Телефон
-        </label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-          placeholder="+996501234567"
-          maxLength={13}
-          className="w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
-          style={{
-            background: "rgba(15,15,30,0.6)",
-            border: "1px solid rgba(59,130,246,0.2)",
+      {usePhone && (
+        <div>
+          <label htmlFor="phone" className="block text-sm font-bold text-white mb-2">
+            Телефон
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="+996501234567"
+            maxLength={13}
+            className="w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+            style={{
+              background: "rgba(15,15,30,0.6)",
+              border: "1px solid rgba(59,130,246,0.2)",
+            }}
+          />
+          <p className="text-xs text-gray-500 mt-1">Формат: +996501234567</p>
+        </div>
+      )}
+
+      {/* Toggle email/phone */}
+      <div className="flex items-center justify-center gap-4 mt-2">
+        <button
+          type="button"
+          onClick={() => {
+            setUseEmail(!useEmail);
+            if (!usePhone && !useEmail) setUsePhone(true);
           }}
-        />
-        <p className="text-xs text-gray-500 mt-1">Формат: +996501234567</p>
+          className={`text-xs px-3 py-1 rounded-full transition-colors ${
+            useEmail
+              ? "bg-blue-600 text-white"
+              : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+          }`}
+        >
+          Email
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setUsePhone(!usePhone);
+            if (!usePhone && !useEmail) setUseEmail(true);
+          }}
+          className={`text-xs px-3 py-1 rounded-full transition-colors ${
+            usePhone
+              ? "bg-blue-600 text-white"
+              : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+          }`}
+        >
+          Телефон
+        </button>
       </div>
 
       {/* Password field */}
