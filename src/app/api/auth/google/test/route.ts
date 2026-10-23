@@ -14,11 +14,11 @@ export async function GET(req: NextRequest) {
     clientIdLength: process.env.GOOGLE_CLIENT_ID?.length || 0,
     clientSecretLength: process.env.GOOGLE_CLIENT_SECRET?.length || 0,
     nextAuthUrl: process.env.NEXTAUTH_URL,
-    redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+    redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/google/callback`,
     nodeEnv: process.env.NODE_ENV,
   };
 
-  // Construct OAuth URL (NextAuth format)
+  // Construct OAuth URL (custom format matching google/route.ts)
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID || '',
     redirect_uri: config.redirectUri,
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     status: 'OK',
     config,
     authUrl: authUrl.substring(0, 150) + '...',
-    correctRedirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
-    message: 'Google OAuth configuration (NextAuth). Add this redirect URI to Google Console!'
+    correctRedirectUri: `${process.env.NEXTAUTH_URL}/api/auth/google/callback`,
+    message: 'Google OAuth configuration. Add this redirect URI to Google Console!'
   });
 }
