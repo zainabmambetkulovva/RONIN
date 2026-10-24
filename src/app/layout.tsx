@@ -1,6 +1,6 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import { Inter, Unbounded } from "next/font/google";
 import "./globals.css";
 import "../styles/typography.css";
 import { Toaster } from "react-hot-toast";
@@ -11,6 +11,12 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
+});
+
+// Шрифт заголовков нового дизайна (поддерживает кириллицу)
+const display = Unbounded({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-display",
 });
 
 export default function RootLayout({
@@ -84,7 +90,7 @@ export default function RootLayout({
         <meta name="description" content="Компьютерный клуб в Бишкеке - Мощные игровые ПК, комфортная атмосфера, онлайн бронирование" />
         <meta name="keywords" content="компьютерный клуб, gaming, киберспорт, Бишкек, игровые компьютеры" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased bg-ronin-black`}>
+      <body className={`${inter.variable} ${display.variable} font-sans antialiased bg-ronin-black`}>
         <LoadingScreen />
         <LanguageProvider>
           {children}

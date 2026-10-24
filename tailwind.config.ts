@@ -26,6 +26,21 @@ const config: Config = {
           "blue-light": "#60A5FA",
           cyan: "#06b6d4",
         },
+        // RONIN 2026 — Premium Futuristic Gaming (новый дизайн)
+        rn: {
+          void: "#05040b",       // фон страницы
+          night: "#0b0818",      // фон секций
+          surface: "#130d26",    // карточки
+          "surface-2": "#1b1336",
+          line: "#2a1f4d",       // границы
+          violet: "#8b5cf6",
+          purple: "#a855f7",
+          magenta: "#d946ef",
+          pink: "#ff3d9a",
+          electric: "#3b6bff",
+          cyan: "#22d3ee",
+          muted: "#a29cbd",      // вторичный текст
+        },
         // Light Theme Colors (минимализм)
         light: {
           base: "#FFFFFF",
@@ -72,6 +87,9 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
       },
+      fontFamily: {
+        display: ["var(--font-display)", "var(--font-inter)", "sans-serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -100,6 +118,10 @@ const config: Config = {
         float: "float 6s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "rn-drift": "rn-drift 18s ease-in-out infinite alternate",
+        "rn-pulse": "rn-pulse 3s ease-in-out infinite",
+        "rn-scan": "rn-scan 6s linear infinite",
+        "rn-float": "rn-float 7s ease-in-out infinite",
       },
       keyframes: {
         "pulse-neon": {
@@ -109,6 +131,22 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-20px)" },
+        },
+        "rn-drift": {
+          "0%": { transform: "translate3d(-4%, -2%, 0) scale(1)" },
+          "100%": { transform: "translate3d(4%, 3%, 0) scale(1.08)" },
+        },
+        "rn-pulse": {
+          "0%, 100%": { opacity: "0.55" },
+          "50%": { opacity: "1" },
+        },
+        "rn-scan": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100%)" },
+        },
+        "rn-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-14px)" },
         },
         "accordion-down": {
           from: { height: "0" },

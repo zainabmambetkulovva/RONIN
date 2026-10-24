@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { landingTranslations } from "@/i18n/landing";
 
 type Language = "ru" | "en" | "ky";
 
@@ -728,13 +729,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Атрибут lang нужен скринридерам и для правильных переносов слов
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("ronin-language", lang);
   };
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations.ru] || key;
+    const landing = landingTranslations[language] as Record<string, string>;
+    return landing[key] || translations[language][key as keyof typeof translations.ru] || key;
   };
 
   return (

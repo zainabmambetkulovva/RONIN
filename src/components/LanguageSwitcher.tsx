@@ -12,15 +12,16 @@ export function LanguageSwitcher() {
   ];
 
   return (
-    <div className="flex items-center gap-1 border border-blue-500/20 rounded-lg p-0.5">
+    <div className="flex items-center gap-0.5 rounded-full border border-rn-line bg-rn-surface/60 p-0.5">
       {languages.map((lang) => (
         <button
           key={lang.code}
           onClick={() => setLanguage(lang.code as "ru" | "en" | "ky")}
-          className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase transition-all ${
+          aria-pressed={language === lang.code}
+          className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase transition-all ${
             language === lang.code
-              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-white/5"
+              ? "bg-gradient-to-r from-rn-violet to-rn-magenta text-white shadow-[0_0_14px_rgba(217,70,239,0.4)]"
+              : "text-rn-muted hover:bg-white/5 hover:text-white"
           }`}
         >
           {lang.label}

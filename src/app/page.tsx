@@ -1,53 +1,43 @@
 "use client";
 
+import { MotionConfig } from "framer-motion";
 import { CyberNavbar } from "@/components/layout/CyberNavbar";
 import { CyberFooter } from "@/components/layout/CyberFooter";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { RoninHero } from "@/components/sections/RoninHero";
-import { CyberGames } from "@/components/sections/CyberGames";
-import { CyberTariffs } from "@/components/sections/CyberTariffs";
-import { RoninBookingFlowCompact } from "@/components/sections/RoninBookingFlowCompact";
-import { RoninContactsCompact } from "@/components/sections/RoninContactsCompact";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { AdvantagesSection } from "@/components/landing/AdvantagesSection";
+import { TariffsSection } from "@/components/landing/TariffsSection";
+import { ComputersSection } from "@/components/landing/ComputersSection";
+import { GamesSection } from "@/components/landing/GamesSection";
+import { ContactsSection } from "@/components/landing/ContactsSection";
+import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { AIChatWidget } from "@/components/ai/AIChatWidget";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function HomePage() {
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        background: "radial-gradient(circle at 20% 50%, rgba(139,92,246,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.15) 0%, transparent 50%), #0a0a14"
-      }}
-    >
-      <CyberNavbar />
+    // reducedMotion="user": анимации уважают системную настройку «уменьшить движение»
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen overflow-x-clip bg-rn-void text-white">
+        <CyberNavbar />
 
-      <main>
-        {/* 1. Hero */}
-        <RoninHero />
+        <main>
+          <HeroSection />
+          <AdvantagesSection />
+          <TariffsSection />
+          <ComputersSection />
+          <GamesSection />
+          <ContactsSection />
+          <ReviewsSection />
+        </main>
 
-        {/* 2. Games */}
-        <CyberGames />
+        <CyberFooter />
 
-        {/* 3. Tariffs */}
-        <CyberTariffs />
-
-        {/* 4. Booking */}
-        <RoninBookingFlowCompact />
-
-        {/* 5. Contacts */}
-        <RoninContactsCompact />
-      </main>
-
-      <CyberFooter />
-      
-      {/* Mobile Bottom Navigation */}
-      <BottomNav />
-
-      {/* AI Chat Widget */}
-      <AIChatWidget />
-
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
-    </div>
+        {/* Нижняя навигация на телефоне */}
+        <BottomNav />
+        <AIChatWidget />
+        <PWAInstallPrompt />
+      </div>
+    </MotionConfig>
   );
 }
