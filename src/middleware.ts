@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { checkRateLimit, createRateLimitHeaders, rateLimitError } from "@/lib/rate-limiter";
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  console.log('Middleware:', { path });
-
-  // Пропускаем публичные пути
+  
+  // Пропускаем публичные пути и API
   if (
     path === "/" ||
     path === "/login" ||
     path === "/register" ||
     path === "/forgot-password" ||
     path.startsWith("/api") ||
-    path.startsWith("/admin") ||
     path.startsWith("/_next") ||
     path.includes(".")
   ) {
@@ -47,6 +46,34 @@ export async function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+// Admin middleware для защиты админских API
+export async function adminMiddleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  
+  // Проверяем токен
+  const token = req.cookies.get('session-token')?.value;
+  
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    
+    // Проверка роли admin
+    if (payload.role !== 'admin') {
+      console.error('Admin access denied for user:', payload.email);
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    
+    return NextResponse.next();
+  } catch (error) {
+    console.error('Admin JWT verify error:', error);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 }
 
 export const config = {

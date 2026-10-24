@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { Resend } from 'resend';
+import { checkRateLimit, rateLimitError } from '@/lib/rate-limiter';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, "forgot-password", 3, 60 * 60 * 1000); // 3 попытки в час
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimitError(rateLimit.remaining, rateLimit.resetAt).error },
+        { status: 429 }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email) {

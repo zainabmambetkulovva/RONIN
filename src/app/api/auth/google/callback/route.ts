@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
@@ -78,8 +79,8 @@ export async function GET(req: NextRequest) {
         data: {
           id: crypto.randomUUID(),
           email: googleUser.email,
-          name: googleUser.name || null,
-          avatar: null,
+          name: googleUser.name || googleUser.email.split('@')[0] || 'Google User',
+          avatar: 'default',
           role: 'client',
           status: 'active',
           email_verified: new Date(),

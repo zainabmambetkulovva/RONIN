@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendNewUserNotification } from "@/lib/telegram";
+import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, "register", 3, 60 * 60 * 1000); // 3 попытки в час
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimitError(rateLimit.remaining, rateLimit.resetAt).error },
+        { status: 429 }
+      );
+    }
+
     const { name, email, password, phone } = await req.json();
 
     // Валидация

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, "forgot-password-send-code", 3, 60 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimitError(rateLimit.remaining, rateLimit.resetAt).error },
+        { status: 429 }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email) {

@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         name,
         phone,
         email,
-        password, // TODO: hash password
+        password: await bcrypt.hash(password, 10),
         role: UserRole.manager,
         status: UserStatus.active,
       },

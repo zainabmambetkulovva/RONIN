@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
+import { checkRateLimit, createRateLimitHeaders, rateLimitError } from "@/lib/rate-limiter";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,18 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, "login", 5, 15 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: rateLimitError(rateLimit.remaining, rateLimit.resetAt).error },
+        { 
+          status: 429,
+          headers: createRateLimitHeaders(rateLimit.remaining, rateLimit.resetAt)
+        }
+      );
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {
