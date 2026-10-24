@@ -24,7 +24,8 @@ export function LoginForm() {
         'user_info': 'Не удалось получить данные пользователя',
         'oauth_error': 'Ошибка OAuth авторизации',
         'access_denied': 'Вы отклонили доступ к Google аккаунту',
-        'config': 'Ошибка конфигурации OAuth (свяжитесь с администратором)'
+        'config': 'Ошибка конфигурации OAuth (свяжитесь с администратором)',
+        'account_blocked': 'Аккаунт заблокирован. Обратитесь в клуб'
       };
       setError(errorMessages[errorParam] || 'Ошибка авторизации через Google');
     }
@@ -54,38 +55,6 @@ export function LoginForm() {
       // Перенаправляем на главную (middleware решит куда дальше)
       window.location.href = "/";
       
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Шаг 2: Проверка 2FA кода для админов/менеджеров
-  const handle2FASubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/admin/auth/verify-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionToken, code }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || t("auth.invalidCode") || "Неверный код");
-      }
-
-      // Успешно - перенаправить в админку (cookie установлен сервером)
-      // Ждем немного для установки cookie
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const redirectPath = userRole === "admin" ? "/admin" : "/manager";
-      window.location.href = redirectPath; // Hard redirect для загрузки session
     } catch (err: any) {
       setError(err.message);
     } finally {

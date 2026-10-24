@@ -1,62 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
-import { TariffType } from "@prisma/client";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { handle, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { tariffInclude, toTariffDTO } from "@/server/mappers";
+import { tariffCreateSchema, toTariffData } from "@/server/services/tariffs";
+import { writeAuditLog } from "@/server/services/audit";
 
+export const dynamic = "force-dynamic";
 
+// GET /api/admin/tariffs - все тарифы, включая отключённые
+export const GET = handle(async (req) => {
+  await requireAdmin(req);
+  const tariffs = await prisma.tariffs.findMany({
+    include: tariffInclude,
+    orderBy: [{ is_active: "desc" }, { type: "asc" }, { duration_minutes: "asc" }],
+  });
+  const items = tariffs.map(toTariffDTO);
+  return NextResponse.json({ tariffs: items, total: items.length });
+});
 
-// POST /api/admin/tariffs - create new tariff
-export async function POST(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+// POST /api/admin/tariffs - создать тариф
+export const POST = handle(async (req) => {
+  const admin = await requireAdmin(req);
+  const input = await parseJson(req, tariffCreateSchema);
+  const now = new Date();
 
-  try {
-    const body = await req.json();
-    const { name, durationMinutes, price, type, categoryId } = body;
+  const tariff = await prisma.tariffs.create({
+    data: {
+      id: crypto.randomUUID(),
+      name: input.name,
+      duration_minutes: input.durationMinutes,
+      price: input.price,
+      type: input.type,
+      ...toTariffData({ categoryId: input.categoryId ?? null }),
+      is_active: input.isActive ?? true,
+      created_at: now,
+      updated_at: now,
+    },
+    include: tariffInclude,
+  });
 
-    if (!name || !durationMinutes || !price || !type) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+  await writeAuditLog({
+    userId: admin.id,
+    action: "CREATE_TARIFF",
+    entityType: "Tariff",
+    entityId: tariff.id,
+    newData: toTariffDTO(tariff),
+  });
 
-    const tariff = await prisma.tariffs.create({
-      data: {
-        name,
-        duration_minutes: parseInt(durationMinutes),
-        price: parseFloat(price),
-        type: type as TariffType,
-        category_id: categoryId || null,
-        is_active: true,
-      },
-      include: {
-        computer_categories: true,
-      },
-    });
-
-    // Transform for frontend
-    const transformedTariff = {
-      id: tariff.id,
-      name: tariff.name,
-      durationMinutes: tariff.duration_minutes,
-      price: Number(tariff.price),
-      type: tariff.type,
-      categoryId: tariff.category_id,
-      isActive: tariff.is_active,
-      category: tariff.computer_categories ? {
-        id: tariff.computer_categories.id,
-        name: tariff.computer_categories.name,
-      } : null,
-    };
-
-    return NextResponse.json({ success: true, tariff: transformedTariff });
-  } catch (error) {
-    console.error("Error creating tariff:", error);
-    return NextResponse.json(
-      { error: "Failed to create tariff" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ success: true, tariff: toTariffDTO(tariff) }, { status: 201 });
+});

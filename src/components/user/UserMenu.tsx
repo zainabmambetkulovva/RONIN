@@ -2,21 +2,26 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/hooks/useSession";
+import { signOut, useSession } from "@/hooks/useSession";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 
 interface UserMenuProps {
-  user: {
+  /** Если не передан — берётся из текущей сессии. */
+  user?: {
     name?: string | null;
     email?: string | null;
     image?: string | null;
   };
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user: userProp }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
+  const user = userProp ?? session?.user;
+
+  if (!user) return null;
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });

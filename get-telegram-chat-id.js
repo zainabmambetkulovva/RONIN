@@ -1,6 +1,11 @@
 const https = require('https');
 
-const BOT_TOKEN = '8824394948:AAE7yJ-Ync30pXVHZo7AOyjDD_1ad_TPc0s';
+// Токен берётся только из окружения: TELEGRAM_BOT_TOKEN=... node get-telegram-chat-id.js
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+if (!BOT_TOKEN) {
+  console.error('Задайте переменную окружения TELEGRAM_BOT_TOKEN');
+  process.exit(1);
+}
 
 async function getChatId() {
   return new Promise((resolve, reject) => {

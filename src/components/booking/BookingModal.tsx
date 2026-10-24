@@ -19,7 +19,7 @@ interface Computer {
 interface Tariff {
   id: string;
   name: string;
-  duration_minutes: number;
+  durationMinutes: number;
   price: number;
   type: string;
 }
@@ -91,7 +91,7 @@ export function BookingModal({ computer, onClose }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId: bookingData.booking.id,
-          userId: bookingData.booking.user_id,
+          userId: bookingData.booking.userId,
         }),
       });
 
@@ -299,7 +299,7 @@ export function BookingModal({ computer, onClose }: Props) {
                     <div>
                       <div className="text-white font-bold text-lg">{tariff.name}</div>
                       <div className="text-gray-400 text-sm">
-                        {Math.floor(tariff.duration_minutes / 60)} ч {tariff.duration_minutes % 60} мин
+                        {Math.floor(tariff.durationMinutes / 60)} ч {tariff.durationMinutes % 60} мин
                       </div>
                     </div>
                     <div className="text-2xl font-black text-blue-400">{tariff.price} сом</div>

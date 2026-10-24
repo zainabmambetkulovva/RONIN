@@ -4,7 +4,6 @@ import crypto from 'crypto';
 import { Resend } from 'resend';
 import { checkRateLimit, rateLimitError } from '@/lib/rate-limiter';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,8 +57,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Отправить email
+    // Отправить email (клиент создаётся при запросе: без ключа сборка не должна падать)
     try {
+      if (!process.env.RESEND_API_KEY) {
+        throw new Error("RESEND_API_KEY is not configured");
+      }
+      const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'noreply@ronin.kg',
         to: email,

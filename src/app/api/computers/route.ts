@@ -1,56 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { badRequest, handle } from "@/server/http";
+import { computerInclude, toComputerDTO } from "@/server/mappers";
+import { findBusyComputerIds } from "@/server/services/availability";
 
+export const dynamic = "force-dynamic";
 
+/**
+ * GET /api/computers - компьютеры с категориями
+ *
+ * Параметры:
+ *  - categoryId — фильтр по категории;
+ *  - start (ISO) + durationMinutes — дополнительно вычислить `availableForSlot` для интервала.
+ */
+export const GET = handle(async (req) => {
+  const { searchParams } = req.nextUrl;
+  const categoryId = searchParams.get("categoryId");
+  const startParam = searchParams.get("start");
+  const durationParam = searchParams.get("durationMinutes");
 
-// GET /api/computers - получить все компьютеры с категориями
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const categoryId = searchParams.get("categoryId");
+  const computers = await prisma.computers.findMany({
+    where: categoryId ? { category_id: categoryId } : undefined,
+    include: computerInclude,
+    orderBy: { number: "asc" },
+  });
 
-    const where: any = {};
-    if (categoryId) {
-      where.category_id = categoryId;
+  let busy: Set<string> | null = null;
+  if (startParam) {
+    const start = new Date(startParam);
+    const duration = Number(durationParam ?? 60);
+    if (Number.isNaN(start.getTime())) throw badRequest("Некорректный параметр start");
+    if (!Number.isInteger(duration) || duration <= 0 || duration > 24 * 60) {
+      throw badRequest("Некорректный параметр durationMinutes");
     }
-
-    const computers = await prisma.computers.findMany({
-      where,
-      include: {
-        computer_categories: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: {
-        number: "asc",
-      },
-    });
-
-    // Преобразуем в camelCase для фронтенда
-    const formattedComputers = computers.map(comp => ({
-      id: comp.id,
-      number: comp.number,
-      categoryId: comp.category_id,
-      category: {
-        id: comp.computer_categories.id,
-        name: comp.computer_categories.name,
-        description: comp.computer_categories.description,
-      },
-      specifications: comp.specifications,
-      status: comp.status,
-    }));
-
-    return NextResponse.json({ computers: formattedComputers, total: formattedComputers.length });
-  } catch (error: any) {
-    console.error("Error fetching computers:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch computers", details: error.message },
-      { status: 500 }
-    );
+    busy = await findBusyComputerIds(start, new Date(start.getTime() + duration * 60_000));
   }
-}
+
+  const items = computers.map((c) =>
+    toComputerDTO(c, busy ? c.status !== "maintenance" && !busy.has(c.id) : null)
+  );
+  return NextResponse.json({ computers: items, total: items.length });
+});

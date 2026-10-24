@@ -44,7 +44,7 @@ export default function TariffsPage() {
 
   const fetchTariffs = async () => {
     try {
-      const res = await fetch("/api/tariffs");
+      const res = await fetch("/api/admin/tariffs");
       const data = await res.json();
       setTariffs(data.tariffs || []);
     } catch (error) {

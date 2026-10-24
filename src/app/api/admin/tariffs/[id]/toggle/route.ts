@@ -1,38 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { handle, notFound } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { tariffInclude, toTariffDTO } from "@/server/mappers";
+import { writeAuditLog } from "@/server/services/audit";
 
-const prisma = new PrismaClient();
+// PATCH /api/admin/tariffs/[id]/toggle - включить / отключить тариф
+export const PATCH = handle<{ id: string }>(async (req, { params }) => {
+  const admin = await requireAdmin(req);
 
-// PATCH /api/admin/tariffs/[id]/toggle - toggle active status
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const tariff = await prisma.tariff.findUnique({
-      where: { id: params.id },
-    });
+  const tariff = await prisma.tariffs.findUnique({ where: { id: params.id } });
+  if (!tariff) throw notFound("Tariff not found");
 
-    if (!tariff) {
-      return NextResponse.json(
-        { error: "Tariff not found" },
-        { status: 404 }
-      );
-    }
+  const updated = await prisma.tariffs.update({
+    where: { id: params.id },
+    data: { is_active: !tariff.is_active, updated_at: new Date() },
+    include: tariffInclude,
+  });
 
-    const updated = await prisma.tariff.update({
-      where: { id: params.id },
-      data: {
-        isActive: !tariff.isActive,
-      },
-    });
+  await writeAuditLog({
+    userId: admin.id,
+    action: updated.is_active ? "ENABLE_TARIFF" : "DISABLE_TARIFF",
+    entityType: "Tariff",
+    entityId: params.id,
+  });
 
-    return NextResponse.json({ success: true, tariff: updated });
-  } catch (error) {
-    console.error("Error toggling tariff:", error);
-    return NextResponse.json(
-      { error: "Failed to toggle tariff status" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ success: true, tariff: toTariffDTO(updated) });
+});

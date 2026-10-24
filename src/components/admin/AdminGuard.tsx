@@ -20,48 +20,27 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem("admin_token");
-      
-      if (!token) {
-        // Если на странице логина, пропускаем
-        if (pathname === "/admin/login") {
-          setIsAuthenticated(true);
-          setIsLoading(false);
+      // Сессия персонала хранится в httpOnly cookie и проверяется сервером
+      const res = await fetch("/api/admin/auth/verify-token");
+
+      if (pathname === "/admin/login") {
+        if (res.ok) {
+          router.push("/admin");
           return;
         }
-        
-        // Перенаправляем на логин
-        router.push("/admin/login");
+        setIsAuthenticated(true);
         return;
       }
-
-      // Проверяем токен на сервере
-      const res = await fetch("/api/admin/auth/verify-token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
 
       if (!res.ok) {
-        // Токен невалидный
-        localStorage.removeItem("admin_token");
         router.push("/admin/login");
-        return;
-      }
-
-      // Если на странице логина и уже авторизован, перенаправляем в админку
-      if (pathname === "/admin/login") {
-        router.push("/admin");
         return;
       }
 
       setIsAuthenticated(true);
     } catch (error) {
       console.error("Auth check error:", error);
-      localStorage.removeItem("admin_token");
-      router.push("/admin/login");
+      if (pathname !== "/admin/login") router.push("/admin/login");
     } finally {
       setIsLoading(false);
     }

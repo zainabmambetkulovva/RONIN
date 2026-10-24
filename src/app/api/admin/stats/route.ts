@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserRole, UserStatus, BookingStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { errorResponse } from "@/server/http";
+import { requireStaff } from "@/server/auth/staff";
+import { findOccupiedNowComputerIds } from "@/server/services/availability";
 
+export const dynamic = "force-dynamic";
 
-
-// GET /api/admin/stats - общая статистика для админ панели
+// GET /api/admin/stats - общая статистика для панели управления (admin, manager)
 export async function GET(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
-
   try {
+    await requireStaff(req);
+
     // Даты для вычислений
     const now = new Date();
     
@@ -102,8 +102,12 @@ export async function GET(req: NextRequest) {
 
     // Компьютеры
     const totalComputers = await prisma.computers.count();
-    const availableComputers = await prisma.computers.count({
-      where: { status: "available" },
+    const maintenanceComputers = await prisma.computers.count({
+      where: { status: "maintenance" },
+    });
+    const occupiedIds = await findOccupiedNowComputerIds();
+    const occupiedComputers = await prisma.computers.count({
+      where: { id: { in: Array.from(occupiedIds) }, status: { not: "maintenance" } },
     });
 
     // Тарифы
@@ -204,8 +208,9 @@ export async function GET(req: NextRequest) {
       },
       computers: {
         total: totalComputers,
-        available: availableComputers,
-        occupied: totalComputers - availableComputers,
+        available: totalComputers - maintenanceComputers - occupiedComputers,
+        occupied: occupiedComputers,
+        maintenance: maintenanceComputers,
       },
       tariffs: {
         total: totalTariffs,
@@ -215,10 +220,6 @@ export async function GET(req: NextRequest) {
       recentUsers: transformedRecentUsers,
     });
   } catch (error) {
-    console.error("Error fetching stats:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch stats" },
-      { status: 500 }
-    );
+    return errorResponse(error);
   }
 }

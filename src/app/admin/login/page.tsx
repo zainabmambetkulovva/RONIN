@@ -18,7 +18,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [sessionToken, setSessionToken] = useState("");
 
-  console.log('Current state:', { step, sessionToken: sessionToken ? 'exists' : 'empty', code });
 
   const handleCredentialsSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +33,6 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
 
-      console.log('Send-2FA response:', data);
 
       if (!res.ok) {
         throw new Error(data.error || "Неверный email или пароль");
@@ -45,7 +43,6 @@ export default function AdminLoginPage() {
         throw new Error('Session token отсутствует в ответе');
       }
       
-      console.log('Setting sessionToken:', data.sessionToken);
       setSessionToken(data.sessionToken);
       
       // Небольшая задержка для обновления состояния
@@ -76,8 +73,6 @@ export default function AdminLoginPage() {
 
     setLoading(true);
 
-    console.log('Submitting 2FA:', { sessionToken: sessionToken.substring(0, 20) + '...', code });
-
     try {
       const res = await fetch("/api/admin/auth/verify-2fa", {
         method: "POST",
@@ -87,17 +82,12 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
 
-      console.log('Verify-2FA response:', data);
-
       if (!res.ok) {
         throw new Error(data.error || "Неверный код");
       }
 
-      // Сохраняем токен в localStorage
-      localStorage.setItem("admin_token", data.token);
-      
-      // Перенаправляем в админку
-      router.push("/admin");
+      // Сессия установлена сервером в httpOnly cookie
+      router.push(data.user?.role === "manager" ? "/manager" : "/admin");
     } catch (err: any) {
       setError(err.message);
     } finally {

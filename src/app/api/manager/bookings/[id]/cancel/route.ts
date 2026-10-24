@@ -1,98 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { handle } from "@/server/http";
+import { requireStaff } from "@/server/auth/staff";
+import { toBookingDTO } from "@/server/mappers";
+import { cancelBooking } from "@/server/services/bookings";
+import { notifyUser, writeAuditLog } from "@/server/services/audit";
 
-const prisma = new PrismaClient();
+const schema = z.object({ reason: z.string().trim().max(500).optional() });
 
-// POST /api/manager/bookings/[id]/cancel - отменить бронирование (Manager)
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // TODO: Get actual manager ID from session
-    const managerId = "mock-user-id"; // Replace with actual auth
+// POST /api/manager/bookings/[id]/cancel - отменить бронирование (manager, admin)
+export const POST = handle<{ id: string }>(async (req, { params }) => {
+  const staff = await requireStaff(req);
 
-    // Get booking
-    const booking = await prisma.booking.findUnique({
-      where: { id: params.id },
-      include: {
-        user: {
-          select: { id: true, name: true },
-        },
-        computer: {
-          select: { number: true },
-        },
-      },
-    });
+  // Тело запроса необязательно
+  const body = await req.json().catch(() => ({}));
+  const parsed = schema.safeParse(body);
+  const reason = parsed.success ? parsed.data.reason : undefined;
 
-    if (!booking) {
-      return NextResponse.json(
-        { error: "Booking not found" },
-        { status: 404 }
-      );
-    }
+  const booking = await cancelBooking(params.id, staff.id, reason || "Отменено менеджером");
 
-    // Check if booking can be cancelled
-    if (booking.status === "cancelled" || booking.status === "completed" || booking.status === "expired") {
-      return NextResponse.json(
-        { error: "Cannot cancel this booking" },
-        { status: 400 }
-      );
-    }
+  await writeAuditLog({
+    userId: staff.id,
+    action: "CANCEL_BOOKING",
+    entityType: "Booking",
+    entityId: params.id,
+    newData: { reason: reason || null },
+  });
+  await notifyUser(
+    booking.user_id,
+    "booking_cancelled",
+    "Бронирование отменено",
+    reason
+      ? `Бронирование ${booking.booking_number} отменено. Причина: ${reason}`
+      : `Бронирование ${booking.booking_number} отменено.`
+  );
 
-    // Update booking status
-    const updatedBooking = await prisma.booking.update({
-      where: { id: params.id },
-      data: {
-        status: "cancelled",
-        updatedAt: new Date(),
-      },
-    });
-
-    // Add status history
-    await prisma.bookingStatusHistory.create({
-      data: {
-        bookingId: params.id,
-        oldStatus: booking.status,
-        newStatus: "cancelled",
-        changedBy: managerId,
-        reason: "Cancelled by manager",
-      },
-    });
-
-    // Create notification for user
-    await prisma.notification.create({
-      data: {
-        userId: booking.userId,
-        type: "booking_cancelled",
-        title: "Бронирование отменено",
-        message: `Ваше бронирование ПК #${booking.computer.number} (код: ${booking.bookingCode}) было отменено менеджером.`,
-        isRead: false,
-      },
-    });
-
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        userId: managerId,
-        action: "CANCEL_BOOKING",
-        entityType: "Booking",
-        entityId: params.id,
-        oldData: { status: booking.status },
-        newData: { status: "cancelled" },
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      booking: updatedBooking,
-      message: "Booking cancelled successfully",
-    });
-  } catch (error) {
-    console.error("Error cancelling booking:", error);
-    return NextResponse.json(
-      { error: "Failed to cancel booking" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ success: true, booking: toBookingDTO(booking) });
+});

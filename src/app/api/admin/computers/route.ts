@@ -1,62 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { handle } from "@/server/http";
+import { requireStaff } from "@/server/auth/staff";
+import { blockingBookingWhere } from "@/server/services/availability";
 
-export async function GET(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+export const dynamic = "force-dynamic";
 
-  try {
-    const now = new Date();
-    
-    // Получить все компьютеры с АКТИВНЫМИ бронированиями
-    const computersData = await prisma.computers.findMany({
-      include: {
-        bookings: {
-          where: {
-            status: {
-              in: ["confirmed"],
-            },
-            start_at: {
-              lte: now,
-            },
-            end_at: {
-              gte: now,
-            },
-          },
-          orderBy: {
-            start_at: "asc",
-          },
-          take: 1,
-        },
+// GET /api/admin/computers - компьютеры с текущей активной бронью (admin, manager)
+export const GET = handle(async (req) => {
+  await requireStaff(req);
+  const now = new Date();
+
+  const computersData = await prisma.computers.findMany({
+    include: {
+      computer_categories: { select: { id: true, name: true } },
+      bookings: {
+        where: { AND: [{ start_at: { lte: now }, end_at: { gt: now } }, blockingBookingWhere(now)] },
+        orderBy: { start_at: "asc" },
+        take: 1,
       },
-      orderBy: {
-        number: "asc",
-      },
-    });
+    },
+    orderBy: { number: "asc" },
+  });
 
-    // Transform для frontend
-    const computers = computersData.map((c) => ({
-      id: c.id,
-      number: c.number,
-      name: `Computer ${c.number}`,
-      status: c.status,
-      specs: c.specifications,
-      bookings: c.bookings.map((b) => ({
-        id: b.id,
-        startAt: b.start_at,
-        endAt: b.end_at,
-        status: b.status,
-      })),
-    }));
+  const computers = computersData.map((c) => ({
+    id: c.id,
+    number: c.number,
+    name: `Computer ${c.number}`,
+    status: c.status,
+    /** Операционное состояние: maintenance > occupied > available. */
+    state: c.status === "maintenance" ? "maintenance" : c.bookings.length > 0 ? "occupied" : "available",
+    category: { id: c.computer_categories.id, name: c.computer_categories.name },
+    specs: c.specifications,
+    bookings: c.bookings.map((b) => ({
+      id: b.id,
+      startAt: b.start_at.toISOString(),
+      endAt: b.end_at.toISOString(),
+      status: b.status,
+    })),
+  }));
 
-    return NextResponse.json({ computers });
-  } catch (error) {
-    console.error("Error fetching computers:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch computers" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ computers });
+});

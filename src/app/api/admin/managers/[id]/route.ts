@@ -1,113 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { badRequest, handle, notFound, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { toUserListItemDTO, userListSelect } from "@/server/mappers";
+import { writeAuditLog } from "@/server/services/audit";
 
-const prisma = new PrismaClient();
+async function findManager(id: string) {
+  const manager = await prisma.users.findFirst({ where: { id, role: "manager" }, select: userListSelect });
+  if (!manager) throw notFound("Manager not found");
+  return manager;
+}
 
 // GET /api/admin/managers/[id]
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+export const GET = handle<{ id: string }>(async (req, { params }) => {
+  await requireAdmin(req);
+  return NextResponse.json({ manager: toUserListItemDTO(await findManager(params.id)) });
+});
 
-  try {
-    const manager = await prisma.users.findUnique({
-      where: { id: params.id },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+// DELETE /api/admin/managers/[id] - мягкое удаление: история действий менеджера сохраняется
+export const DELETE = handle<{ id: string }>(async (req, { params }) => {
+  const admin = await requireAdmin(req);
+  const manager = await findManager(params.id);
 
-    if (!manager) {
-      return NextResponse.json({ error: "Manager not found" }, { status: 404 });
-    }
+  await prisma.users.update({ where: { id: params.id }, data: { status: "deleted", updated_at: new Date() } });
 
-    return NextResponse.json({ manager });
-  } catch (error) {
-    console.error("Error fetching manager:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch manager" },
-      { status: 500 }
-    );
-  }
-}
+  await writeAuditLog({
+    userId: admin.id,
+    action: "DELETE_MANAGER",
+    entityType: "User",
+    entityId: params.id,
+    oldData: { name: manager.name, email: manager.email, status: manager.status },
+  });
 
-// DELETE /api/admin/managers/[id]
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+  return NextResponse.json({ success: true });
+});
 
-  try {
-    await prisma.users.delete({
-      where: { id: params.id },
-    });
+const updateSchema = z.object({
+  status: z.enum(["active", "blocked"]).optional(),
+  name: z.string().trim().min(1).max(100).optional(),
+  phone: z.string().trim().min(1).max(20).optional(),
+  email: z.string().trim().email("Некорректный email").optional(),
+  password: z.string().min(8, "Пароль должен быть не короче 8 символов").optional(),
+});
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting manager:", error);
-    return NextResponse.json(
-      { error: "Failed to delete manager" },
-      { status: 500 }
-    );
-  }
-}
+// PATCH /api/admin/managers/[id] - обновить данные, статус или пароль
+export const PATCH = handle<{ id: string }>(async (req, { params }) => {
+  const admin = await requireAdmin(req);
+  const input = await parseJson(req, updateSchema);
+  const before = await findManager(params.id);
 
-// PATCH /api/admin/managers/[id] - обновить статус
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+  if (Object.values(input).every((v) => v === undefined)) throw badRequest("Нет данных для обновления");
 
-  try {
-    const body = await req.json();
-    const { status, name, phone, email, password } = body;
+  const manager = await prisma.users.update({
+    where: { id: params.id },
+    data: {
+      ...(input.status && { status: input.status }),
+      ...(input.name && { name: input.name }),
+      ...(input.phone && { phone: input.phone }),
+      ...(input.email && { email: input.email }),
+      ...(input.password && { password: await bcrypt.hash(input.password, 10) }),
+      updated_at: new Date(),
+    },
+    select: userListSelect,
+  });
 
-    const updateData: any = {};
-    if (status) updateData.status = status;
-    if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
-    if (email) updateData.email = email;
-    if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
-    }
+  await writeAuditLog({
+    userId: admin.id,
+    action: "UPDATE_MANAGER",
+    entityType: "User",
+    entityId: params.id,
+    oldData: { name: before.name, email: before.email, phone: before.phone, status: before.status },
+    newData: {
+      name: manager.name,
+      email: manager.email,
+      phone: manager.phone,
+      status: manager.status,
+      passwordChanged: Boolean(input.password),
+    },
+  });
 
-    const manager = await prisma.users.update({
-      where: { id: params.id },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        status: true,
-        updatedAt: true,
-      },
-    });
-
-    return NextResponse.json({ manager });
-  } catch (error) {
-    console.error("Error updating manager:", error);
-    return NextResponse.json(
-      { error: "Failed to update manager" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ manager: toUserListItemDTO(manager) });
+});

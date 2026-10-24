@@ -73,25 +73,27 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
   ];
 
   useEffect(() => {
-    // Получить данные пользователя из токена
-    const token = localStorage.getItem("admin_token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-          name: payload.email.split('@')[0],
-          email: payload.email,
-          role: payload.role,
-        });
-      } catch (e) {
-        console.error("Failed to parse token:", e);
-      }
-    }
+    // Данные сотрудника берём с сервера (сессия в httpOnly cookie)
+    fetch("/api/admin/auth/verify-token")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user) {
+          setUser({
+            name: data.user.name || data.user.email?.split("@")[0] || "",
+            email: data.user.email || "",
+            role: data.user.role,
+          });
+        }
+      })
+      .catch((e) => console.error("Failed to load staff user:", e));
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/auth/logout", { method: "POST" });
+    } finally {
+      router.push("/admin/login");
+    }
   };
 
   const isActive = (href: string, exact?: boolean) => {

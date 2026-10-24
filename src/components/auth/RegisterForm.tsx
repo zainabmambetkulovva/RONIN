@@ -319,10 +319,8 @@ export function RegisterForm() {
       <button
         type="button"
         onClick={() => {
-          // Import signIn from next-auth/react
-          import("next-auth/react").then(({ signIn }) => {
-            signIn("google", { callbackUrl: "/profile" });
-          });
+          // Тот же серверный OAuth-поток, что и на странице входа
+          window.location.href = "/api/auth/google";
         }}
         className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
         style={{

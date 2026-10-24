@@ -1,89 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { handle, notFound, unauthorized } from "@/server/http";
+import { getSessionUser } from "@/server/auth/session";
+import { getStaffUser } from "@/server/auth/staff";
+import { bookingInclude, toBookingDTO } from "@/server/mappers";
 
-const prisma = new PrismaClient();
+export const dynamic = "force-dynamic";
 
-// GET /api/bookings/[id] - получить конкретное бронирование
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    console.log("🔍 GET /api/bookings/[id] - Searching for booking ID:", params.id);
-    
-    const booking = await prisma.bookings.findUnique({
-      where: { id: params.id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        computers: {
-          include: {
-            computer_categories: true,
-          },
-        },
-        tariffs: true,
-        payments: true,
-      },
-    });
+// GET /api/bookings/[id] - бронь доступна только её владельцу и персоналу
+export const GET = handle<{ id: string }>(async (req, { params }) => {
+  const [user, staff] = await Promise.all([getSessionUser(), getStaffUser(req)]);
+  if (!user && !staff) throw unauthorized();
 
-    if (!booking) {
-      console.error("❌ Booking not found in database for ID:", params.id);
-      return NextResponse.json(
-        { error: "Booking not found" },
-        { status: 404 }
-      );
-    }
+  const booking = await prisma.bookings.findUnique({ where: { id: params.id }, include: bookingInclude });
 
-    console.log("✅ Booking found:", {
-      id: booking.id,
-      bookingNumber: booking.booking_number,
-      computerNumber: booking.computers.number,
-      tariffName: booking.tariffs.name,
-    });
+  // Чужая бронь для клиента выглядит как несуществующая
+  if (!booking || (!staff && booking.user_id !== user?.id)) throw notFound("Бронирование не найдено");
 
-    // Transform to match expected format
-    const transformedBooking = {
-      id: booking.id,
-      bookingNumber: booking.booking_number,
-      bookingCode: booking.booking_code,
-      startAt: booking.start_at,
-      endAt: booking.end_at,
-      durationMinutes: booking.duration_minutes,
-      price: booking.price,
-      status: booking.status,
-      createdAt: booking.created_at,
-      user: {
-        id: booking.users.id,
-        name: booking.users.name,
-        email: booking.users.email,
-        avatar: booking.users.avatar,
-      },
-      computer: {
-        id: booking.computers.id,
-        number: booking.computers.number,
-        category: {
-          id: booking.computers.computer_categories.id,
-          name: booking.computers.computer_categories.name,
-        },
-      },
-      tariff: {
-        id: booking.tariffs.id,
-        name: booking.tariffs.name,
-      },
-    };
-
-    return NextResponse.json({ booking: transformedBooking });
-  } catch (error) {
-    console.error("❌ Error fetching booking:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch booking" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ booking: toBookingDTO(booking) });
+});

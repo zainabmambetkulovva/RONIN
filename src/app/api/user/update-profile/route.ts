@@ -1,53 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { handle, parseJson } from "@/server/http";
+import { createUserSession, requireUser } from "@/server/auth/session";
+import { toCurrentUserDTO } from "@/server/mappers";
+import { profileUpdateSchema, updateOwnProfile } from "@/server/services/users";
 
-export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
+// Используется страницей setup-profile: имя обязательно
+const setupSchema = profileUpdateSchema.extend({
+  name: z.string({ required_error: "Имя обязательно" }).trim().min(1, "Имя обязательно").max(100),
+});
 
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { name, avatar } = await req.json();
-
-    if (!name || !name.trim()) {
-      return NextResponse.json(
-        { error: "Имя обязательно" },
-        { status: 400 }
-      );
-    }
-
-    // Обновить пользователя в БД
-    const updatedUser = await prisma.users.update({
-      where: { email: session.user.email },
-      data: {
-        name: name.trim(),
-        avatar: avatar || null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatar: true,
-        role: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      user: updatedUser,
-    });
-  } catch (error: any) {
-    console.error("Update profile error:", error);
-    return NextResponse.json(
-      { error: error.message || "Ошибка обновления профиля" },
-      { status: 500 }
-    );
-  }
-}
+// POST /api/user/update-profile - первичная настройка профиля
+export const POST = handle(async (req) => {
+  const user = await requireUser();
+  const input = await parseJson(req, setupSchema);
+  const updated = await updateOwnProfile(user.id, input);
+  await createUserSession(updated);
+  return NextResponse.json({ success: true, user: toCurrentUserDTO(updated) });
+});

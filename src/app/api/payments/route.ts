@@ -1,118 +1,67 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { sendNewBookingNotification } from "@/lib/telegram";
+import { forbidden, conflict, handle, notFound, parseJson } from "@/server/http";
+import { requireUser } from "@/server/auth/session";
 
+const schema = z.object({
+  bookingId: z.string().min(1, "Booking ID is required"),
+  method: z.string().min(1, "Payment method is required"),
+});
 
-// POST /api/payments - создать платеж (демо-версия)
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { bookingId, method } = body;
-
-    if (!bookingId || !method) {
-      return NextResponse.json(
-        { error: "Booking ID and payment method are required" },
-        { status: 400 }
-      );
-    }
-
-    // Get booking
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-    });
-
-    if (!booking) {
-      return NextResponse.json(
-        { error: "Booking not found" },
-        { status: 404 }
-      );
-    }
-
-    // Map method to payment method enum
-    const methodMap: Record<string, string> = {
-      mbank: "electronic_wallet",
-      o: "electronic_wallet",
-      optima: "electronic_wallet",
-      bakai: "electronic_wallet",
-      cash: "cash",
-    };
-
-    const paymentMethod = methodMap[method] || "electronic_wallet";
-
-    // Create payment (demo - automatically mark as paid)
-    const payment = await prisma.payment.create({
-      data: {
-        bookingId,
-        amount: booking.price,
-        method: paymentMethod as any,
-        status: "paid", // In real system, this would be "pending" initially
-        provider: method,
-        transactionId: `DEMO-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
-        paidAt: new Date(),
-      },
-    });
-
-    // Update booking status to confirmed
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: "confirmed" },
-    });
-
-    // Получить полную информацию о бронировании для уведомления
-    const fullBooking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        user: {
-          select: {
-            name: true,
-          },
-        },
-        computer: {
-          select: {
-            number: true,
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-        tariff: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    // Отправить уведомление в Telegram (не блокируем ответ если ошибка)
-    const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-    if (adminChatId && fullBooking) {
-      sendNewBookingNotification(adminChatId, {
-        bookingCode: fullBooking.bookingCode,
-        userName: fullBooking.user?.name || "Неизвестно",
-        computerName: fullBooking.computer?.category?.name || "Неизвестно",
-        computerNumber: fullBooking.computer?.number || 0,
-        tariffName: fullBooking.tariff?.name || "Неизвестно",
-        startAt: fullBooking.startAt,
-        endAt: fullBooking.endAt,
-        price: fullBooking.price,
-      }).catch((error) => {
-        console.error("Failed to send Telegram notification:", error);
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      payment,
-      message: "Payment successful (demo mode)",
-    });
-  } catch (error) {
-    console.error("Error creating payment:", error);
-    return NextResponse.json(
-      { error: "Failed to process payment" },
-      { status: 500 }
-    );
+/**
+ * POST /api/payments - ДЕМО-оплата для локальной разработки.
+ *
+ * Помечает бронь оплаченной без реального платежа, поэтому включается только
+ * переменной окружения ENABLE_DEMO_PAYMENTS=true и никогда не должна быть включена в production.
+ * Реальная оплата — Finik (`/api/finik/create-payment` + webhook).
+ */
+export const POST = handle(async (req) => {
+  if (process.env.ENABLE_DEMO_PAYMENTS !== "true" || process.env.NODE_ENV === "production") {
+    throw forbidden("Демо-оплата отключена. Используйте оплату через Finik");
   }
-}
+
+  const user = await requireUser();
+  const { bookingId, method } = await parseJson(req, schema);
+
+  const booking = await prisma.bookings.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.user_id !== user.id) throw notFound("Booking not found");
+  if (booking.status !== "pending") throw conflict("Бронирование уже обработано");
+
+  const now = new Date();
+  const transactionId = `DEMO-${Date.now()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+
+  const [payment] = await prisma.$transaction([
+    prisma.payments.create({
+      data: {
+        id: crypto.randomUUID(),
+        booking_id: bookingId,
+        amount: booking.price,
+        method: method === "cash" ? "cash" : "electronic_wallet",
+        status: "paid",
+        provider: `demo:${method}`,
+        transaction_id: transactionId,
+        paid_at: now,
+        created_at: now,
+      },
+    }),
+    prisma.bookings.update({
+      where: { id: bookingId },
+      data: {
+        status: "confirmed",
+        payment_status: "paid",
+        payment_method: `demo:${method}`,
+        transaction_id: transactionId,
+        paid_at: now,
+        updated_at: now,
+      },
+    }),
+  ]);
+
+  return NextResponse.json({
+    success: true,
+    payment: { id: payment.id, status: payment.status, amount: Number(payment.amount), transactionId },
+    message: "Payment successful (demo mode)",
+  });
+});

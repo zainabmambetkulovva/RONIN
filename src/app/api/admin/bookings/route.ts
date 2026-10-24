@@ -1,157 +1,84 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { badRequest, handle, notFound, parseJson } from "@/server/http";
+import { requireStaff } from "@/server/auth/staff";
+import { bookingInclude, toBookingDTO } from "@/server/mappers";
+import { createBooking } from "@/server/services/bookings";
+import { writeAuditLog } from "@/server/services/audit";
 
+export const dynamic = "force-dynamic";
 
+const STATUSES = ["pending", "confirmed", "cancelled", "completed", "expired"] as const;
 
-// GET /api/admin/bookings - получить все бронирования
-export async function GET(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+/**
+ * GET /api/admin/bookings - все бронирования (admin, manager)
+ * Фильтры: ?status=, ?code= (5-значный код), ?from=&to= (ISO, по времени начала), ?userId=
+ */
+export const GET = handle(async (req) => {
+  await requireStaff(req);
 
-  try {
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
-    const bookingCode = searchParams.get("code"); // Поиск по 5-значному коду
+  const { searchParams } = req.nextUrl;
+  const status = searchParams.get("status");
+  const code = searchParams.get("code")?.trim();
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const userId = searchParams.get("userId");
 
-    const where: any = {};
-    if (status) {
-      where.status = status;
-    }
-    if (bookingCode) {
-      where.bookingCode = bookingCode;
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            email: true,
-          },
-        },
-        computer: {
-          select: {
-            id: true,
-            number: true,
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-        tariff: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return NextResponse.json({ bookings, total: bookings.length });
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch bookings" },
-      { status: 500 }
-    );
+  const where: Prisma.bookingsWhereInput = {};
+  if (status && status !== "all") {
+    if (!STATUSES.includes(status as (typeof STATUSES)[number])) throw badRequest("Некорректный статус");
+    where.status = status as (typeof STATUSES)[number];
   }
-}
-
-// POST /api/admin/bookings - создать бронирование (для менеджера когда клиент приходит)
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { userId, computerId, tariffId, startAt } = body;
-
-    if (!userId || !computerId || !tariffId || !startAt) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
-    // Получить тариф для расчета
-    const tariff = await prisma.tariff.findUnique({
-      where: { id: tariffId },
-    });
-
-    if (!tariff) {
-      return NextResponse.json({ error: "Tariff not found" }, { status: 404 });
-    }
-
-    const start = new Date(startAt);
-    const end = new Date(start.getTime() + tariff.durationMinutes * 60000);
-
-    // Генерация 5-значного кода
-    const bookingCode = Math.floor(10000 + Math.random() * 90000).toString();
-
-    // Генерация номера бронирования
-    const bookingNumber = `RON-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    // QR токен
-    const qrToken = `${bookingNumber}-${Date.now()}`;
-
-    const booking = await prisma.booking.create({
-      data: {
-        bookingNumber,
-        bookingCode,
-        userId,
-        computerId,
-        tariffId,
-        startAt: start,
-        endAt: end,
-        durationMinutes: tariff.durationMinutes,
-        price: tariff.price,
-        qrToken,
-        status: "confirmed",
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-        computer: {
-          select: {
-            id: true,
-            number: true,
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-        tariff: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ booking }, { status: 201 });
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    return NextResponse.json(
-      { error: "Failed to create booking" },
-      { status: 500 }
-    );
+  if (code) where.booking_code = code;
+  if (userId) where.user_id = userId;
+  if (from || to) {
+    const range: Prisma.DateTimeFilter = {};
+    if (from) range.gte = new Date(from);
+    if (to) range.lt = new Date(to);
+    if (Object.values(range).some((d) => Number.isNaN((d as Date).getTime()))) throw badRequest("Некорректный период");
+    where.start_at = range;
   }
-}
+
+  const bookings = await prisma.bookings.findMany({
+    where,
+    include: bookingInclude,
+    orderBy: { created_at: "desc" },
+    take: 500,
+  });
+
+  const items = bookings.map((b) => toBookingDTO(b));
+  return NextResponse.json({ bookings: items, total: items.length });
+});
+
+const createSchema = z.object({
+  userId: z.string().min(1, "All fields are required"),
+  computerId: z.string().min(1, "All fields are required"),
+  tariffId: z.string().min(1, "All fields are required"),
+  startAt: z.coerce.date({ errorMap: () => ({ message: "Некорректное время начала" }) }),
+});
+
+/**
+ * POST /api/admin/bookings - создать бронь для клиента (admin, manager).
+ * Бронь создаётся в статусе pending, как и онлайн-бронь: подтверждение — только после оплаты.
+ */
+export const POST = handle(async (req) => {
+  const staff = await requireStaff(req);
+  const input = await parseJson(req, createSchema);
+
+  const client = await prisma.users.findUnique({ where: { id: input.userId }, select: { id: true, status: true } });
+  if (!client || client.status !== "active") throw notFound("Клиент не найден или заблокирован");
+
+  const booking = await createBooking(input);
+
+  await writeAuditLog({
+    userId: staff.id,
+    action: "CREATE_BOOKING_FOR_CLIENT",
+    entityType: "Booking",
+    entityId: booking.id,
+    newData: { userId: input.userId, computerId: input.computerId, tariffId: input.tariffId },
+  });
+
+  return NextResponse.json({ booking: toBookingDTO(booking) }, { status: 201 });
+});

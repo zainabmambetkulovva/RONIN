@@ -1,115 +1,74 @@
-import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { send2FACode } from "@/lib/telegram";
-import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
+import { ApiError, forbidden, handle, parseJson, unauthorized } from "@/server/http";
+import { signTwoFactorToken } from "@/server/auth/tokens";
+import { generateTwoFactorCode, hashTwoFactorCode } from "@/server/auth/two-factor";
+import { TWO_FACTOR_TTL_SECONDS } from "@/server/config";
+
+const schema = z.object({
+  email: z.string().trim().min(1, "Email и пароль обязательны"),
+  password: z.string().min(1, "Email и пароль обязательны"),
+});
 
 /**
  * POST /api/admin/auth/send-2fa
- * Отправить 2FA код админу в Telegram после успешного ввода логина/пароля
+ * Шаг 1 входа персонала: проверка пароля и отправка одноразового кода в Telegram.
  */
-export async function POST(req: NextRequest) {
-  try {
-    const { email, password } = await req.json();
+export const POST = handle(async (req) => {
+  const rateLimit = await checkRateLimit(req, "admin-send-2fa", 5, 15 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    throw new ApiError(429, rateLimitError(rateLimit.remaining, rateLimit.resetAt).error, "rate_limited");
+  }
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email и пароль обязательны" },
-        { status: 400 }
-      );
-    }
+  const { email, password } = await parseJson(req, schema);
 
-    // Найти пользователя
-    const user = await prisma.users.findFirst({
-      where: { email },
-    });
+  const user = await prisma.users.findFirst({ where: { email } });
+  if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+    throw unauthorized("Неверный email или пароль");
+  }
+  if (user.status !== "active") throw forbidden("Аккаунт заблокирован");
+  if (user.role !== "admin" && user.role !== "manager") throw forbidden("Доступ запрещен");
 
-    if (!user || !user.password) {
-      return NextResponse.json(
-        { error: "Неверный email или пароль" },
-        { status: 401 }
-      );
-    }
+  const isProduction = process.env.NODE_ENV === "production";
+  if (!user.telegram_chat_id && isProduction) {
+    throw forbidden("Telegram не подключён к аккаунту. Обратитесь к администратору для настройки 2FA.");
+  }
 
-    // Проверить пароль
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Неверный email или пароль" },
-        { status: 401 }
-      );
-    }
+  const code = generateTwoFactorCode();
+  const now = new Date();
 
-    // Проверить что это админ или менеджер
-    if (user.role !== "admin" && user.role !== "manager") {
-      return NextResponse.json(
-        { error: "Доступ запрещен" },
-        { status: 403 }
-      );
-    }
-
-    // ВРЕМЕННО: 2FA өчүрүлгөн, туура Chat ID алгандан кийин кошобуз
-    // Проверить что у пользователя есть Telegram Chat ID
-    // if (!user.telegram_chat_id) {
-    //   return NextResponse.json(
-    //     { error: "Telegram не подключен. Обратитесь к администратору для настройки 2FA." },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Генерировать 6-значный код
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Удалить старый код если есть
-    await prisma.telegram_verifications.deleteMany({
-      where: { user_id: user.id },
-    });
-
-    // Сохранить код в БД (действителен 5 минут)
-    await prisma.telegram_verifications.create({
+  await prisma.$transaction([
+    prisma.telegram_verifications.deleteMany({ where: { user_id: user.id } }),
+    prisma.telegram_verifications.create({
       data: {
         id: crypto.randomUUID(),
         user_id: user.id,
-        code,
-        expires_at: new Date(Date.now() + 5 * 60 * 1000), // 5 минут
-        created_at: new Date(),
+        code: hashTwoFactorCode(code),
+        expires_at: new Date(now.getTime() + TWO_FACTOR_TTL_SECONDS * 1000),
+        created_at: now,
       },
-    });
+    }),
+  ]);
 
-    // Отправить код в Telegram
-    console.log(`\n🔐 2FA КОД: ${code} для ${user.email}\n`);
-    
-    const sent = await send2FACode(user.telegram_chat_id, code);
+  const sent = user.telegram_chat_id ? await send2FACode(user.telegram_chat_id, code) : false;
 
-    if (!sent) {
-      console.error('❌ Не удалось отправить в Telegram, но код создан');
-      // Продолжаем работу, код в консоли
+  if (!sent) {
+    if (isProduction) {
+      throw new ApiError(503, "Не удалось отправить код в Telegram. Попробуйте позже.", "telegram_unavailable");
     }
-
-    // Создать временный JWT session token (действителен 5 минут)
-    const jwt = require('jsonwebtoken');
-    const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
-    const sessionToken = jwt.sign(
-      {
-        userId: user.id,
-        type: "2fa_pending",
-      },
-      jwtSecret,
-      { expiresIn: "5m" }
-    );
-
-    return NextResponse.json({
-      success: true,
-      sessionToken,
-      message: sent ? "Код отправлен в Telegram" : "Код создан (см. консоль)",
-      userId: user.id,
-      role: user.role,
-    });
-  } catch (error) {
-    console.error("Send 2FA error:", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    // Только для локальной разработки: код в консоли сервера
+    console.log(`[DEV] 2FA code for ${user.email}: ${code}`);
   }
-}
+
+  return NextResponse.json({
+    success: true,
+    sessionToken: await signTwoFactorToken(user.id),
+    message: sent ? "Код отправлен в Telegram" : "Код создан (DEV: см. консоль сервера)",
+    role: user.role,
+  });
+});

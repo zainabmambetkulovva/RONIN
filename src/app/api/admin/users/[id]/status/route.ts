@@ -1,110 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserStatus } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { badRequest, handle, notFound, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { toUserListItemDTO, userListSelect } from "@/server/mappers";
+import { notifyUser, writeAuditLog } from "@/server/services/audit";
 
-const prisma = new PrismaClient();
+const schema = z.object({ status: z.enum(["active", "blocked"], { message: "Invalid status" }) });
 
-// PATCH /api/admin/users/[id]/status - изменить статус пользователя
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // TODO: Get actual admin ID from session
-    const adminId = "mock-user-id";
+// PATCH /api/admin/users/[id]/status - заблокировать / разблокировать пользователя
+export const PATCH = handle<{ id: string }>(async (req, { params }) => {
+  const admin = await requireAdmin(req);
+  const { status } = await parseJson(req, schema);
+  if (params.id === admin.id) throw badRequest("Нельзя изменить статус своего аккаунта");
 
-    const body = await req.json();
-    const { status } = body;
+  const user = await prisma.users.findUnique({ where: { id: params.id }, select: { id: true, status: true } });
+  if (!user) throw notFound("User not found");
 
-    if (!status || !["active", "blocked"].includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status" },
-        { status: 400 }
-      );
-    }
+  const updated = await prisma.users.update({
+    where: { id: params.id },
+    data: { status, updated_at: new Date() },
+    select: userListSelect,
+  });
 
-    // Get user
-    const user = await prisma.users.findUnique({
-      where: { id: params.id },
-      select: {
-        id: true,
-        name: true,
-        status: true,
-      },
-    });
+  await writeAuditLog({
+    userId: admin.id,
+    action: status === "blocked" ? "BLOCK_USER" : "UNBLOCK_USER",
+    entityType: "User",
+    entityId: params.id,
+    oldData: { status: user.status },
+    newData: { status },
+  });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+  await notifyUser(
+    params.id,
+    status === "blocked" ? "account_blocked" : "account_activated",
+    status === "blocked" ? "Аккаунт заблокирован" : "Аккаунт активирован",
+    status === "blocked" ? "Ваш аккаунт был заблокирован администратором." : "Ваш аккаунт был активирован."
+  );
 
-    // Update status
-    const updatedUser = await prisma.users.update({
-      where: { id: params.id },
-      data: {
-        status: status as UserStatus,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        avatar: true,
-        created_at: true,
-      },
-    });
-
-    // Transform for frontend
-    const transformedUser = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      phone: updatedUser.phone,
-      role: updatedUser.role,
-      status: updatedUser.status,
-      avatar: updatedUser.avatar,
-      createdAt: updatedUser.created_at,
-    };
-
-    // Audit log
-    await prisma.audit_logs.create({
-      data: {
-        user_id: adminId,
-        action: status === "blocked" ? "BLOCK_USER" : "UNBLOCK_USER",
-        entity_type: "User",
-        entity_id: params.id,
-        old_data: { status: user.status },
-        new_data: { status },
-      },
-    });
-
-    // Notification
-    await prisma.notifications.create({
-      data: {
-        user_id: params.id,
-        type: status === "blocked" ? "account_blocked" : "account_activated",
-        title: status === "blocked" ? "Аккаунт заблокирован" : "Аккаунт активирован",
-        message:
-          status === "blocked"
-            ? "Ваш аккаунт был заблокирован администратором."
-            : "Ваш аккаунт был активирован.",
-        is_read: false,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      user: transformedUser,
-      message: `User ${status === "blocked" ? "blocked" : "unblocked"} successfully`,
-    });
-  } catch (error) {
-    console.error("Error updating user status:", error);
-    return NextResponse.json(
-      { error: "Failed to update user status" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({
+    success: true,
+    user: toUserListItemDTO(updated),
+    message: `User ${status === "blocked" ? "blocked" : "unblocked"} successfully`,
+  });
+});

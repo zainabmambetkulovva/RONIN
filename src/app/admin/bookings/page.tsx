@@ -1,7 +1,15 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { BookingsTable } from "@/components/admin/BookingsTable";
+import { getStaffUser } from "@/server/auth/staff";
+
+// Данные читаются на каждый запрос и только после проверки сессии персонала
+export const dynamic = "force-dynamic";
 
 export default async function BookingsPage() {
+  const staff = await getStaffUser();
+  if (!staff) redirect("/admin/login");
+
   // Получить все бронирования с пользователями и компьютерами
   const bookingsData = await prisma.bookings.findMany({
     include: {

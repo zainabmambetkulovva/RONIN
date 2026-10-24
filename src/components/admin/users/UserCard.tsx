@@ -3,7 +3,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Trash2, Ban, CheckCircle, Mail, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { ru, enUS, ky as kyLocale } from "date-fns/locale";
+import { ru, enUS } from "date-fns/locale";
 
 interface UserCardProps {
   user: {
@@ -21,7 +21,7 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const roleColors: Record<string, string> = {
     client: "#3b82f6",
@@ -41,7 +41,7 @@ export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
   const statusColor = user.status === "active" ? "#10b981" : "#ef4444";
   
   const getDateLocale = () => {
-    switch (i18n.language) {
+    switch (language) {
       case "ru":
         return ru;
       case "ky":

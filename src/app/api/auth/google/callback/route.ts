@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { SignJWT } from "jose";
-import { cookies } from "next/headers";
+import { createUserSession } from "@/server/auth/session";
 
 export const dynamic = 'force-dynamic';
 
@@ -94,31 +93,13 @@ export async function GET(req: NextRequest) {
       console.log('[Google OAuth Callback] Existing user found:', user.id);
     }
 
-    // Create JWT session token
-    console.log('[Google OAuth Callback] Creating session token...');
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
-    const token = await new SignJWT({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      needsSetup: !user.name || !user.avatar
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('30d')
-      .sign(secret);
+    if (user.status !== 'active') {
+      console.error('[Google OAuth Callback] User is not active:', user.id);
+      return NextResponse.redirect(new URL('/login?error=account_blocked', req.url));
+    }
 
-    console.log('[Google OAuth Callback] Setting session cookie...');
-    
-    // Set cookie
-    const cookieStore = cookies();
-    cookieStore.set('session-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: '/'
-    });
+    console.log('[Google OAuth Callback] Creating session...');
+    await createUserSession(user);
 
     console.log('[Google OAuth Callback] Success! Redirecting to home...');
     

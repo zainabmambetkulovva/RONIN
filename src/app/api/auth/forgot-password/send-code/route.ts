@@ -56,9 +56,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // TODO: Отправить код на email через Resend
-    // Пока выводим в консоль
-    console.log(`\n🔐 PASSWORD RESET CODE: ${code} для ${email}\n`);
+    // Код выводится в консоль только при локальной разработке
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[DEV] Password reset code for ${email}: ${code}`);
+    }
 
     // В production отправить через Resend
     if (process.env.RESEND_API_KEY) {

@@ -1,147 +1,76 @@
-import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { ApiError, forbidden, handle, parseJson, unauthorized } from "@/server/http";
+import { verifyTwoFactorToken } from "@/server/auth/tokens";
+import { hashTwoFactorCode } from "@/server/auth/two-factor";
+import { createStaffSession, type StaffUser } from "@/server/auth/staff";
+import { writeAuditLog } from "@/server/services/audit";
+import { TWO_FACTOR_MAX_ATTEMPTS, TWO_FACTOR_TTL_SECONDS } from "@/server/config";
 
-export async function POST(req: NextRequest) {
-  try {
-    const { sessionToken, code } = await req.json();
+const schema = z.object({
+  sessionToken: z.string().min(1, "Session token и код обязательны"),
+  code: z.string().trim().regex(/^\d{6}$/, "Код должен состоять из 6 цифр"),
+});
 
-    console.log('Verify-2FA request:', { 
-      sessionToken: sessionToken ? 'exists' : 'missing', 
-      code: code ? code : 'missing'
-    });
+/**
+ * POST /api/admin/auth/verify-2fa
+ * Шаг 2 входа персонала: проверка Telegram-кода, выдача сессии в httpOnly cookie `admin-token`.
+ */
+export const POST = handle(async (req) => {
+  const { sessionToken, code } = await parseJson(req, schema);
 
-    // Validation
-    if (!sessionToken || !code) {
-      console.error('Missing fields:', { sessionToken: !!sessionToken, code: !!code });
-      return NextResponse.json(
-        { error: "Session token и код обязательны" },
-        { status: 400 }
-      );
-    }
+  const pending = await verifyTwoFactorToken(sessionToken);
+  if (!pending) throw unauthorized("Сессия истекла или неверна");
 
-    // Проверить и декодировать JWT session token
-    let session;
-    try {
-      const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
-      session = jwt.verify(sessionToken, jwtSecret) as { userId: string; type: string };
-      
-      if (session.type !== "2fa_pending") {
-        return NextResponse.json(
-          { error: "Неверный тип сессии" },
-          { status: 401 }
-        );
-      }
-    } catch (error) {
-      console.error('JWT verification failed:', error);
-      return NextResponse.json(
-        { error: "Сессия истекла или неверна" },
-        { status: 401 }
-      );
-    }
-
-    // Проверить код в БД
-    const verification = await prisma.telegram_verifications.findFirst({
-      where: { user_id: session.userId },
-    });
-
-    if (!verification) {
-      return NextResponse.json(
-        { error: "Код не найден" },
-        { status: 404 }
-      );
-    }
-
-    // Проверить срок действия
-    if (new Date() > verification.expires_at) {
-      await prisma.telegram_verifications.delete({
-        where: { id: verification.id },
-      });
-      return NextResponse.json(
-        { error: "Код истек. Пожалуйста, запросите новый" },
-        { status: 401 }
-      );
-    }
-
-    // Проверить код
-    if (verification.code !== code) {
-      return NextResponse.json(
-        { error: "Неверный код" },
-        { status: 401 }
-      );
-    }
-
-    // Получить пользователя
-    const user = await prisma.users.findFirst({
-      where: { id: session.userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        avatar: true,
-      },
-    });
-
-    if (!user || (user.role !== "admin" && user.role !== "manager")) {
-      return NextResponse.json(
-        { error: "Пользователь не найден или не имеет прав" },
-        { status: 403 }
-      );
-    }
-
-    // Удалить использованный код
-    await prisma.telegram_verifications.delete({
-      where: { id: verification.id },
-    });
-
-    // Создать JWT токен для админ панели
-    const jwtSecret = process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production";
-    const adminToken = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        type: "admin_session"
-      },
-      jwtSecret,
-      { expiresIn: "7d" }
-    );
-
-    // Создать audit log
-    try {
-      await prisma.audit_logs.create({
-        data: {
-          id: require('crypto').randomUUID(),
-          user_id: user.id,
-          action: "ADMIN_LOGIN",
-          entity_type: "Auth",
-          entity_id: user.id,
-          new_data: { timestamp: new Date().toISOString() },
-          created_at: new Date(),
-        },
-      });
-    } catch (auditError) {
-      console.warn("Failed to create audit log:", auditError);
-    }
-
-    // Вернуть токен клиенту
-    return NextResponse.json({
-      success: true,
-      token: adminToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-    });
-  } catch (error: any) {
-    console.error("2FA verification error:", error);
-    return NextResponse.json(
-      { error: error.message || "Ошибка сервера" },
-      { status: 500 }
-    );
+  // Ограничение попыток ввода кода: после превышения код аннулируется
+  const attempts = await checkRateLimit(
+    req,
+    `admin-verify-2fa:${pending.userId}`,
+    TWO_FACTOR_MAX_ATTEMPTS,
+    TWO_FACTOR_TTL_SECONDS * 1000
+  );
+  if (!attempts.allowed) {
+    await prisma.telegram_verifications.deleteMany({ where: { user_id: pending.userId } });
+    throw new ApiError(429, "Слишком много попыток. Запросите новый код", "rate_limited");
   }
-}
+
+  const verification = await prisma.telegram_verifications.findFirst({ where: { user_id: pending.userId } });
+  if (!verification) throw unauthorized("Код не найден. Запросите новый");
+
+  if (new Date() > verification.expires_at) {
+    await prisma.telegram_verifications.delete({ where: { id: verification.id } });
+    throw unauthorized("Код истек. Пожалуйста, запросите новый");
+  }
+
+  const expected = Buffer.from(verification.code);
+  const actual = Buffer.from(hashTwoFactorCode(code));
+  if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) {
+    throw unauthorized("Неверный код");
+  }
+
+  const user = await prisma.users.findUnique({ where: { id: pending.userId } });
+  if (!user || user.status !== "active" || (user.role !== "admin" && user.role !== "manager")) {
+    throw forbidden("Пользователь не найден или не имеет прав");
+  }
+
+  await prisma.telegram_verifications.delete({ where: { id: verification.id } });
+
+  await createStaffSession(user as StaffUser);
+
+  await writeAuditLog({
+    userId: user.id,
+    action: "ADMIN_LOGIN",
+    entityType: "Auth",
+    entityId: user.id,
+    newData: { timestamp: new Date().toISOString() },
+  });
+
+  // Токен не возвращается в теле ответа: сессия живёт только в httpOnly cookie
+  return NextResponse.json({
+    success: true,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+  });
+});

@@ -1,36 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { handle } from "@/server/http";
+import { tariffInclude, toTariffDTO } from "@/server/mappers";
 
-// GET /api/tariffs - получить тарифы по категории
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const categoryId = searchParams.get("categoryId");
+export const dynamic = "force-dynamic";
 
-    if (!categoryId) {
-      return NextResponse.json(
-        { error: "Category ID is required" },
-        { status: 400 }
-      );
-    }
+/**
+ * GET /api/tariffs - активные тарифы (единственный публичный источник цен).
+ *
+ * `categoryId` — тарифы, применимые к категории компьютеров
+ * (тарифы этой категории и общие тарифы без категории).
+ */
+export const GET = handle(async (req) => {
+  const categoryId = req.nextUrl.searchParams.get("categoryId");
 
-    const tariffs = await prisma.tariffs.findMany({
-      where: {
-        category_id: categoryId,
-        is_active: true,
-      },
-      orderBy: [
-        { type: "asc" },
-        { duration_minutes: "asc" },
-      ],
-    });
-
-    return NextResponse.json({ tariffs, total: tariffs.length });
-  } catch (error) {
-    console.error("Error fetching tariffs:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch tariffs" },
-      { status: 500 }
-    );
+  const where: Prisma.tariffsWhereInput = { is_active: true };
+  if (categoryId) {
+    where.OR = [{ category_id: categoryId }, { category_id: null }];
   }
-}
+
+  const tariffs = await prisma.tariffs.findMany({
+    where,
+    include: tariffInclude,
+    orderBy: [{ type: "asc" }, { duration_minutes: "asc" }],
+  });
+
+  const items = tariffs.map(toTariffDTO);
+  return NextResponse.json({ tariffs: items, total: items.length });
+});

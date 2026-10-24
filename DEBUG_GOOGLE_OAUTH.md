@@ -80,10 +80,10 @@ https://ronin-mjlm.vercel.app/api/auth/google/test
 2. Текшерүү керек:
 
 ```env
-GOOGLE_CLIENT_ID = 499331f352-7dvmjumliopcicmdi0inv15t6udigmn.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET = 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
+GOOGLE_CLIENT_ID = <your-client-id>
+GOOGLE_CLIENT_SECRET = <your-client-secret>
 NEXTAUTH_URL = https://ronin-mjlm.vercel.app
-NEXTAUTH_SECRET = 2a3/JO8FlzMH7txi7s4tPOFQ7wX5inZ6eoZqQG1Qcsk=
+NEXTAUTH_SECRET = <your-nextauth-secret>
 ```
 
 **Маанилүү:**

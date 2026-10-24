@@ -1,134 +1,101 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, BookingStatus } from "@prisma/client";
-import { withAdminProtection } from "@/lib/with-admin-protection";
-
-const prisma = new PrismaClient();
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { conflict, handle, notFound, parseJson } from "@/server/http";
+import { requireStaff } from "@/server/auth/staff";
+import { bookingInclude, toBookingDTO } from "@/server/mappers";
+import { cancelBooking } from "@/server/services/bookings";
+import { notifyUser, writeAuditLog } from "@/server/services/audit";
 
 // GET /api/admin/bookings/[id]
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+export const GET = handle<{ id: string }>(async (req, { params }) => {
+  await requireStaff(req);
+  const booking = await prisma.bookings.findUnique({ where: { id: params.id }, include: bookingInclude });
+  if (!booking) throw notFound("Booking not found");
+  return NextResponse.json({ booking: toBookingDTO(booking) });
+});
 
-  try {
-    const booking = await prisma.bookings.findUnique({
-      where: { id: params.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            email: true,
-          },
-        },
-        computer: {
-          select: {
-            id: true,
-            number: true,
-            specifications: true,
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        tariff: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            durationMinutes: true,
-          },
-        },
-        payments: true,
-      },
-    });
+// DELETE /api/admin/bookings/[id] - отменить бронирование (возврат денег — отдельная операция)
+export const DELETE = handle<{ id: string }>(async (req, { params }) => {
+  const staff = await requireStaff(req);
+  const booking = await cancelBooking(params.id, staff.id, "Отменено персоналом");
 
-    if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-    }
+  await writeAuditLog({ userId: staff.id, action: "CANCEL_BOOKING", entityType: "Booking", entityId: params.id });
+  await notifyUser(
+    booking.user_id,
+    "booking_cancelled",
+    "Бронирование отменено",
+    `Бронирование ${booking.booking_number} отменено.`
+  );
 
-    return NextResponse.json({ booking });
-  } catch (error) {
-    console.error("Error fetching booking:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch booking" },
-      { status: 500 }
-    );
+  return NextResponse.json({ success: true, booking: toBookingDTO(booking) });
+});
+
+const patchSchema = z.object({
+  status: z.enum(["confirmed", "cancelled", "completed"]).optional(),
+  reason: z.string().trim().max(500).optional(),
+});
+
+/**
+ * PATCH /api/admin/bookings/[id] - изменить статус по правилам:
+ *  - confirmed — только если оплата подтверждена (payment_status = paid);
+ *  - completed — только из confirmed;
+ *  - cancelled — как DELETE.
+ */
+export const PATCH = handle<{ id: string }>(async (req, { params }) => {
+  const staff = await requireStaff(req);
+  const { status, reason } = await parseJson(req, patchSchema);
+
+  const booking = await prisma.bookings.findUnique({ where: { id: params.id } });
+  if (!booking) throw notFound("Booking not found");
+
+  if (!status || status === booking.status) {
+    const current = await prisma.bookings.findUniqueOrThrow({ where: { id: params.id }, include: bookingInclude });
+    return NextResponse.json({ booking: toBookingDTO(current) });
   }
-}
 
-// DELETE /api/admin/bookings/[id] - отменить бронирование
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+  if (status === "cancelled") {
+    const cancelled = await cancelBooking(params.id, staff.id, reason || "Отменено персоналом");
+    await writeAuditLog({ userId: staff.id, action: "CANCEL_BOOKING", entityType: "Booking", entityId: params.id });
+    return NextResponse.json({ booking: toBookingDTO(cancelled) });
+  }
 
-  try {
-    const booking = await prisma.bookings.update({
+  if (status === "confirmed" && booking.payment_status !== "paid") {
+    throw conflict("Нельзя подтвердить бронь без подтверждённой оплаты", "payment_required");
+  }
+  if (status === "completed" && booking.status !== "confirmed") {
+    throw conflict("Завершить можно только подтверждённую бронь", "invalid_transition");
+  }
+
+  const now = new Date();
+  const [updated] = await prisma.$transaction([
+    prisma.bookings.update({
       where: { id: params.id },
+      data: { status, updated_at: now },
+      include: bookingInclude,
+    }),
+    prisma.booking_status_history.create({
       data: {
-        status: BookingStatus.cancelled,
+        id: crypto.randomUUID(),
+        booking_id: params.id,
+        old_status: booking.status,
+        new_status: status,
+        changed_by: staff.id,
+        reason: reason || null,
+        created_at: now,
       },
-    });
+    }),
+  ]);
 
-    return NextResponse.json({ success: true, booking });
-  } catch (error) {
-    console.error("Error cancelling booking:", error);
-    return NextResponse.json(
-      { error: "Failed to cancel booking" },
-      { status: 500 }
-    );
-  }
-}
+  await writeAuditLog({
+    userId: staff.id,
+    action: "UPDATE_BOOKING_STATUS",
+    entityType: "Booking",
+    entityId: params.id,
+    oldData: { status: booking.status },
+    newData: { status },
+  });
 
-// PATCH /api/admin/bookings/[id] - обновить статус
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const body = await req.json();
-    const { status, isExpired } = body;
-
-    const booking = await prisma.booking.update({
-      where: { id: params.id },
-      data: {
-        ...(status && { status: status as BookingStatus }),
-        ...(isExpired !== undefined && { isExpired }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-        computer: {
-          select: {
-            id: true,
-            number: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ booking });
-  } catch (error) {
-    console.error("Error updating booking:", error);
-    return NextResponse.json(
-      { error: "Failed to update booking" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ booking: toBookingDTO(updated) });
+});

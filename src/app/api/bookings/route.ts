@@ -1,226 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { handle, parseJson } from "@/server/http";
+import { requireUser } from "@/server/auth/session";
+import { bookingInclude, toBookingDTO } from "@/server/mappers";
+import { createBooking } from "@/server/services/bookings";
 import { sendNewBookingNotification } from "@/lib/telegram";
 
-// POST /api/bookings - создать новое бронирование
-export async function POST(req: NextRequest) {
-  try {
-    // Получаем сессию пользователя
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+export const dynamic = "force-dynamic";
 
-    const body = await req.json();
-    const { computerId, tariffId, startAt } = body;
+const createSchema = z.object({
+  computerId: z.string({ required_error: "Выберите компьютер" }).min(1, "Выберите компьютер"),
+  tariffId: z.string({ required_error: "Выберите тариф" }).min(1, "Выберите тариф"),
+  startAt: z.coerce.date({ errorMap: () => ({ message: "Некорректное время начала" }) }),
+});
 
-    // Validation
-    if (!computerId || !tariffId || !startAt) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
+// POST /api/bookings - создать бронирование (статус pending до подтверждения оплаты)
+export const POST = handle(async (req) => {
+  const user = await requireUser();
+  const input = await parseJson(req, createSchema);
 
-    // Get tariff info
-    const tariff = await prisma.tariffs.findFirst({
-      where: { id: tariffId },
-    });
+  const booking = await createBooking({ userId: user.id, ...input });
 
-    if (!tariff) {
-      return NextResponse.json(
-        { error: "Tariff not found" },
-        { status: 404 }
-      );
-    }
-
-    // Calculate start and end times
-    const startTime = new Date(startAt);
-    const endAt = new Date(startTime.getTime() + tariff.duration_minutes * 60000);
-
-    // Check if computer is available (temporarily disabled for testing)
-    // TODO: Re-enable after testing payment flow
-    const existingBooking = null; // await prisma.bookings.findFirst({
-    //   where: {
-    //     computer_id: computerId,
-    //     status: { in: ["pending", "confirmed"] },
-    //     OR: [
-    //       {
-    //         AND: [
-    //           { start_at: { lte: startTime } },
-    //           { end_at: { gt: startTime } },
-    //         ],
-    //       },
-    //       {
-    //         AND: [
-    //           { start_at: { lt: endAt } },
-    //           { end_at: { gte: endAt } },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // });
-
-    if (existingBooking) {
-      return NextResponse.json(
-        { error: "Computer is not available at this time" },
-        { status: 409 }
-      );
-    }
-
-    // Generate unique booking number and code
-    const bookingNumber = `RON-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-    const bookingCode = Math.random().toString().substring(2, 7); // 5-digit code
-    const qrToken = crypto.randomBytes(32).toString("hex");
-
-    // Create booking
-    const booking = await prisma.bookings.create({
-      data: {
-        id: crypto.randomUUID(),
-        booking_number: bookingNumber,
-        booking_code: bookingCode,
-        user_id: session.user.id,
-        computer_id: computerId,
-        tariff_id: tariffId,
-        start_at: startTime,
-        end_at: endAt,
-        duration_minutes: tariff.duration_minutes,
-        price: tariff.price,
-        status: "pending",
-        qr_token: qrToken,
-        payment_status: "pending",
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-    });
-
-    console.log("✅ Booking created successfully:", {
-      id: booking.id,
-      bookingNumber: booking.booking_number,
+  // Уведомление администраторам в Telegram не блокирует ответ
+  const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+  if (adminChatId) {
+    sendNewBookingNotification(adminChatId, {
       bookingCode: booking.booking_code,
-      userId: booking.user_id,
-      computerId: booking.computer_id,
-    });
-
-    // Получить данные для уведомления
-    const bookingWithDetails = await prisma.bookings.findUnique({
-      where: { id: booking.id },
-      include: {
-        users: {
-          select: { name: true }
-        },
-        computers: {
-          include: {
-            computer_categories: {
-              select: { name: true }
-            }
-          }
-        },
-        tariffs: {
-          select: { name: true }
-        }
-      }
-    });
-
-    // Отправить уведомление в Telegram (не блокируем ответ если ошибка)
-    const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-    if (adminChatId && bookingWithDetails) {
-      sendNewBookingNotification(adminChatId, {
-        bookingCode: bookingWithDetails.booking_code,
-        userName: bookingWithDetails.users.name,
-        computerName: bookingWithDetails.computers.computer_categories.name,
-        computerNumber: bookingWithDetails.computers.number,
-        tariffName: bookingWithDetails.tariffs.name,
-        startAt: bookingWithDetails.start_at,
-        endAt: bookingWithDetails.end_at,
-        price: bookingWithDetails.price.toString(),
-      }).catch((error) => {
-        console.error("Failed to send Telegram booking notification:", error);
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      booking,
-    });
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    return NextResponse.json(
-      { error: "Failed to create booking" },
-      { status: 500 }
-    );
-  }
-}
-
-// GET /api/bookings - получить бронирования пользователя
-export async function GET(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const bookings = await prisma.bookings.findMany({
-      where: {
-        user_id: session.user.id,
-      },
-      include: {
-        computers: {
-          include: {
-            computer_categories: true,
-          },
-        },
-        tariffs: true,
-        payments: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
-
-    // Transform to match expected format
-    const transformedBookings = bookings.map((booking) => ({
-      id: booking.id,
-      bookingNumber: booking.booking_number,
-      bookingCode: booking.booking_code,
+      userName: booking.users.name,
+      computerName: booking.computers.computer_categories.name,
+      computerNumber: booking.computers.number,
+      tariffName: booking.tariffs.name,
       startAt: booking.start_at,
       endAt: booking.end_at,
-      durationMinutes: booking.duration_minutes,
       price: booking.price.toString(),
-      status: booking.status,
-      isExpired: booking.is_expired,
-      computer: {
-        number: booking.computers.number,
-        category: {
-          name: booking.computers.computer_categories.name,
-        },
-      },
-      tariff: {
-        name: booking.tariffs.name,
-      },
-      payments: booking.payments.map((p) => ({
-        status: p.status,
-        paidAt: p.paid_at,
-      })),
-    }));
-
-    return NextResponse.json({ bookings: transformedBookings, total: transformedBookings.length });
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch bookings" },
-      { status: 500 }
-    );
+    }).catch((error) => console.error("Failed to send Telegram booking notification:", error));
   }
-}
+
+  return NextResponse.json({ success: true, booking: toBookingDTO(booking) }, { status: 201 });
+});
+
+// GET /api/bookings - бронирования текущего пользователя
+export const GET = handle(async () => {
+  const user = await requireUser();
+
+  const bookings = await prisma.bookings.findMany({
+    where: { user_id: user.id },
+    include: bookingInclude,
+    orderBy: { created_at: "desc" },
+  });
+
+  const items = bookings.map((b) => toBookingDTO(b, { includeUser: false }));
+  return NextResponse.json({ bookings: items, total: items.length });
+});

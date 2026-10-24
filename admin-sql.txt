@@ -24,7 +24,7 @@ VALUES (
   gen_random_uuid(),
   'admin@ronin.kg',
   'Admin RONIN',
-  '$2a$10$abcdefghijklmnopqrstuv1234567890123456789012345678',
+  '<BCRYPT_HASH: node generate-hash.js "<пароль>">',
   '8824394948',
   'admin',
   'active',

@@ -1,124 +1,72 @@
-import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { UserRole, UserStatus } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { conflict, handle, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { toUserListItemDTO, userListSelect } from "@/server/mappers";
+import { writeAuditLog } from "@/server/services/audit";
 
+export const dynamic = "force-dynamic";
 
+// GET /api/admin/managers - список менеджеров
+export const GET = handle(async (req) => {
+  await requireAdmin(req);
 
-// GET /api/admin/managers - получить всех менеджеров
-export async function GET(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+  const managers = await prisma.users.findMany({
+    where: { role: "manager" },
+    select: userListSelect,
+    orderBy: { created_at: "desc" },
+  });
 
-  try {
-    const managers = await prisma.users.findMany({
-      where: {
-        role: UserRole.manager,
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        status: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
+  const items = managers.map(toUserListItemDTO);
+  return NextResponse.json({ managers: items, total: items.length });
+});
 
-    // Transform for frontend
-    const transformedManagers = managers.map((m) => ({
-      id: m.id,
-      name: m.name,
-      phone: m.phone,
-      email: m.email,
-      status: m.status,
-      createdAt: m.created_at,
-      updatedAt: m.updated_at,
-    }));
-
-    return NextResponse.json({ managers: transformedManagers, total: transformedManagers.length });
-  } catch (error) {
-    console.error("Error fetching managers:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch managers" },
-      { status: 500 }
-    );
-  }
-}
+const createSchema = z.object({
+  name: z.string({ required_error: "Name and phone are required" }).trim().min(1).max(100),
+  phone: z.string({ required_error: "Name and phone are required" }).trim().min(1).max(20),
+  email: z.string().trim().email("Некорректный email").optional().or(z.literal("")),
+  password: z.string({ required_error: "Пароль обязателен" }).min(8, "Пароль должен быть не короче 8 символов"),
+});
 
 // POST /api/admin/managers - создать менеджера
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { name, phone, email, password } = body;
+export const POST = handle(async (req) => {
+  const admin = await requireAdmin(req);
+  const input = await parseJson(req, createSchema);
+  const email = input.email || null;
 
-    if (!name || !phone) {
-      return NextResponse.json(
-        { error: "Name and phone are required" },
-        { status: 400 }
-      );
-    }
+  const existing = await prisma.users.findFirst({
+    where: { OR: [{ phone: input.phone }, ...(email ? [{ email }] : [])] },
+    select: { id: true },
+  });
+  if (existing) throw conflict("User with this phone or email already exists");
 
-    // Проверка уникальности
-    const existing = await prisma.users.findFirst({
-      where: {
-        OR: [
-          { phone },
-          ...(email ? [{ email }] : []),
-        ],
-      },
-    });
+  const now = new Date();
+  const manager = await prisma.users.create({
+    data: {
+      id: crypto.randomUUID(),
+      name: input.name,
+      phone: input.phone,
+      email,
+      password: await bcrypt.hash(input.password, 10),
+      role: "manager",
+      status: "active",
+      avatar: "default",
+      created_at: now,
+      updated_at: now,
+    },
+    select: userListSelect,
+  });
 
-    if (existing) {
-      return NextResponse.json(
-        { error: "User with this phone or email already exists" },
-        { status: 409 }
-      );
-    }
+  await writeAuditLog({
+    userId: admin.id,
+    action: "CREATE_MANAGER",
+    entityType: "User",
+    entityId: manager.id,
+    newData: { name: manager.name, email: manager.email, phone: manager.phone },
+  });
 
-    const manager = await prisma.users.create({
-      data: {
-        name,
-        phone,
-        email,
-        password: await bcrypt.hash(password, 10),
-        role: UserRole.manager,
-        status: UserStatus.active,
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        role: true,
-        status: true,
-        created_at: true,
-      },
-    });
-
-    // Transform for frontend
-    const transformedManager = {
-      id: manager.id,
-      name: manager.name,
-      phone: manager.phone,
-      email: manager.email,
-      role: manager.role,
-      status: manager.status,
-      createdAt: manager.created_at,
-    };
-
-    return NextResponse.json({ manager: transformedManager }, { status: 201 });
-  } catch (error) {
-    console.error("Error creating manager:", error);
-    return NextResponse.json(
-      { error: "Failed to create manager" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json({ manager: toUserListItemDTO(manager) }, { status: 201 });
+});

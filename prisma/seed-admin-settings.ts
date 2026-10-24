@@ -2,25 +2,31 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Environment variable ${name} is required`);
+  return value;
+}
+
 async function main() {
   console.log('🔧 Добавление настроек админа...');
 
   // Telegram Bot Token
-  await prisma.setting.upsert({
+  await prisma.settings.upsert({
     where: { key: 'ADMIN_TELEGRAM_BOT_TOKEN' },
     update: {
-      value: process.env.TELEGRAM_BOT_TOKEN || '8824394948:AAE7yJ-Ync30pXVHZo7AOyjDD_1ad_TPc0s',
+      value: requireEnv('TELEGRAM_BOT_TOKEN'),
       description: 'Telegram бот для отправки 2FA кодов админам',
     },
     create: {
       key: 'ADMIN_TELEGRAM_BOT_TOKEN',
-      value: process.env.TELEGRAM_BOT_TOKEN || '8824394948:AAE7yJ-Ync30pXVHZo7AOyjDD_1ad_TPc0s',
+      value: requireEnv('TELEGRAM_BOT_TOKEN'),
       description: 'Telegram бот для отправки 2FA кодов админам',
     },
   });
 
   // Admin Telegram User ID (замените на реальный!)
-  await prisma.setting.upsert({
+  await prisma.settings.upsert({
     where: { key: 'ADMIN_TELEGRAM_USER_ID' },
     update: {
       value: '123456789', // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ TELEGRAM ID

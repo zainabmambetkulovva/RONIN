@@ -167,10 +167,10 @@ https://abc123.ngrok.io
 
 2. **Vercel Env Variables** - туура болсун:
    ```
-   GOOGLE_CLIENT_ID=499331f352...
-   GOOGLE_CLIENT_SECRET=GOCSPX-hDpp3uD...
+   GOOGLE_CLIENT_ID=<your-client-id>
+   GOOGLE_CLIENT_SECRET=<your-client-secret>
    NEXTAUTH_URL=https://ronin-mjlm.vercel.app
-   NEXTAUTH_SECRET=2a3/JO8FlzM...
+   NEXTAUTH_SECRET=<your-nextauth-secret>
    ```
 
 ### 🟡 Мажор эмес:

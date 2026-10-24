@@ -1,185 +1,102 @@
-import { NextRequest, NextResponse } from "next/server";
-import { UserRole, UserStatus } from "@prisma/client";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { withAdminProtection } from "@/lib/with-admin-protection";
+import { badRequest, conflict, handle, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
+import { toUserListItemDTO, userListSelect } from "@/server/mappers";
+import { writeAuditLog } from "@/server/services/audit";
 
-// GET /api/admin/users - получить всех пользователей
-export async function GET(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
+export const dynamic = "force-dynamic";
 
-  try {
-    const searchParams = req.nextUrl.searchParams;
-    const role = searchParams.get("role");
-    const status = searchParams.get("status");
+const ROLES = ["client", "manager", "admin"] as const;
+const STATUSES = ["active", "blocked", "deleted"] as const;
 
-    const where: any = {};
+// GET /api/admin/users - список пользователей (?role=, ?status=, ?q=)
+export const GET = handle(async (req) => {
+  await requireAdmin(req);
 
-    if (role && role !== "all") {
-      where.role = role as UserRole;
-    }
+  const { searchParams } = req.nextUrl;
+  const role = searchParams.get("role");
+  const status = searchParams.get("status");
+  const q = searchParams.get("q")?.trim();
 
-    if (status && status !== "all") {
-      where.status = status as UserStatus;
-    }
-
-    const users = await prisma.users.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        avatar: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
-
-    // Transform snake_case to camelCase for frontend
-    const transformedUsers = users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      avatar: user.avatar,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-    }));
-
-    return NextResponse.json({ users: transformedUsers, total: transformedUsers.length });
-  } catch (error: any) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch users" },
-      { status: 500 }
-    );
+  const where: Prisma.usersWhereInput = {};
+  if (role && role !== "all") {
+    if (!ROLES.includes(role as (typeof ROLES)[number])) throw badRequest("Некорректная роль");
+    where.role = role as (typeof ROLES)[number];
   }
-}
-
-// POST /api/admin/users - создать нового пользователя
-export async function POST(req: NextRequest) {
-  // Protect admin endpoint
-  const adminCheck = await withAdminProtection(req);
-  if (adminCheck.error) return adminCheck.response;
-
-  try {
-    const adminId = "system"; // Admin ID will be in token, but we keep it for compatibility
-
-    const body = await req.json();
-    const { name, email, phone, role } = body;
-
-    // Validation
-    if (!name || !name.trim()) {
-      return NextResponse.json(
-        { error: "Name is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!email && !phone) {
-      return NextResponse.json(
-        { error: "Email or phone is required" },
-        { status: 400 }
-      );
-    }
-
-    // Check if user already exists
-    if (email) {
-      const existingUser = await prisma.users.findUnique({
-        where: { email },
-      });
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "User with this email already exists" },
-          { status: 409 }
-        );
-      }
-    }
-
-    if (phone) {
-      const existingUser = await prisma.users.findUnique({
-        where: { phone },
-      });
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "User with this phone already exists" },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Create user
-    const user = await prisma.users.create({
-      data: {
-        name: name.trim(),
-        email: email || null,
-        phone: phone || null,
-        role: (role as UserRole) || UserRole.client,
-        status: UserStatus.active,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        avatar: true,
-        created_at: true,
-      },
-    });
-
-    // Transform for frontend
-    const transformedUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      avatar: user.avatar,
-      createdAt: user.created_at,
-    };
-
-    // Try to create audit log (не блокирует создание пользователя если не получится)
-    try {
-      await prisma.audit_logs.create({
-        data: {
-          user_id: adminId,
-          action: "CREATE_USER",
-          entity_type: "User",
-          entity_id: user.id,
-          new_data: { name: user.name, email: user.email, phone: user.phone, role: user.role },
-        },
-      });
-    } catch (auditError) {
-      console.warn("Failed to create audit log:", auditError);
-      // Не прерываем выполнение, просто логируем
-    }
-
-    return NextResponse.json({
-      success: true,
-      user: transformedUser,
-      message: "User created successfully",
-    });
-  } catch (error: any) {
-    console.error("Error creating user:", error);
-    
-    // Более детальное сообщение об ошибке
-    const errorMessage = error.message || "Failed to create user";
-    
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+  if (status && status !== "all") {
+    if (!STATUSES.includes(status as (typeof STATUSES)[number])) throw badRequest("Некорректный статус");
+    where.status = status as (typeof STATUSES)[number];
   }
-}
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { phone: { contains: q } },
+    ];
+  }
+
+  const users = await prisma.users.findMany({ where, select: userListSelect, orderBy: { created_at: "desc" } });
+  const items = users.map(toUserListItemDTO);
+  return NextResponse.json({ users: items, total: items.length });
+});
+
+const createSchema = z
+  .object({
+    name: z.string({ required_error: "Name is required" }).trim().min(1, "Name is required").max(100),
+    email: z.string().trim().email("Некорректный email").optional().or(z.literal("")),
+    phone: z.string().trim().max(20).optional().or(z.literal("")),
+    role: z.enum(ROLES).default("client"),
+    password: z.string().min(8, "Пароль должен быть не короче 8 символов").optional().or(z.literal("")),
+  })
+  .refine((d) => d.email || d.phone, { message: "Email or phone is required" });
+
+// POST /api/admin/users - создать пользователя или сотрудника
+export const POST = handle(async (req) => {
+  const admin = await requireAdmin(req);
+  const input = await parseJson(req, createSchema);
+
+  const email = input.email || null;
+  const phone = input.phone || null;
+
+  if (email && (await prisma.users.findUnique({ where: { email }, select: { id: true } }))) {
+    throw conflict("User with this email already exists");
+  }
+  if (phone && (await prisma.users.findUnique({ where: { phone }, select: { id: true } }))) {
+    throw conflict("User with this phone already exists");
+  }
+
+  const now = new Date();
+  const user = await prisma.users.create({
+    data: {
+      id: crypto.randomUUID(),
+      name: input.name,
+      email,
+      phone,
+      role: input.role,
+      status: "active",
+      avatar: "default",
+      password: input.password ? await bcrypt.hash(input.password, 10) : null,
+      created_at: now,
+      updated_at: now,
+    },
+    select: userListSelect,
+  });
+
+  await writeAuditLog({
+    userId: admin.id,
+    action: "CREATE_USER",
+    entityType: "User",
+    entityId: user.id,
+    newData: { name: user.name, email: user.email, phone: user.phone, role: user.role },
+  });
+
+  return NextResponse.json(
+    { success: true, user: toUserListItemDTO(user), message: "User created successfully" },
+    { status: 201 }
+  );
+});

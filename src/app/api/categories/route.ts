@@ -1,33 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handle } from "@/server/http";
+import { categoryInclude, toCategoryDTO } from "@/server/mappers";
 
+export const dynamic = "force-dynamic";
 
+// GET /api/categories - активные категории компьютеров
+export const GET = handle(async () => {
+  const categories = await prisma.computer_categories.findMany({
+    where: { is_active: true },
+    include: categoryInclude,
+    orderBy: { name: "asc" },
+  });
 
-// GET /api/categories - получить все категории компьютеров
-export async function GET(req: NextRequest) {
-  try {
-    const categories = await prisma.computer_categories.findMany({
-      where: { is_active: true },
-      include: {
-        _count: {
-          select: {
-            computers: true,
-            tariffs: true,
-          },
-        },
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-
-    return NextResponse.json({ categories, total: categories.length });
-  } catch (error: any) {
-    console.error("Error fetching categories:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch categories", details: error.message },
-      { status: 500 }
-    );
-  }
-}
+  const items = categories.map(toCategoryDTO);
+  return NextResponse.json({ categories: items, total: items.length });
+});
