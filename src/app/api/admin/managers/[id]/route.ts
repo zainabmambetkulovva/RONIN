@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 const prisma = new PrismaClient();
 
@@ -9,8 +10,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    const manager = await prisma.user.findUnique({
+    const manager = await prisma.users.findUnique({
       where: { id: params.id },
       select: {
         id: true,
@@ -43,8 +48,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id: params.id },
     });
 
@@ -63,6 +72,10 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const body = await req.json();
     const { status, name, phone, email, password } = body;
@@ -76,7 +89,7 @@ export async function PATCH(
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    const manager = await prisma.user.update({
+    const manager = await prisma.users.update({
       where: { id: params.id },
       data: updateData,
       select: {

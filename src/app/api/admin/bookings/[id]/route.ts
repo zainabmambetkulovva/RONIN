@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, BookingStatus } from "@prisma/client";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 const prisma = new PrismaClient();
 
@@ -8,8 +9,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    const booking = await prisma.booking.findUnique({
+    const booking = await prisma.bookings.findUnique({
       where: { id: params.id },
       include: {
         user: {
@@ -64,8 +69,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    const booking = await prisma.booking.update({
+    const booking = await prisma.bookings.update({
       where: { id: params.id },
       data: {
         status: BookingStatus.cancelled,

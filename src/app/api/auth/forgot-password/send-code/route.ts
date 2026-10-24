@@ -37,18 +37,20 @@ export async function POST(req: NextRequest) {
 
     // Генерировать 6-значный код
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Хэшировать код для безопасного хранения
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
 
     // Удалить старые коды для этого email
     await prisma.password_reset_codes.deleteMany({
       where: { email },
     });
 
-    // Сохранить код (действителен 10 минут)
+    // Сохранить хэш кода (действителен 10 минут)
     await prisma.password_reset_codes.create({
       data: {
         id: crypto.randomUUID(),
         email,
-        code,
+        code: codeHash,
         expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 минут
         created_at: new Date(),
       },

@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const now = new Date();
     

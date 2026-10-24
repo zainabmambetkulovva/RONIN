@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 const prisma = new PrismaClient();
 
@@ -8,21 +9,25 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const body = await req.json();
     const { name, durationMinutes, price, type, categoryId } = body;
 
-    const tariff = await prisma.tariff.update({
+    const tariff = await prisma.tariffs.update({
       where: { id: params.id },
       data: {
         name,
-        durationMinutes: parseInt(durationMinutes),
+        duration_minutes: parseInt(durationMinutes),
         price: parseFloat(price),
         type,
-        categoryId: categoryId || null,
+        category_id: categoryId || null,
       },
       include: {
-        category: true,
+        computer_categories: true,
       },
     });
 
@@ -41,8 +46,12 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    await prisma.tariff.delete({
+    await prisma.tariffs.delete({
       where: { id: params.id },
     });
 

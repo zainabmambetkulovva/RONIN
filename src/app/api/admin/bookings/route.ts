@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 
 
 // GET /api/admin/bookings - получить все бронирования
 export async function GET(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");

@@ -52,8 +52,16 @@ export async function middleware(req: NextRequest) {
 export async function adminMiddleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   
-  // Проверяем токен
-  const token = req.cookies.get('session-token')?.value;
+  // Ищем токен в cookies
+  let token = req.cookies.get('session-token')?.value;
+  
+  // Если session-token не найден, проверяем Authorization header (для API вызовов)
+  if (!token) {
+    const authHeader = req.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
   
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -63,9 +71,9 @@ export async function adminMiddleware(req: NextRequest) {
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
     const { payload } = await jwtVerify(token, secret);
     
-    // Проверка роли admin
-    if (payload.role !== 'admin') {
-      console.error('Admin access denied for user:', payload.email);
+    // Проверка, что это админская сессия (не пользовательская)
+    if (payload.type !== 'admin_session' && payload.role !== 'admin') {
+      console.error('Admin access denied for user:', payload.email || payload.userId);
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     

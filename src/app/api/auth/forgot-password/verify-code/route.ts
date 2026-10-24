@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,9 +13,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Хэшируем код для сравнения
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
     // Найти код
     const resetCode = await prisma.password_reset_codes.findFirst({
-      where: { email, code },
+      where: { email },
     });
 
     if (!resetCode) {
@@ -31,6 +35,14 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json(
         { error: "Код истек. Запросите новый код" },
+        { status: 401 }
+      );
+    }
+
+    // Сравнение кодов (хэш с сохранённым значением)
+    if (resetCode.code !== codeHash) {
+      return NextResponse.json(
+        { error: "Неверный код" },
         { status: 401 }
       );
     }

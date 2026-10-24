@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TariffType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 
 
 // POST /api/admin/tariffs - create new tariff
 export async function POST(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const body = await req.json();
     const { name, durationMinutes, price, type, categoryId } = body;

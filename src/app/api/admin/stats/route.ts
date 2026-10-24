@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserRole, UserStatus, BookingStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 
 
 // GET /api/admin/stats - общая статистика для админ панели
 export async function GET(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     // Даты для вычислений
     const now = new Date();

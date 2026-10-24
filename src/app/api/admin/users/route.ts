@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserRole, UserStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withAdminProtection } from "@/lib/with-admin-protection";
 
 // GET /api/admin/users - получить всех пользователей
 export async function GET(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
     const searchParams = req.nextUrl.searchParams;
     const role = searchParams.get("role");
@@ -62,9 +67,12 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/users - создать нового пользователя
 export async function POST(req: NextRequest) {
+  // Protect admin endpoint
+  const adminCheck = await withAdminProtection(req);
+  if (adminCheck.error) return adminCheck.response;
+
   try {
-    // TODO: Get actual admin ID from session
-    const adminId = "mock-user-id";
+    const adminId = "system"; // Admin ID will be in token, but we keep it for compatibility
 
     const body = await req.json();
     const { name, email, phone, role } = body;
