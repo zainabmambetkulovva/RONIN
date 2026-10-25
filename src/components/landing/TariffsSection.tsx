@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Moon, Package, Sun, ArrowUpRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
+import { Marquee } from "@/components/ui/Marquee";
 import type { TariffDTO, TariffType } from "@/types/api";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { formatDuration, formatPrice, useClubData } from "./useClubData";
@@ -56,9 +57,9 @@ export function TariffsSection() {
       <SectionHeading eyebrow={t("tariffs.eyebrow")} title={t("tariffs.title")} subtitle={t("tariffs.subtitle")} />
 
       {state.status === "loading" && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5" aria-busy="true" aria-label={t("tariffs.loading")}>
+        <div className="flex gap-5 overflow-hidden" aria-busy="true" aria-label={t("tariffs.loading")}>
           {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-[210px] animate-pulse rounded-2xl border border-rn-line bg-rn-surface/60" />
+            <div key={i} className="h-[230px] w-[220px] shrink-0 animate-pulse rounded-2xl border border-rn-line bg-rn-surface/60 sm:w-[250px]" />
           ))}
         </div>
       )}
@@ -73,7 +74,7 @@ export function TariffsSection() {
         <>
           {groups.length > 1 && (
             <Reveal>
-              <div role="tablist" aria-label={t("tariffs.title")} className="mb-2 flex flex-wrap gap-2">
+              <div role="tablist" aria-label={t("tariffs.title")} className="mb-2 flex flex-wrap gap-1 sm:gap-2">
                 {groups.map((g) => {
                   const isActive = g.id === current.id;
                   return (
@@ -82,7 +83,7 @@ export function TariffsSection() {
                       role="tab"
                       aria-selected={isActive}
                       onClick={() => setSelected(g.id)}
-                      className={`relative shrink-0 rounded-full px-4 py-2 font-display text-[11px] font-bold uppercase tracking-wider transition sm:px-5 sm:py-2.5 sm:text-xs sm:tracking-widest ${
+                      className={`relative shrink-0 rounded-full px-3 py-2 font-display text-[11px] font-bold uppercase tracking-wide transition sm:px-5 sm:py-2.5 sm:text-xs sm:tracking-widest ${
                         isActive ? "text-white" : "text-rn-muted hover:text-white"
                       }`}
                     >
@@ -109,16 +110,11 @@ export function TariffsSection() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35 }}
             >
-              <div
-                aria-label={`${t("tariffs.title")}: ${current.name}`}
-                className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2"
-              >
-                {current.tariffs.map((tariff, i) => (
-                  <Reveal key={tariff.id} delay={i * 0.07} y={20} className="h-full">
-                    <TariffCard tariff={tariff} />
-                  </Reveal>
+              <Marquee ariaLabel={`${t("tariffs.title")}: ${current.name}`} itemClassName="w-[220px] sm:w-[250px]" speed={35} className="mt-2">
+                {current.tariffs.map((tariff) => (
+                  <TariffCard key={tariff.id} tariff={tariff} />
                 ))}
-              </div>
+              </Marquee>
             </motion.div>
           </AnimatePresence>
         </>
@@ -135,8 +131,11 @@ function TariffCard({ tariff }: { tariff: TariffDTO }) {
   const bookingHref = tariff.categoryId ? `/booking?categoryId=${encodeURIComponent(tariff.categoryId)}` : "/booking";
 
   return (
-    <article
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-rn-line bg-rn-surface p-4 transition-all duration-500 hover:-translate-y-1 hover:border-rn-violet/60 sm:p-5"
+    <Link
+      href={bookingHref}
+      draggable={false}
+      aria-label={`${tariff.name} — ${formatPrice(tariff.price)} ${t("tariffs.currency")}`}
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-rn-line bg-rn-surface p-4 transition-all duration-500 hover:border-rn-violet/60 hover:shadow-[0_10px_30px_-12px_rgba(139,92,246,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan sm:p-5"
     >
       <div className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl transition-opacity duration-500 ${style.glow} opacity-60 group-hover:opacity-100`} aria-hidden />
       <div className={`absolute inset-x-4 top-0 h-px bg-gradient-to-r ${style.line} opacity-70`} aria-hidden />
@@ -159,14 +158,13 @@ function TariffCard({ tariff }: { tariff: TariffDTO }) {
           <span className="font-display text-3xl font-black text-white sm:text-4xl">{formatPrice(tariff.price)}</span>
           <span className="text-xs font-semibold uppercase text-rn-muted">{t("tariffs.currency")}</span>
         </div>
-        <Link
-          href={bookingHref}
+        <span
           className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-rn-line bg-white/[0.03] py-2.5 text-xs font-bold uppercase tracking-wider text-white transition group-hover:border-transparent group-hover:bg-gradient-to-r group-hover:from-rn-violet group-hover:to-rn-magenta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan"
         >
           {t("tariffs.choose")}
           <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }

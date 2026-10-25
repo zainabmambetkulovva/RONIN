@@ -15,6 +15,8 @@ interface MarqueeProps {
 }
 
 const GAP = 20;
+/** Сколько раз повторяется набор: хватает для бесшовной ленты даже при 4–5 карточках на широком экране. */
+const COPIES = 3;
 
 /**
  * Бесконечная плавная лента: едет сама (transform, без рывков и без «конца»),
@@ -38,9 +40,9 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
       const dt = Math.min(now - last, 64) / 1000;
       last = now;
       // Ширина одного набора карточек вместе с промежутком
-      const half = track.scrollWidth / 2;
-      if (!reduceMotion && !s.hover && !s.drag && now >= s.resumeAt && half > 0) s.x += speed * dt;
-      if (half > 0) s.x = ((s.x % half) + half) % half;
+      const period = track.scrollWidth / COPIES;
+      if (!reduceMotion && !s.hover && !s.drag && now >= s.resumeAt && period > 0) s.x += speed * dt;
+      if (period > 0) s.x = ((s.x % period) + period) % period;
       track.style.transform = `translate3d(${-s.x}px,0,0)`;
       frame = requestAnimationFrame(loop);
     };
@@ -106,9 +108,8 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
       onClickCapture={onClickCapture}
     >
       <div ref={trackRef} className="flex w-max will-change-transform">
-        {items.map((child, i) => slide(child, `a${i}`, false))}
-        {/* Второй набор — для бесшовного повтора */}
-        {items.map((child, i) => slide(child, `b${i}`, true))}
+        {/* Первый набор доступен скринридерам и клавиатуре, повторы — только для бесшовной ленты */}
+        {Array.from({ length: COPIES }, (_, copy) => items.map((child, i) => slide(child, `${copy}-${i}`, copy > 0)))}
       </div>
     </div>
   );
