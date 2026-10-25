@@ -29,7 +29,7 @@ export function GamesSection() {
       <div className="pointer-events-none absolute -right-40 top-10 h-96 w-96 rounded-full bg-rn-magenta/15 blur-[120px]" aria-hidden />
       <SectionHeading eyebrow={t("games.eyebrow")} title={t("games.title")} subtitle={t("games.subtitle")} />
 
-      <HorizontalCarousel ariaLabel={t("games.title")} itemClassName="w-[220px] sm:w-[250px]">
+      <HorizontalCarousel ariaLabel={t("games.title")} itemClassName="w-[220px] sm:w-[250px]" autoPlayMs={2800}>
         {GAMES.map((game) => (
           <article
             key={game.name}
@@ -53,6 +53,10 @@ export function GamesSection() {
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-rn-void via-rn-void/30 to-transparent" />
+            <div
+              className="pointer-events-none absolute inset-0 -translate-x-full skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+              aria-hidden
+            />
             <div className="absolute inset-x-0 bottom-0 p-5">
               <span className="mb-2 inline-block rounded-full border border-white/15 bg-black/40 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-rn-cyan backdrop-blur">
                 {game.genre}

@@ -113,9 +113,6 @@ export function FullPageLoader({ text }: { text?: string }) {
           <p className="text-gray-400 text-base sm:text-lg font-medium animate-pulse">
             {text}
           </p>
-          <p className="text-gray-500 text-sm mt-2">
-            RONIN Gaming Club
-          </p>
         </div>
       )}
     </div>

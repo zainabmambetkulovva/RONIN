@@ -46,7 +46,7 @@ export function ReviewsSection() {
         </Reveal>
       </div>
 
-      <HorizontalCarousel ariaLabel={t("reviews.title")} itemClassName="w-[300px] sm:w-[380px]">
+      <HorizontalCarousel ariaLabel={t("reviews.title")} itemClassName="w-[300px] sm:w-[380px]" autoPlayMs={4500}>
         {reviews.map((review, i) => (
           <figure
             key={`${review.author}-${review.date}`}

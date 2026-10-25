@@ -2,6 +2,7 @@
 
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HorizontalCarouselProps {
@@ -13,6 +14,8 @@ interface HorizontalCarouselProps {
   className?: string;
   /** Показать кнопки прокрутки (на десктопе). */
   showControls?: boolean;
+  /** Автопрокрутка, мс между шагами. Пауза при наведении, касании и фокусе; выключена при «уменьшить движение». */
+  autoPlayMs?: number;
 }
 
 /**
@@ -25,7 +28,10 @@ export function HorizontalCarousel({
   itemClassName = "w-[280px]",
   className = "",
   showControls = true,
+  autoPlayMs,
 }: HorizontalCarouselProps) {
+  const reduceMotion = useReducedMotion();
+  const paused = useRef(false);
   const { t } = useLanguage();
   const trackRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
@@ -49,6 +55,27 @@ export function HorizontalCarousel({
     observer.observe(el);
     return () => observer.disconnect();
   }, [updateEdges, children]);
+
+  // Автопрокрутка на один слайд; в конце — плавно к началу
+  useEffect(() => {
+    if (!autoPlayMs || reduceMotion) return;
+    const id = setInterval(() => {
+      const el = trackRef.current;
+      if (!el || paused.current || drag.current.active || document.hidden) return;
+      const slide = el.firstElementChild as HTMLElement | null;
+      const step = slide ? slide.offsetWidth + 20 : el.clientWidth * 0.8;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+      el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + step, behavior: "smooth" });
+    }, autoPlayMs);
+    return () => clearInterval(id);
+  }, [autoPlayMs, reduceMotion]);
+
+  const pause = () => {
+    paused.current = true;
+  };
+  const resume = () => {
+    paused.current = false;
+  };
 
   const scrollByPage = (direction: 1 | -1) => {
     const el = trackRef.current;
@@ -98,7 +125,15 @@ export function HorizontalCarousel({
     "hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-rn-line bg-rn-surface/80 text-white backdrop-blur transition hover:border-rn-magenta hover:shadow-[0_0_24px_rgba(217,70,239,0.45)] disabled:pointer-events-none disabled:opacity-30";
 
   return (
-    <div className={`relative ${className}`}>
+    <div
+      className={`relative ${className}`}
+      onMouseEnter={pause}
+      onMouseLeave={resume}
+      onTouchStart={pause}
+      onTouchEnd={resume}
+      onFocus={pause}
+      onBlur={resume}
+    >
       {showControls && (
         <div className="mb-5 flex justify-end gap-3">
           <button type="button" className={controlClass} onClick={() => scrollByPage(-1)} disabled={edges.start} aria-label={t("carousel.prev")}>
@@ -127,8 +162,16 @@ export function HorizontalCarousel({
           isDragging ? "cursor-grabbing select-none" : "cursor-grab snap-x snap-mandatory scroll-smooth"
         }`}
       >
-        {Children.map(children, (child) => (
-          <div className={`shrink-0 snap-start ${itemClassName}`}>{child}</div>
+        {Children.map(children, (child, i) => (
+          <motion.div
+            className={`shrink-0 snap-start ${itemClassName}`}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.94 }}
+            whileInView={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, delay: Math.min(i, 6) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {child}
+          </motion.div>
         ))}
       </div>
     </div>

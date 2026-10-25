@@ -115,9 +115,6 @@ export function LoadingScreen() {
               <p className="text-white font-bold text-xl uppercase tracking-widest">
                 RONIN
               </p>
-              <p className="text-purple-400 text-sm uppercase tracking-wider mt-2">
-                Gaming Club
-              </p>
             </motion.div>
           </motion.div>
         </motion.div>

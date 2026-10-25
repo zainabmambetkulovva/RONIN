@@ -16,8 +16,8 @@ export function ContactsSection() {
     <Section id="contacts">
       <SectionHeading eyebrow={t("contacts.eyebrow")} title={t("contacts.title")} />
 
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+      <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr] lg:items-start">
+        <div className="grid gap-5 sm:grid-cols-2">
           <Reveal>
             <InfoCard icon={<MapPin className="h-5 w-5 text-rn-magenta" />} label={t("contacts.addressLabel")}>
               <p className="text-lg font-semibold text-white">{club.address[language]}</p>
@@ -80,8 +80,8 @@ export function ContactsSection() {
           </Reveal>
         </div>
 
-        <Reveal delay={0.1} className="min-h-[360px]">
-          <div className="relative h-full min-h-[360px] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface">
+        <Reveal delay={0.1}>
+          <div className="relative h-[260px] overflow-hidden sm:h-[300px] rounded-3xl border border-rn-line bg-rn-surface">
             <iframe
               src={club.twoGis.widgetSrc}
               title={t("contacts.mapTitle")}
