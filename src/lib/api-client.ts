@@ -81,4 +81,9 @@ export const api = {
   booking: (id: string) => request<{ booking: BookingDTO }>(`/api/bookings/${encodeURIComponent(id)}`),
   createBooking: (data: { computerId: string; tariffId: string; startAt: string }) =>
     request<{ success: true; booking: BookingDTO }>("/api/bookings", json("POST", data)),
+  cancelBooking: (id: string) =>
+    request<{ success: true; booking: BookingDTO }>(`/api/bookings/${encodeURIComponent(id)}/cancel`, json("POST")),
+  /** Ссылка на оплату Finik для своей неоплаченной брони. */
+  payBooking: (bookingId: string) =>
+    request<{ success: true; paymentUrl: string }>("/api/finik/create-payment", json("POST", { bookingId })),
 };

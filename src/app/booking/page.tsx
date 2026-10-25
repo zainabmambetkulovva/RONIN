@@ -1,205 +1,370 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSession } from "@/hooks/useSession";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { ComputerGrid } from "@/components/booking/ComputerGrid";
-import { BookingModal } from "@/components/booking/BookingModal";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
-import { BottomNav } from "@/components/layout/BottomNav";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import { CalendarDays, Clock, Monitor, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
+import { CabinetShell, PageTitle, Panel } from "@/components/cabinet/CabinetShell";
+import { SeatGrid } from "@/components/cabinet/SeatGrid";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useSession } from "@/hooks/useSession";
+import { api, ApiClientError } from "@/lib/api-client";
+import { combineDayTime, dayKey, formatDate, formatMoney, formatTimeRange } from "@/lib/format";
+import { formatDuration } from "@/components/landing/useClubData";
+import { BOOKING_HOLD_MINUTES } from "@/server/config";
+import type { CategoryDTO, ComputerDTO, TariffDTO } from "@/types/api";
 
-interface Computer {
-  id: string;
-  number: number;
-  categoryId: string;
-  category: {
-    id: string;
-    name: string;
-    description: string;
-  };
-  specifications: any;
-  status: "available" | "maintenance";
+const DAYS_AHEAD = 14;
+
+function timeSlots() {
+  const slots: string[] = [];
+  for (let h = 0; h < 24; h++) for (const m of [0, 30]) slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+  return slots;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  _count: {
-    computers: number;
-  };
+/** Ближайший получасовой слот не раньше чем через 10 минут. */
+function nextSlot() {
+  const d = new Date(Date.now() + 10 * 60_000);
+  d.setSeconds(0, 0);
+  const m = d.getMinutes();
+  d.setMinutes(m === 0 ? 0 : m <= 30 ? 30 : 60);
+  return d;
 }
 
 export default function BookingPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  
-  const [computers, setComputers] = useState<Computer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedComputer, setSelectedComputer] = useState<Computer | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { t, language } = useLanguage();
+  const { status: sessionStatus } = useSession();
 
-  // Загрузка данных
+  const [categories, setCategories] = useState<CategoryDTO[]>([]);
+  const [tariffs, setTariffs] = useState<TariffDTO[]>([]);
+  const [loadError, setLoadError] = useState(false);
+
+  const initialSlot = useMemo(nextSlot, []);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [tariffId, setTariffId] = useState<string | null>(null);
+  const [day, setDay] = useState(dayKey(initialSlot));
+  const [time, setTime] = useState(
+    `${String(initialSlot.getHours()).padStart(2, "0")}:${String(initialSlot.getMinutes()).padStart(2, "0")}`
+  );
+  const [computers, setComputers] = useState<ComputerDTO[] | null>(null);
+  const [computerId, setComputerId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   // Возврат с оплаты Finik: ведём на страницу чека, где статус проверяется на сервере
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const bookingId = params.get("bookingId");
     if (params.get("payment") === "success" && bookingId) {
       router.replace(`/booking-success?bookingId=${encodeURIComponent(bookingId)}`);
+      return;
     }
+    const preset = params.get("categoryId");
+    if (preset) setCategoryId(preset);
   }, [router]);
 
   useEffect(() => {
-    fetchData();
+    Promise.all([api.categories(), api.tariffs()])
+      .then(([c, tr]) => {
+        setCategories(c.categories);
+        setTariffs(tr.tariffs);
+      })
+      .catch(() => setLoadError(true));
   }, []);
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Загружаем компьютеры
-      const computersRes = await fetch("/api/computers");
-      const computersData = await computersRes.json();
-      setComputers(computersData.computers || []);
+  // Залы, для которых есть тарифы и компьютеры
+  const halls = useMemo(
+    () =>
+      categories
+        .filter((c) => c._count.computers > 0 && tariffs.some((tr) => tr.categoryId === c.id || tr.categoryId === null))
+        .sort((a, b) => minPrice(tariffs, a.id) - minPrice(tariffs, b.id)),
+    [categories, tariffs]
+  );
 
-      // Загружаем категории
-      const categoriesRes = await fetch("/api/categories");
-      const categoriesData = await categoriesRes.json();
-      setCategories(categoriesData.categories || []);
-      
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (halls.length && !halls.some((h) => h.id === categoryId)) setCategoryId(halls[0].id);
+  }, [halls, categoryId]);
 
-  // Фильтрация компьютеров
-  const filteredComputers = selectedCategory === "all"
-    ? computers
-    : computers.filter(c => c.categoryId === selectedCategory);
+  const hallTariffs = useMemo(
+    () => tariffs.filter((tr) => tr.categoryId === categoryId || tr.categoryId === null).sort((a, b) => a.price - b.price),
+    [tariffs, categoryId]
+  );
 
-  const handleComputerClick = (computer: Computer) => {
-    if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/booking");
+  useEffect(() => {
+    if (hallTariffs.length && !hallTariffs.some((tr) => tr.id === tariffId)) setTariffId(hallTariffs[0].id);
+  }, [hallTariffs, tariffId]);
+
+  const tariff = hallTariffs.find((tr) => tr.id === tariffId) ?? null;
+  const hall = halls.find((h) => h.id === categoryId) ?? null;
+  const start = combineDayTime(day, time);
+  const end = tariff ? new Date(start.getTime() + tariff.durationMinutes * 60_000) : null;
+  const startInPast = start.getTime() < Date.now() - 60_000;
+  const startIso = start.toISOString();
+
+  // Доступность компьютеров на выбранный интервал
+  const loadComputers = useCallback(async () => {
+    if (!categoryId || !tariff || startInPast) {
+      setComputers(null);
       return;
     }
-    setSelectedComputer(computer);
-    setIsModalOpen(true);
+    setComputers(null);
+    try {
+      const res = await api.computers({ categoryId, start: startIso, durationMinutes: tariff.durationMinutes });
+      setComputers(res.computers);
+    } catch {
+      setComputers([]);
+      setError(t("cab.book.errorLoad"));
+    }
+    // t не в зависимостях: функция перевода пересоздаётся при каждом рендере и вызвала бы повторные запросы
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, tariff, startIso, startInPast]);
+
+  useEffect(() => {
+    loadComputers();
+  }, [loadComputers]);
+
+  // Выбранный ПК больше не свободен в новом интервале — сбрасываем выбор
+  useEffect(() => {
+    if (computerId && computers && !computers.some((c) => c.id === computerId && c.availableForSlot)) setComputerId(null);
+  }, [computers, computerId]);
+
+  const computer = computers?.find((c) => c.id === computerId) ?? null;
+  const freeCount = computers?.filter((c) => c.availableForSlot).length ?? 0;
+
+  const days = useMemo(() => {
+    const list: Date[] = [];
+    const base = new Date();
+    for (let i = 0; i < DAYS_AHEAD; i++) list.push(new Date(base.getFullYear(), base.getMonth(), base.getDate() + i));
+    return list;
+  }, []);
+
+  const submit = async () => {
+    if (!tariff || !computer) return;
+    setError(null);
+
+    if (sessionStatus !== "authenticated") {
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/booking?categoryId=${categoryId ?? ""}`)}`);
+      return;
+    }
+
+    setSubmitting(true);
+    let bookingId: string | null = null;
+    try {
+      const { booking } = await api.createBooking({ computerId: computer.id, tariffId: tariff.id, startAt: startIso });
+      bookingId = booking.id;
+      const { paymentUrl } = await api.payBooking(booking.id);
+      window.location.href = paymentUrl;
+    } catch (e) {
+      const err = e instanceof ApiClientError ? e : null;
+      if (err?.code === "computer_busy") {
+        setError(t("cab.book.errorBusy"));
+        loadComputers();
+      } else if (bookingId) {
+        // Бронь создана, но ссылку на оплату получить не удалось — её можно оплатить из «Моих броней»
+        router.push("/bookings?payError=1");
+      } else {
+        setError(err?.message || t("cab.book.errorGeneric"));
+      }
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0" style={{ background: "#03030a" }}>
-      <DashboardNavbar />
+    <CabinetShell wide>
+      <PageTitle eyebrow={t("cab.book.eyebrow")} title={t("cab.book.title")} subtitle={t("cab.book.subtitle")} />
 
-      <main className="pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            {/* Back button */}
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4 group"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-bold uppercase tracking-wider">Назад</span>
-            </button>
+      {loadError && (
+        <Panel className="mb-6 flex items-center gap-3 border-rn-pink/40 text-rn-pink">
+          <AlertCircle className="h-5 w-5" /> {t("cab.book.errorLoad")}
+        </Panel>
+      )}
 
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-px w-12" style={{ background: "linear-gradient(90deg, transparent, #3b82f6)" }} />
-              <span className="text-sm font-bold uppercase tracking-[0.3em] text-blue-400">
-                БРОНИРОВАНИЕ
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white uppercase mb-4">
-              Выберите компьютер
-            </h1>
-            <p className="text-gray-400 text-lg max-w-2xl">
-              93 станции с различными характеристиками. Выберите подходящий компьютер, выберите время и оплатите онлайн.
-            </p>
-          </motion.div>
-
-          {/* Фильтры по категориям */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8"
-          >
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => setSelectedCategory("all")}
-                className={`px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all ${
-                  selectedCategory === "all"
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Все ({computers.length})
-              </button>
-              
-              {categories.map((category) => (
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="min-w-0 space-y-6">
+          {/* Шаг 1: зал и тариф */}
+          <Panel>
+            <StepTitle n={1} title={t("cab.book.step1")} />
+            <div className="rn-no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1">
+              {halls.map((h) => (
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all ${
-                    selectedCategory === category.id
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  key={h.id}
+                  onClick={() => setCategoryId(h.id)}
+                  aria-pressed={h.id === categoryId}
+                  className={`shrink-0 rounded-full px-5 py-2.5 font-display text-xs font-bold uppercase tracking-widest transition ${
+                    h.id === categoryId
+                      ? "bg-gradient-to-r from-rn-violet to-rn-magenta text-white shadow-[0_0_20px_rgba(217,70,239,0.4)]"
+                      : "border border-rn-line text-rn-muted hover:text-white"
                   }`}
                 >
-                  {category.name} ({category._count?.computers || 0})
+                  {h.name}
+                </button>
+              ))}
+              {!halls.length && !loadError && <div className="h-10 w-full animate-pulse rounded-full bg-white/5" />}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+              {hallTariffs.map((tr) => (
+                <button
+                  key={tr.id}
+                  onClick={() => setTariffId(tr.id)}
+                  aria-pressed={tr.id === tariffId}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    tr.id === tariffId ? "border-rn-magenta bg-rn-magenta/10 shadow-[0_0_24px_rgba(217,70,239,0.25)]" : "border-rn-line hover:border-rn-violet/60"
+                  }`}
+                >
+                  <div className="text-sm font-semibold text-white">{tr.name}</div>
+                  <div className="mt-1 text-xs text-rn-muted">{formatDuration(tr.durationMinutes, t)}</div>
+                  <div className="mt-3 font-display text-lg font-bold text-white">{formatMoney(tr.price)}</div>
                 </button>
               ))}
             </div>
-          </motion.div>
+          </Panel>
 
-          {/* Сетка компьютеров */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-400">Загрузка компьютеров...</p>
+          {/* Шаг 2: дата и время */}
+          <Panel>
+            <StepTitle n={2} title={t("cab.book.step2")} />
+            <div className="rn-no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1">
+              {days.map((d, i) => {
+                const key = dayKey(d);
+                const active = key === day;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setDay(key)}
+                    aria-pressed={active}
+                    className={`flex w-[72px] shrink-0 flex-col items-center rounded-2xl border px-2 py-3 transition ${
+                      active ? "border-rn-cyan bg-rn-cyan/10 text-white" : "border-rn-line text-rn-muted hover:text-white"
+                    }`}
+                  >
+                    <span className="text-[10px] uppercase tracking-wider">
+                      {i === 0 ? t("cab.book.today") : i === 1 ? t("cab.book.tomorrow") : formatDate(d, language, { weekday: "short", day: undefined, month: undefined })}
+                    </span>
+                    <span className="font-display text-xl font-bold">{d.getDate()}</span>
+                    <span className="text-[10px]">{formatDate(d, language, { day: undefined, month: "short" })}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <label className="mb-2 flex items-center gap-2 text-sm text-rn-muted" htmlFor="start-time">
+              <Clock className="h-4 w-4" /> {t("cab.book.startTime")}
+            </label>
+            <select
+              id="start-time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full rounded-2xl border border-rn-line bg-rn-night px-4 py-3 text-white outline-none focus:border-rn-cyan sm:w-60"
+            >
+              {timeSlots().map((slot) => {
+                const past = combineDayTime(day, slot).getTime() < Date.now() - 60_000;
+                return (
+                  <option key={slot} value={slot} disabled={past}>
+                    {slot}
+                  </option>
+                );
+              })}
+            </select>
+            {startInPast && <p className="mt-2 text-sm text-rn-pink">{t("cab.book.pastTime")}</p>}
+          </Panel>
+
+          {/* Шаг 3: компьютер */}
+          <Panel>
+            <StepTitle n={3} title={t("cab.book.step3")} />
+            {computers === null && !startInPast && (
+              <div className="flex items-center gap-2 text-rn-muted">
+                <Loader2 className="h-4 w-4 animate-spin" /> {t("cab.book.checking")}
               </div>
-            </div>
-          ) : filteredComputers.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-400 text-lg">Компьютеры не найдены</p>
-            </div>
-          ) : (
-            <ComputerGrid
-              computers={filteredComputers}
-              onComputerClick={handleComputerClick}
-            />
-          )}
-
+            )}
+            {computers && computers.length > 0 && (
+              <>
+                <p className="mb-4 text-sm text-rn-muted">
+                  {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {computers.length}
+                </p>
+                <SeatGrid computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
+              </>
+            )}
+            {computers && computers.length > 0 && freeCount === 0 && <p className="mt-4 text-sm text-rn-pink">{t("cab.book.noneFree")}</p>}
+          </Panel>
         </div>
-      </main>
 
-      {/* Модальное окно бронирования */}
-      <AnimatePresence>
-        {isModalOpen && selectedComputer && (
-          <BookingModal
-            computer={selectedComputer}
-            onClose={() => {
-              setIsModalOpen(false);
-              setSelectedComputer(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
+        {/* Итог */}
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <Panel className="border-rn-violet/40">
+            <h2 className="mb-5 font-display text-lg font-bold uppercase">{t("cab.book.summary")}</h2>
+            <dl className="space-y-3 text-sm">
+              <Row icon={<Monitor className="h-4 w-4" />} label={t("cab.book.hall")} value={hall?.name ?? "—"} />
+              <Row icon={<Monitor className="h-4 w-4" />} label={t("cab.seat.pc")} value={computer ? `№ ${computer.number}` : t("cab.book.notSelected")} />
+              <Row icon={<CalendarDays className="h-4 w-4" />} label={t("cab.book.date")} value={formatDate(start, language, { weekday: "long" })} />
+              <Row icon={<Clock className="h-4 w-4" />} label={t("cab.book.time")} value={end ? formatTimeRange(startIso, end.toISOString(), language) : "—"} />
+              <Row icon={<Clock className="h-4 w-4" />} label={t("cab.book.tariff")} value={tariff ? `${tariff.name} · ${formatDuration(tariff.durationMinutes, t)}` : "—"} />
+            </dl>
+            <div className="my-5 h-px bg-rn-line" />
+            <div className="flex items-baseline justify-between">
+              <span className="text-rn-muted">{t("cab.book.total")}</span>
+              <span className="font-display text-3xl font-black">{tariff ? formatMoney(tariff.price) : "—"}</span>
+            </div>
 
-      {/* Mobile Bottom Navigation */}
-      <BottomNav />
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-4 rounded-2xl border border-rn-pink/40 bg-rn-pink/10 p-3 text-sm text-rn-pink"
+                  role="alert"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            <button
+              onClick={submit}
+              disabled={!tariff || !computer || submitting || startInPast}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rn-magenta via-rn-purple to-rn-electric py-4 font-display text-sm font-bold uppercase tracking-widest text-white shadow-[0_0_30px_rgba(217,70,239,0.35)] transition hover:shadow-[0_0_44px_rgba(217,70,239,0.6)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            >
+              {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
+              {sessionStatus === "authenticated" ? t("cab.book.pay") : t("cab.book.loginToPay")}
+            </button>
+            <p className="mt-4 flex gap-2 text-xs text-rn-muted">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-rn-cyan" />
+              {t("cab.book.holdNote").replace("{min}", String(BOOKING_HOLD_MINUTES))}
+            </p>
+            <p className="mt-2 text-xs text-rn-muted">
+              {t("cab.book.payAtClub")}{" "}
+              <Link href="/#contacts" className="text-rn-cyan hover:text-white">
+                {t("nav.contacts")}
+              </Link>
+            </p>
+          </Panel>
+        </div>
+      </div>
+    </CabinetShell>
+  );
+}
+
+function minPrice(tariffs: TariffDTO[], categoryId: string) {
+  const prices = tariffs.filter((t) => t.categoryId === categoryId).map((t) => t.price);
+  return prices.length ? Math.min(...prices) : Infinity;
+}
+
+function StepTitle({ n, title }: { n: number; title: string }) {
+  return (
+    <h2 className="mb-5 flex items-center gap-3 font-display text-base font-bold uppercase">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-rn-violet/60 bg-rn-violet/15 text-sm">{n}</span>
+      {title}
+    </h2>
+  );
+}
+
+function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <dt className="flex items-center gap-2 text-rn-muted">
+        {icon}
+        {label}
+      </dt>
+      <dd className="text-right font-medium text-white">{value}</dd>
     </div>
   );
 }

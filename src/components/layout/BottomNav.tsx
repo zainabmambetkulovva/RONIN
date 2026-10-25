@@ -1,115 +1,50 @@
 "use client";
 
-import { Home, Gamepad2, ReceiptText, User } from "lucide-react";
+import { Home, Gamepad2, CalendarClock, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "@/hooks/useSession";
 import { motion } from "framer-motion";
+import { useSession } from "@/hooks/useSession";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const navItems = [
-  { icon: Home, label: "Главная", href: "/" },
-  { icon: Gamepad2, label: "Booking", href: "/booking" },
-  { icon: ReceiptText, label: "Чеки", href: "/archive" },
-  { icon: User, label: "Профиль", href: "/profile" },
+const NAV_ITEMS = [
+  { icon: Home, key: "cab.nav.home", href: "/dashboard" },
+  { icon: Gamepad2, key: "cab.nav.book", href: "/booking" },
+  { icon: CalendarClock, key: "cab.nav.bookings", href: "/bookings" },
+  { icon: User, key: "cab.nav.profile", href: "/profile" },
 ];
 
+/** Нижняя навигация личного кабинета на телефоне (только для вошедших пользователей). */
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
 
-  // Don't show bottom nav if user is not authenticated or loading
-  if (status === "loading" || !session) {
-    return null;
-  }
+  if (status === "loading" || !session) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] md:hidden">
-      <div 
-        className="flex items-center justify-around px-2 py-3"
-        style={{
-          background: "linear-gradient(180deg, rgba(7,7,26,0.95), rgba(13,13,36,0.98))",
-          backdropFilter: "blur(20px)",
-          borderTop: "1px solid rgba(59,130,246,0.1)",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
-        }}
-      >
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-
+    <nav
+      aria-label={t("cab.nav.label")}
+      className="fixed inset-x-0 bottom-0 z-[60] border-t border-rn-line/70 bg-rn-void/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+    >
+      <div className="flex items-stretch justify-around px-2 py-2">
+        {NAV_ITEMS.map(({ icon: Icon, key, href }) => {
+          const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
           return (
-            <Link key={item.href} href={item.href}>
-              <motion.div
-                whileTap={{ scale: 0.95 }}
-                className="relative flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all"
-                style={{
-                  background: isActive ? "rgba(59,130,246,0.15)" : "transparent",
-                }}
-              >
-                {/* Active indicator */}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 rounded-2xl"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))",
-                      border: "1px solid rgba(59,130,246,0.3)",
-                    }}
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-
-                {/* Icon */}
-                <Icon
-                  className="relative z-10 transition-all"
-                  size={22}
-                  style={{
-                    color: isActive ? "#60a5fa" : "#9ca3af",
-                    filter: isActive ? "drop-shadow(0 0 8px rgba(96,165,250,0.8))" : "none",
-                  }}
+            <Link key={href} href={href} className="relative flex flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-2" aria-current={active ? "page" : undefined}>
+              {active && (
+                <motion.span
+                  layoutId="bottom-nav-active"
+                  className="absolute inset-0 rounded-2xl border border-rn-violet/40 bg-gradient-to-br from-rn-violet/20 to-rn-magenta/15"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
-
-                {/* Label */}
-                <span
-                  className="relative z-10 text-[10px] font-bold uppercase tracking-wider transition-all"
-                  style={{
-                    color: isActive ? "#60a5fa" : "#6b7280",
-                  }}
-                >
-                  {item.label}
-                </span>
-
-                {/* Hover glow effect */}
-                {!isActive && (
-                  <div className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity">
-                    <div
-                      className="absolute inset-0 rounded-2xl"
-                      style={{
-                        background: "rgba(255,255,255,0.02)",
-                        border: "1px solid rgba(255,255,255,0.05)",
-                      }}
-                    />
-                  </div>
-                )}
-              </motion.div>
+              )}
+              <Icon className={`relative h-5 w-5 ${active ? "text-white drop-shadow-[0_0_8px_rgba(217,70,239,0.8)]" : "text-rn-muted"}`} />
+              <span className={`relative text-[10px] font-semibold ${active ? "text-white" : "text-rn-muted"}`}>{t(key)}</span>
             </Link>
           );
         })}
       </div>
-
-      {/* Bottom safe area */}
-      <div 
-        className="w-full h-safe-bottom"
-        style={{
-          background: "linear-gradient(180deg, rgba(13,13,36,0.98), rgba(13,13,36,1))",
-        }}
-      />
-
-      <style jsx>{`
-        .h-safe-bottom {
-          height: env(safe-area-inset-bottom, 0px);
-        }
-      `}</style>
     </nav>
   );
 }

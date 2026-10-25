@@ -1,317 +1,193 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
-import { MobileMenu } from "@/components/layout/MobileMenu";
-import { FullPageLoader } from "@/components/ui/RollingLoader";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Check, Loader2, LogOut, Mail, Phone, CalendarDays, CalendarClock, Pencil } from "lucide-react";
+import { CabinetShell, PageTitle, Panel } from "@/components/cabinet/CabinetShell";
+import { UserAvatar } from "@/components/cabinet/UserAvatar";
+import { bookingView } from "@/components/cabinet/BookingStatus";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-interface User {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  avatar: string | null;
-  createdAt: string;
-}
-
-interface Avatar {
-  code: string;
-  name?: string; // Optional для обратной совместимости
-  imageUrl: string;
-}
+import { signOut } from "@/hooks/useSession";
+import { api, ApiClientError } from "@/lib/api-client";
+import { formatDate } from "@/lib/format";
+import type { AvatarDTO, BookingDTO, CurrentUserDTO } from "@/types/api";
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { t } = useLanguage();
-  const [user, setUser] = useState<User | null>(null);
-  const [avatar, setAvatar] = useState<Avatar | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
+  const [user, setUser] = useState<CurrentUserDTO | null>(null);
+  const [avatars, setAvatars] = useState<AvatarDTO[]>([]);
+  const [bookings, setBookings] = useState<BookingDTO[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", avatar: "" });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
-    fetchProfile();
+    api.me().then(({ user }) => {
+      setUser(user);
+      setForm({ name: user.name, phone: user.phone ?? "", avatar: user.avatar ?? "" });
+    });
+    api.avatars().then((r) => setAvatars(r.avatars)).catch(() => setAvatars([]));
+    api.myBookings().then((r) => setBookings(r.bookings)).catch(() => setBookings([]));
   }, []);
 
-  const fetchProfile = async () => {
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
     try {
-      // Fetch user profile
-      const userResponse = await fetch("/api/user/profile");
-      const userData = await userResponse.json();
-      setUser(userData.user);
-
-      // Fetch avatar details if user has one
-      if (userData.user?.avatar) {
-        const avatarsResponse = await fetch("/api/avatars");
-        const avatarsData = await avatarsResponse.json();
-        const userAvatar = avatarsData.avatars?.find(
-          (a: Avatar) => a.code === userData.user.avatar
-        );
-        setAvatar(userAvatar || null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
+      const { user } = await api.updateProfile({ name: form.name, phone: form.phone, avatar: form.avatar });
+      setUser(user);
+      setEditing(false);
+      setMessage({ ok: true, text: t("cab.profile.saved") });
+    } catch (err) {
+      setMessage({ ok: false, text: err instanceof ApiClientError ? err.message : t("cab.book.errorGeneric") });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const getAvatarGradient = (avatarCode: string | null) => {
-    if (!avatarCode) return "linear-gradient(135deg, #3b82f6, #8b5cf6)";
-    
-    const num = parseInt(avatarCode.replace("avatar", "")) || 1;
-    const gradients = [
-      "linear-gradient(135deg, #3b82f6, #8b5cf6)", // Blue to purple
-      "linear-gradient(135deg, #06b6d4, #3b82f6)", // Cyan to blue
-      "linear-gradient(135deg, #8b5cf6, #ec4899)", // Purple to pink
-      "linear-gradient(135deg, #10b981, #06b6d4)", // Green to cyan
-      "linear-gradient(135deg, #f59e0b, #ef4444)", // Orange to red
-    ];
-    return gradients[num % gradients.length];
-  };
-
-  if (loading) {
-    return <FullPageLoader text="Загрузка профиля..." />;
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#03030a" }}>
-        <div className="text-center">
-          <p className="text-red-400 text-xl mb-4">Профиль не найден</p>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
-          >
-            На главную
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const registrationDate = new Date(user.createdAt);
-  const memberDays = Math.floor((Date.now() - registrationDate.getTime()) / (1000 * 60 * 60 * 24));
+  const upcoming = bookings.filter((b) => ["confirmed", "awaiting_payment", "payment_failed"].includes(bookingView(b))).length;
+  const visits = bookings.filter((b) => ["completed", "active"].includes(bookingView(b))).length;
 
   return (
-    <div className="min-h-screen" style={{ background: "#03030a" }}>
-      <DashboardNavbar />
-      <MobileMenu />
-      {/* Background effects */}
-      <div
-        className="fixed top-0 right-0 w-[800px] h-[800px] rounded-full pointer-events-none opacity-10"
-        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)" }}
-      />
-      <div
-        className="fixed bottom-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none opacity-10"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)" }}
-      />
+    <CabinetShell>
+      <PageTitle eyebrow={t("cab.profile.eyebrow")} title={t("cab.profile.title")} />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-24">
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-bold uppercase tracking-wider">Назад</span>
-        </button>
-
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8 sm:mb-12"
-        >
-          <h1
-            className="font-black uppercase leading-tight tracking-tighter mb-2"
-            style={{
-              fontSize: "clamp(2rem, 5vw, 3.5rem)",
-              background: "linear-gradient(90deg, #3b82f6, #818cf8, #a78bfa)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Профиль
-          </h1>
-          <p className="text-gray-400 text-sm sm:text-base">
-            Информация о твоем аккаунте
-          </p>
-        </motion.div>
-
-        {/* Profile card */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="rounded-3xl overflow-hidden mb-6"
-          style={{
-            background: "linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))",
-            border: "1px solid rgba(59,130,246,0.3)",
-          }}
-        >
-          <div className="p-8 sm:p-10">
-            {/* Avatar section */}
-            <div className="flex flex-col items-center mb-8">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, type: "spring" }}
-                className="relative mb-4"
-              >
-                <div
-                  className="w-32 h-32 rounded-full flex items-center justify-center text-5xl font-black"
-                  style={{
-                    background: getAvatarGradient(user.avatar),
-                    boxShadow: "0 0 60px rgba(59,130,246,0.5)",
-                  }}
-                >
-                  {avatar ? user.name.charAt(0) : user.name.charAt(0)}
-                </div>
-                {/* Edit avatar button */}
-                <button
-                  onClick={() => router.push("/setup-profile")}
-                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center transition-all hover:scale-110"
-                  style={{ boxShadow: "0 0 20px rgba(59,130,246,0.6)" }}
-                  title="Изменить аватар"
-                >
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                </button>
-              </motion.div>
-            </div>
-
-            {/* User info */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Имя</label>
-                <div className="relative group">
-                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
-                    <p className="text-white font-bold text-lg">{user.name}</p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/profile/edit")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
-                    title="Редактировать имя"
-                  >
-                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Email</label>
-                <div className="relative group">
-                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
-                    <p className="text-white font-medium">
-                      {user.email || <span className="text-gray-500">Не указан</span>}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/profile/edit")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
-                    title="Редактировать email"
-                  >
-                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Телефон</label>
-                <div className="relative group">
-                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 pr-12 transition-all group-hover:border-blue-400/50">
-                    <p className="text-white font-medium">
-                      {user.phone || <span className="text-gray-500">Не указан</span>}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/profile/edit")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
-                    title="Редактировать телефон"
-                  >
-                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Дата регистрации</label>
-                <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white font-medium">
-                    {registrationDate.toLocaleDateString("ru-RU", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 mt-8">
-              <div className="p-4 rounded-xl text-center" style={{ background: "rgba(59,130,246,0.1)" }}>
-                <p className="text-3xl font-black text-blue-400 mb-1">{memberDays}</p>
-                <p className="text-gray-400 text-sm">дней с нами</p>
-              </div>
-              <div className="p-4 rounded-xl text-center" style={{ background: "rgba(139,92,246,0.1)" }}>
-                <p className="text-3xl font-black text-purple-400 mb-1">0</p>
-                <p className="text-gray-400 text-sm">всего игр</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Action buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button
-            onClick={() => router.push("/profile/edit")}
-            className="py-4 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105"
-            style={{
-              background: "linear-gradient(90deg, #10b981, #059669)",
-              boxShadow: "0 0 30px rgba(16,185,129,0.3)",
-            }}
-          >
-            Редактировать
-          </button>
-          <button
-            onClick={() => router.push("/settings")}
-            className="py-4 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105"
-            style={{
-              background: "linear-gradient(90deg, #1d4ed8, #7c3aed)",
-              boxShadow: "0 0 30px rgba(99,102,241,0.3)",
-            }}
-          >
-            Настройки
-          </button>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="py-4 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:bg-white/10"
-            style={{
-              border: "1px solid rgba(59,130,246,0.3)",
-              background: "rgba(59,130,246,0.05)",
-            }}
-          >
-            На главную
-          </button>
+      {!user && (
+        <div className="flex items-center gap-3 text-rn-muted">
+          <Loader2 className="h-5 w-5 animate-spin" /> {t("cab.receipt.loading")}
         </div>
-      </div>
+      )}
+
+      {user && (
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          <Panel>
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <UserAvatar name={user.name} avatarCode={editing ? form.avatar : user.avatar} image={user.image} avatars={avatars} size={88} />
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-display text-2xl font-bold">{user.name}</h2>
+                <p className="mt-1 flex items-center gap-2 text-sm text-rn-muted">
+                  <CalendarDays className="h-4 w-4" /> {t("cab.profile.since")} {formatDate(user.createdAt, language, { year: "numeric" })}
+                </p>
+              </div>
+              {!editing && (
+                <button onClick={() => setEditing(true)} className="inline-flex items-center gap-2 self-start rounded-xl border border-rn-line px-4 py-2 text-sm font-semibold hover:border-rn-violet">
+                  <Pencil className="h-4 w-4" /> {t("cab.profile.edit")}
+                </button>
+              )}
+            </div>
+
+            {!editing ? (
+              <dl className="mt-8 grid gap-4 sm:grid-cols-2">
+                <Field icon={<Mail className="h-4 w-4" />} label="Email" value={user.email ?? "—"} />
+                <Field icon={<Phone className="h-4 w-4" />} label={t("cab.profile.phone")} value={user.phone ?? t("cab.profile.notSet")} />
+              </dl>
+            ) : (
+              <form onSubmit={save} className="mt-8 space-y-5">
+                <Input label={t("cab.profile.name")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required maxLength={100} />
+                <Input label={t("cab.profile.phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} type="tel" placeholder="+996 …" maxLength={20} />
+                {avatars.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-sm text-rn-muted">{t("cab.profile.avatar")}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {avatars.map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => setForm({ ...form, avatar: a.code })}
+                          aria-pressed={form.avatar === a.code}
+                          className={`rounded-full p-0.5 transition ${form.avatar === a.code ? "ring-2 ring-rn-magenta" : "opacity-70 hover:opacity-100"}`}
+                        >
+                          <UserAvatar name={user.name} avatarCode={a.code} avatars={avatars} size={52} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-rn-muted">{t("cab.profile.emailNote")}</p>
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rn-magenta to-rn-violet px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {t("cab.profile.save")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      setForm({ name: user.name, phone: user.phone ?? "", avatar: user.avatar ?? "" });
+                    }}
+                    className="rounded-xl border border-rn-line px-5 py-2.5 text-sm font-semibold text-rn-muted hover:text-white"
+                  >
+                    {t("cab.profile.cancel")}
+                  </button>
+                </div>
+              </form>
+            )}
+            {message && <p className={`mt-4 text-sm ${message.ok ? "text-emerald-300" : "text-rn-pink"}`}>{message.text}</p>}
+          </Panel>
+
+          <div className="space-y-6">
+            <Panel>
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <Stat value={upcoming} label={t("cab.profile.upcoming")} />
+                <Stat value={visits} label={t("cab.profile.visits")} />
+              </div>
+              <Link href="/bookings" className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-rn-line py-3 text-sm font-semibold hover:border-rn-violet">
+                <CalendarClock className="h-4 w-4" /> {t("cab.nav.bookings")}
+              </Link>
+            </Panel>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-rn-pink/30 py-3 text-sm font-semibold text-rn-pink transition hover:bg-rn-pink/10"
+            >
+              <LogOut className="h-4 w-4" /> {t("cab.profile.logout")}
+            </button>
+          </div>
+        </div>
+      )}
+    </CabinetShell>
+  );
+}
+
+function Field({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white/[0.03] p-4">
+      <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-rn-muted">
+        {icon} {label}
+      </dt>
+      <dd className="mt-1 break-all font-semibold text-white">{value}</dd>
     </div>
+  );
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-2xl bg-white/[0.03] p-4">
+      <div className="font-display text-3xl font-bold">{value}</div>
+      <div className="mt-1 text-xs uppercase tracking-wider text-rn-muted">{label}</div>
+    </div>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  ...rest
+}: { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm text-rn-muted">{label}</span>
+      <input
+        {...rest}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-2xl border border-rn-line bg-rn-night px-4 py-3 text-white outline-none transition focus:border-rn-cyan"
+      />
+    </label>
   );
 }

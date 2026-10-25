@@ -51,9 +51,11 @@ export function LoginForm() {
         throw new Error(loginData.error || t("auth.invalidCredentials") || "Неверный email или пароль");
       }
 
-      // Успешный login - session cookie уже установлен сервером
-      // Перенаправляем на главную (middleware решит куда дальше)
-      window.location.href = "/";
+      // Успешный вход: cookie сессии установлен сервером. Возвращаем туда, откуда пришёл пользователь
+      // (только внутренние пути, чтобы ссылка не могла увести на чужой сайт)
+      const callbackUrl = searchParams.get("callbackUrl");
+      const safe = callbackUrl && /^\/(?![\/\\])/.test(callbackUrl) ? callbackUrl : "/dashboard";
+      window.location.href = safe;
       
     } catch (err: any) {
       setError(err.message);

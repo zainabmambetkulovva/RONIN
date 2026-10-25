@@ -3,6 +3,9 @@ import type { NextRequest } from "next/server";
 import { STAFF_SESSION_COOKIE, USER_SESSION_COOKIE } from "@/server/config";
 import { verifyStaffToken, verifyUserToken } from "@/server/auth/tokens";
 
+/** Страницы личного кабинета (бронирование /booking открыто для просмотра). */
+const USER_AREA = ["/dashboard", "/profile", "/bookings", "/booking-success", "/setup-profile", "/archive", "/receipts"];
+
 /**
  * Edge middleware: только маршрутизация страниц.
  * Права на данные всегда проверяются в API-роутах (`src/server/auth/*`).
@@ -26,10 +29,17 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(USER_SESSION_COOKIE)?.value;
-  if (!token) return NextResponse.next();
+  const payload = token ? await verifyUserToken(token) : null;
 
-  const payload = await verifyUserToken(token);
-  if (!payload) return NextResponse.next();
+  // Личный кабинет — только после входа; после входа пользователь вернётся на эту страницу
+  if (!payload) {
+    if (USER_AREA.some((p) => path === p || path.startsWith(`${p}/`))) {
+      const login = new URL("/login", req.url);
+      login.searchParams.set("callbackUrl", path + req.nextUrl.search);
+      return NextResponse.redirect(login);
+    }
+    return NextResponse.next();
+  }
 
   // Профиль не настроен — сначала setup-profile
   if (payload.needsSetup && payload.role === "client" && path !== "/setup-profile") {

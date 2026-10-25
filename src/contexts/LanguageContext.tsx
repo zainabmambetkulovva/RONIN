@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { landingTranslations } from "@/i18n/landing";
+import { cabinetTranslations } from "@/i18n/cabinet";
 
 type Language = "ru" | "en" | "ky";
 
@@ -741,7 +742,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = (key: string): string => {
     const landing = landingTranslations[language] as Record<string, string>;
-    return landing[key] || translations[language][key as keyof typeof translations.ru] || key;
+    const cabinet = cabinetTranslations[language] as Record<string, string>;
+    return landing[key] || cabinet[key] || translations[language][key as keyof typeof translations.ru] || key;
   };
 
   return (
