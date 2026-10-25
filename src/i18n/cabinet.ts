@@ -348,7 +348,7 @@ const ky: Dict = {
 
   "cab.bookings.eyebrow": "Жеке кабинет",
   "cab.bookings.title": "Брондорум",
-  "cab.bookings.new": "Жаңы брондоо",
+  "cab.bookings.new": "Брондоо",
   "cab.bookings.tab.upcoming": "Алдыдагылар",
   "cab.bookings.tab.active": "Азыр",
   "cab.bookings.tab.history": "Тарых",

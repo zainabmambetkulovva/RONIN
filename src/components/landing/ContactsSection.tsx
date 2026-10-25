@@ -1,9 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Clock, MapPin, Phone, CreditCard, Banknote, ArrowLeftRight, QrCode, ExternalLink, Instagram } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
+import { useBranding } from "@/contexts/BrandingContext";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { TikTokIcon, WhatsAppIcon } from "./brand-icons";
 
@@ -11,6 +12,7 @@ const PAY_ICONS = { card: CreditCard, cash: Banknote, transfer: ArrowLeftRight, 
 
 export function ContactsSection() {
   const { t, language } = useLanguage();
+  const brand = useBranding();
 
   return (
     <Section id="contacts">
@@ -22,9 +24,7 @@ export function ContactsSection() {
             <InfoCard icon={<MapPin className="h-5 w-5 text-rn-magenta" />} label={t("contacts.addressLabel")}>
               <p className="font-semibold text-white">{club.address[language]}</p>
               <p className="text-xs text-rn-muted">{club.district[language]}</p>
-              <p className="mt-1 line-clamp-1 text-[11px] text-rn-muted/80" title={club.landmarks[language]}>
-                {club.landmarks[language]}
-              </p>
+              <Landmarks text={club.landmarks[language]} />
               <a
                 href={club.twoGis.firmUrl}
                 target="_blank"
@@ -68,15 +68,21 @@ export function ContactsSection() {
           <Reveal delay={0.18}>
             <InfoCard icon={<Instagram className="h-5 w-5 text-rn-pink" />} label={t("contacts.socialsLabel")}>
               <div className="flex flex-wrap gap-2">
-                <SocialLink href={club.socials.instagram} label="Instagram">
-                  <Instagram className="h-5 w-5" />
-                </SocialLink>
-                <SocialLink href={club.socials.tiktok} label="TikTok">
-                  <TikTokIcon className="h-5 w-5" />
-                </SocialLink>
-                <SocialLink href={club.socials.whatsapp} label="WhatsApp">
-                  <WhatsAppIcon className="h-5 w-5" />
-                </SocialLink>
+                {brand.socials.instagram && (
+                  <SocialLink href={brand.socials.instagram} label="Instagram">
+                    <Instagram className="h-5 w-5" />
+                  </SocialLink>
+                )}
+                {brand.socials.tiktok && (
+                  <SocialLink href={brand.socials.tiktok} label="TikTok">
+                    <TikTokIcon className="h-5 w-5" />
+                  </SocialLink>
+                )}
+                {brand.socials.whatsapp && (
+                  <SocialLink href={brand.socials.whatsapp} label="WhatsApp">
+                    <WhatsAppIcon className="h-5 w-5" />
+                  </SocialLink>
+                )}
               </div>
             </InfoCard>
           </Reveal>
@@ -125,5 +131,21 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
     >
       {children}
     </a>
+  );
+}
+
+/** Ориентиры: одна строка, по кнопке — полностью. */
+function Landmarks({ text }: { text: string }) {
+  const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-1">
+      <p className={`text-[11px] text-rn-muted/80 ${open ? "" : "line-clamp-1"}`}>{text}</p>
+      {text.length > 50 && (
+        <button type="button" onClick={() => setOpen(!open)} className="text-[11px] font-semibold text-rn-cyan hover:text-white">
+          {open ? t("contacts.less") : t("contacts.more")}
+        </button>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFloating } from "./useFloating";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -33,6 +35,9 @@ export function DatePicker({ value, onChange, label, disabled, min, className = 
   const [open, setOpen] = useState(false);
   const [view, setView] = useState(() => fromDayKey(value || toDayKey(new Date())));
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const pos = useFloating(buttonRef, open, 380, 288);
   const today = toDayKey(new Date());
 
   useEffect(() => {
@@ -42,7 +47,8 @@ export function DatePicker({ value, onChange, label, disabled, min, className = 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!rootRef.current?.contains(t) && !popRef.current?.contains(t)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("mousedown", onDoc);
@@ -73,6 +79,7 @@ export function DatePicker({ value, onChange, label, disabled, min, className = 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         disabled={disabled}
         aria-haspopup="dialog"
@@ -87,8 +94,16 @@ export function DatePicker({ value, onChange, label, disabled, min, className = 
         <span className="truncate">{value ? SHORT.format(fromDayKey(value)) : "Выберите дату"}</span>
       </button>
 
-      {open && (
-        <div role="dialog" aria-label={label} className="absolute left-0 z-50 mt-2 w-72 rounded-2xl border border-rn-line bg-rn-surface/95 p-4 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] backdrop-blur">
+      {open &&
+        pos &&
+        createPortal(
+        <div
+          ref={popRef}
+          role="dialog"
+          aria-label={label}
+          style={{ position: "fixed", left: pos.left, ...(pos.up ? { bottom: window.innerHeight - pos.top } : { top: pos.top }) }}
+          className="z-[1000] w-72 rounded-2xl border border-rn-line bg-rn-surface p-4 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)]"
+        >
           <div className="mb-3 flex items-center justify-between">
             <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} className="rounded-lg p-1.5 text-rn-muted hover:bg-white/[0.06] hover:text-white" aria-label="Предыдущий месяц">
               <ChevronLeft className="h-4 w-4" />
@@ -142,8 +157,9 @@ export function DatePicker({ value, onChange, label, disabled, min, className = 
               Сегодня
             </button>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body
+        )}
     </div>
   );
 }

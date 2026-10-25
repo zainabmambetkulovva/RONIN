@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFloating } from "./useFloating";
 import { Check, ChevronDown } from "lucide-react";
 
 export interface DropdownOption {
@@ -28,12 +30,15 @@ export function Dropdown({ value, onChange, options, label, placeholder = "Вы�
   const [active, setActive] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const pos = useFloating(buttonRef, open, 256);
   const selected = options.find((o) => o.value === value);
 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!rootRef.current?.contains(t) && !listRef.current?.contains(t)) setOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -85,6 +90,7 @@ export function Dropdown({ value, onChange, options, label, placeholder = "Вы�
   return (
     <div ref={rootRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         disabled={disabled}
         aria-haspopup="listbox"
@@ -101,13 +107,16 @@ export function Dropdown({ value, onChange, options, label, placeholder = "Вы�
         <ChevronDown className={`h-4 w-4 shrink-0 text-rn-muted transition-transform ${open ? "rotate-180 text-white" : ""}`} />
       </button>
 
-      {open && (
+      {open &&
+        pos &&
+        createPortal(
         <ul
           ref={listRef}
           id={`${id}-list`}
           role="listbox"
           aria-label={label}
-          className="absolute left-0 right-0 z-50 mt-2 max-h-64 min-w-full overflow-y-auto rounded-xl border border-rn-line bg-rn-surface/95 p-1 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)] backdrop-blur"
+          style={{ position: "fixed", left: pos.left, width: pos.width, maxHeight: pos.maxHeight, ...(pos.up ? { bottom: window.innerHeight - pos.top } : { top: pos.top }) }}
+          className="z-[1000] overflow-y-auto rounded-xl border border-rn-line bg-rn-surface p-1 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)]"
         >
           {options.map((o, i) => {
             const isSel = o.value === value;
@@ -133,8 +142,9 @@ export function Dropdown({ value, onChange, options, label, placeholder = "Вы�
             );
           })}
           {options.length === 0 && <li className="px-3 py-2 text-sm text-rn-muted">Нет вариантов</li>}
-        </ul>
-      )}
+        </ul>,
+          document.body
+        )}
     </div>
   );
 }

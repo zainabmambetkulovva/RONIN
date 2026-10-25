@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, Clock, Monitor, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
 import { CabinetShell, PageTitle, Panel } from "@/components/cabinet/CabinetShell";
@@ -197,7 +196,7 @@ export default function BookingPage() {
           {/* Шаг 1: зал и тариф */}
           <Panel>
             <StepTitle n={1} title={t("cab.book.step1")} />
-            <div className="rn-no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1">
+            <div className="rn-no-scrollbar -mx-2 mb-4 flex gap-2 overflow-x-auto px-2 py-2">
               {halls.map((h) => (
                 <button
                   key={h.id}
@@ -235,7 +234,7 @@ export default function BookingPage() {
           {/* Шаг 2: дата и время */}
           <Panel>
             <StepTitle n={2} title={t("cab.book.step2")} />
-            <div className="rn-no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1">
+            <div className="rn-no-scrollbar -mx-2 mb-4 flex gap-2 overflow-x-auto px-2 py-2">
               {days.map((d, i) => {
                 const key = dayKey(d);
                 const active = key === day;
@@ -332,12 +331,6 @@ export default function BookingPage() {
             <p className="mt-4 flex gap-2 text-xs text-rn-muted">
               <ShieldCheck className="h-4 w-4 shrink-0 text-rn-cyan" />
               {t("cab.book.holdNote").replace("{min}", String(BOOKING_HOLD_MINUTES))}
-            </p>
-            <p className="mt-2 text-xs text-rn-muted">
-              {t("cab.book.payAtClub")}{" "}
-              <Link href="/#contacts" className="text-rn-cyan hover:text-white">
-                {t("nav.contacts")}
-              </Link>
             </p>
           </Panel>
         </div>

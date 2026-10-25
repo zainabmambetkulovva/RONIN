@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import type { BrandingDTO } from "@/types/api";
+import { getClubConfig } from "./club-config";
 
 /**
  * Оформление сайта клуба (white-label): название, логотип, картинка первого экрана, цвета градиента.
@@ -73,7 +74,7 @@ async function hasImage(slot: ImageSlot) {
 }
 
 export async function getBranding(): Promise<BrandingDTO> {
-  const [stored, logo, hero] = await Promise.all([readStored(), hasImage("logo"), hasImage("hero")]);
+  const [stored, logo, hero, config] = await Promise.all([readStored(), hasImage("logo"), hasImage("hero"), getClubConfig()]);
   const v = stored?.version ?? 0;
   return {
     clubName: stored?.clubName ?? DEFAULT_BRANDING.clubName,
@@ -82,6 +83,8 @@ export async function getBranding(): Promise<BrandingDTO> {
     heroImageUrl: hero ? `/api/branding/image/hero?v=${v}` : DEFAULT_BRANDING.heroImageUrl,
     customLogo: logo,
     customHero: hero,
+    socials: config.socials,
+    zones: config.zones.map(({ label, count, columns }) => ({ label, count, columns })),
   };
 }
 

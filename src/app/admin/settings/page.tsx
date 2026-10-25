@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Gamepad2, ImagePlus, Palette, RotateCcw, Save, Tags, Type } from "lucide-react";
+import { Gamepad2, ImagePlus, Monitor, Palette, PlugZap, RotateCcw, Save, Tags, Type } from "lucide-react";
+import { ClubConfigManager } from "@/components/admin/settings/ClubConfigManager";
+import { HealthPanel } from "@/components/admin/settings/HealthPanel";
 import { GamesManager } from "@/components/admin/settings/GamesManager";
 import { ApiClientError } from "@/lib/api-client";
 import { DEFAULT_BRANDING, useBranding } from "@/contexts/BrandingContext";
@@ -172,6 +174,18 @@ export default function SettingsPage() {
                 </label>
               ))}
             </div>
+          </Section>
+
+          {/* Соцсети и компьютеры */}
+          <Section icon={<Monitor className="h-5 w-5" />} title="Соцсети и компьютеры">
+            <p className="mb-4 text-sm text-rn-muted">Ссылки на соцсети в контактах и подвале; сколько ПК в каждом зале — по этому строится 3D-карта.</p>
+            <ClubConfigManager />
+          </Section>
+
+          {/* Подключения */}
+          <Section icon={<PlugZap className="h-5 w-5" />} title="Подключения">
+            <p className="mb-4 text-sm text-rn-muted">Что настроено на этом сайте. Если что-то красное — там же написано, что сделать.</p>
+            <HealthPanel />
           </Section>
 
           {/* Игры */}

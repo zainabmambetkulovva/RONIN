@@ -1,8 +1,8 @@
 /**
  * Схема зала для 3D-карты: где стоит каждый ПК (метры, вид сверху).
  * x — слева направо, z — от дальней стены к входу. Игрок сидит лицом к дальней стене.
- * Расстановка — по плану клуба (зал 1: ПК 1–48, зал 2: ПК 49–96, отдельная комната: ПК 97).
- * Номер ПК связывает схему с компьютером в базе; меняется схема только здесь.
+ * Зоны (залы, комнаты) задаёт администратор в «Настройки → Компьютеры»; номера ПК идут подряд
+ * по зонам слева направо. Номер ПК связывает схему с компьютером в базе.
  */
 
 export interface LayoutSlot {
@@ -22,48 +22,69 @@ export interface LayoutZone {
   depth: number;
 }
 
-const COLS = 8;
-const ROWS = 6;
-const DESK_PITCH = 1.3; // шаг столов в ряду
-const ROW_PITCH = 2.3; // шаг рядов (стол + кресло + проход)
-const HALL_PADDING = 1.2;
-const AISLE = 3.2; // проход между залами
-
-const hallWidth = (COLS - 1) * DESK_PITCH + HALL_PADDING * 2;
-const hallDepth = (ROWS - 1) * ROW_PITCH + HALL_PADDING * 2 + 1;
-
-function hall(firstNumber: number, originX: number): LayoutSlot[] {
-  const slots: LayoutSlot[] = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      slots.push({
-        number: firstNumber + row * COLS + col,
-        x: originX + HALL_PADDING + col * DESK_PITCH,
-        z: HALL_PADDING + row * ROW_PITCH,
-        rotation: 0,
-      });
-    }
-  }
-  return slots;
+export interface ClubLayout {
+  slots: LayoutSlot[];
+  zones: LayoutZone[];
+  width: number;
+  depth: number;
 }
 
-const hall2X = hallWidth + AISLE;
-const roomX = hall2X + hallWidth + 1.2;
-const roomDepth = 4;
-const roomZ = hallDepth - roomDepth;
+/** Зона так, как её задаёт администратор. */
+export interface ZoneConfig {
+  label: string;
+  /** Сколько ПК в зоне. */
+  count: number;
+  /** Сколько ПК в одном ряду. */
+  columns: number;
+  /** Зал (категория) в базе для новых ПК этой зоны. */
+  categoryId?: string | null;
+}
 
-export const CLUB_LAYOUT: { slots: LayoutSlot[]; zones: LayoutZone[]; width: number; depth: number } = {
-  slots: [
-    ...hall(1, 0),
-    ...hall(49, hall2X),
-    // Отдельная комната справа у входа
-    { number: 97, x: roomX + 1.6, z: roomZ + 1.6, rotation: 0 },
-  ],
-  zones: [
-    { label: "ЗАЛ 1", x: 0, z: 0, width: hallWidth, depth: hallDepth },
-    { label: "ЗАЛ 2", x: hall2X, z: 0, width: hallWidth, depth: hallDepth },
-    { label: "КОМНАТА", x: roomX, z: roomZ, width: 3.2, depth: roomDepth },
-  ],
-  width: roomX + 3.2,
-  depth: hallDepth,
-};
+/** Расстановка по плану клуба RONIN: зал 1 — ПК 1–48, зал 2 — 49–96, отдельная комната — 97. */
+export const DEFAULT_ZONES: ZoneConfig[] = [
+  { label: "ЗАЛ 1", count: 48, columns: 8 },
+  { label: "ЗАЛ 2", count: 48, columns: 8 },
+  { label: "КОМНАТА", count: 1, columns: 1 },
+];
+
+const DESK_PITCH = 1.3; // шаг столов в ряду
+const ROW_PITCH = 2.3; // шаг рядов (стол + кресло + проход)
+const PADDING = 1.2;
+const AISLE = 3.2; // проход между зонами
+
+export function buildLayout(zones: ZoneConfig[]): ClubLayout {
+  const valid = zones.filter((z) => z.count > 0 && z.columns > 0);
+  const sizes = valid.map((z) => {
+    const cols = Math.min(z.columns, z.count);
+    const rows = Math.ceil(z.count / cols);
+    return {
+      cols,
+      rows,
+      width: (cols - 1) * DESK_PITCH + PADDING * 2,
+      depth: (rows - 1) * ROW_PITCH + PADDING * 2 + 1,
+    };
+  });
+  const maxDepth = Math.max(4, ...sizes.map((s) => s.depth));
+
+  const slots: LayoutSlot[] = [];
+  const out: LayoutZone[] = [];
+  let x = 0;
+  let number = 1;
+  valid.forEach((zone, i) => {
+    const size = sizes[i];
+    // Небольшие комнаты прижаты к входу (ближняя сторона), большие залы — во всю глубину
+    const z0 = maxDepth - size.depth;
+    for (let k = 0; k < zone.count; k++) {
+      const row = Math.floor(k / size.cols);
+      const col = k % size.cols;
+      slots.push({ number: number++, x: x + PADDING + col * DESK_PITCH, z: z0 + PADDING + row * ROW_PITCH, rotation: 0 });
+    }
+    out.push({ label: zone.label, x, z: z0, width: size.width, depth: size.depth });
+    x += size.width + AISLE;
+  });
+
+  return { slots, zones: out, width: Math.max(4, x - AISLE), depth: maxDepth };
+}
+
+/** Схема по умолчанию (пока администратор не менял настройки). */
+export const CLUB_LAYOUT: ClubLayout = buildLayout(DEFAULT_ZONES);

@@ -3,19 +3,25 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Box, LayoutGrid, Loader2 } from "lucide-react";
-import { CLUB_LAYOUT } from "@/config/club-layout";
+import { useClubLayout } from "./useClubLayout";
 import { SeatGrid } from "@/components/cabinet/SeatGrid";
 import type { ComputerDTO } from "@/types/api";
 import type { SeatView } from "./ClubMap3D";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ClubMap3D = dynamic(() => import("./ClubMap3D"), {
   ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-rn-muted">
-      <Loader2 className="h-5 w-5 animate-spin" /> Загружаем 3D-зал…
-    </div>
-  ),
+  loading: () => <Loading3D />,
 });
+
+function Loading3D() {
+  const { t } = useLanguage();
+  return (
+    <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-rn-muted">
+      <Loader2 className="h-5 w-5 animate-spin" /> {t("map.loading3d")}
+    </div>
+  );
+}
 
 function hasWebGL() {
   try {
@@ -39,6 +45,8 @@ export function SeatPicker3D({
   selectedId: string | null;
   onSelect: (computer: ComputerDTO) => void;
 }) {
+  const { t } = useLanguage();
+  const CLUB_LAYOUT = useClubLayout();
   const [webgl, setWebgl] = useState<boolean | null>(null);
   const [view, setView] = useState<"3d" | "grid">("3d");
   const [hint, setHint] = useState<string | null>(null);
@@ -58,15 +66,15 @@ export function SeatPicker3D({
         if (c.status === "maintenance") return { number: s.number, state: "maintenance" as const };
         return { number: s.number, state: c.availableForSlot === false ? ("busy" as const) : ("free" as const) };
       }),
-    [byNumber]
+    [byNumber, CLUB_LAYOUT]
   );
   const selectedNumber = computers.find((c) => c.id === selectedId)?.number ?? null;
 
   const pick = (number: number) => {
     const c = byNumber.get(number);
-    if (!c) return setHint(`ПК № ${number} — в другом зале. Выберите этот зал выше.`);
-    if (c.status === "maintenance") return setHint(`ПК № ${number} на обслуживании.`);
-    if (c.availableForSlot === false) return setHint(`ПК № ${number} занят в это время — выберите другой или другое время.`);
+    if (!c) return setHint(t("map.hintOther").replace("{n}", String(number)));
+    if (c.status === "maintenance") return setHint(t("map.hintService").replace("{n}", String(number)));
+    if (c.availableForSlot === false) return setHint(t("map.hintBusy").replace("{n}", String(number)));
     setHint(null);
     onSelect(c);
   };
@@ -74,12 +82,12 @@ export function SeatPicker3D({
   return (
     <div>
       {webgl && (
-        <div className="mb-3 flex rounded-xl border border-rn-line p-0.5 text-sm" role="tablist" aria-label="Вид">
+        <div className="mb-3 flex rounded-xl border border-rn-line p-0.5 text-sm" role="tablist" aria-label={t("map.view")}>
           <button role="tab" aria-selected={view === "3d"} onClick={() => setView("3d")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 ${view === "3d" ? "bg-rn-violet/30 text-white" : "text-rn-muted"}`}>
-            <Box className="h-4 w-4" /> 3D-зал
+            <Box className="h-4 w-4" /> {t("map.view3d")}
           </button>
           <button role="tab" aria-selected={view === "grid"} onClick={() => setView("grid")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 ${view === "grid" ? "bg-rn-violet/30 text-white" : "text-rn-muted"}`}>
-            <LayoutGrid className="h-4 w-4" /> Список
+            <LayoutGrid className="h-4 w-4" /> {t("map.viewList")}
           </button>
         </div>
       )}
@@ -87,13 +95,13 @@ export function SeatPicker3D({
       {view === "3d" && webgl ? (
         <>
           <div className="relative h-[60vh] max-h-[520px] min-h-[340px] overflow-hidden rounded-2xl border border-rn-line bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_60%)]">
-            <ClubMap3D seats={seats} selected={selectedNumber} onSelect={pick} />
+            <ClubMap3D layout={CLUB_LAYOUT} seats={seats} selected={selectedNumber} onSelect={pick} />
           </div>
           <div className="mt-3 flex flex-wrap gap-3 text-xs text-rn-muted">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Свободен</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Занят</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />Другой зал</span>
-            <span>· нажмите на ПК, вращайте и приближайте пальцем</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />{t("map.free")}</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />{t("map.busy")}</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />{t("map.otherHall")}</span>
+            <span className="w-full">{t("map.hint")}</span>
           </div>
           {hint && <p className="mt-2 text-sm text-amber-300">{hint}</p>}
         </>

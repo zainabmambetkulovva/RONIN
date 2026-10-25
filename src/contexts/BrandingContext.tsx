@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { BrandingDTO } from "@/types/api";
+import { club } from "@/config/club";
+import { DEFAULT_ZONES } from "@/config/club-layout";
 
 /** Стандартное оформление — пока не загрузились настройки клуба (и если их нет). */
 export const DEFAULT_BRANDING: BrandingDTO = {
@@ -11,6 +13,8 @@ export const DEFAULT_BRANDING: BrandingDTO = {
   heroImageUrl: "/brand/samurai.png",
   customLogo: false,
   customHero: false,
+  socials: { instagram: club.socials.instagram, tiktok: club.socials.tiktok, whatsapp: club.socials.whatsapp },
+  zones: DEFAULT_ZONES,
 };
 
 interface BrandingContextValue extends BrandingDTO {
@@ -20,7 +24,7 @@ interface BrandingContextValue extends BrandingDTO {
 
 const BrandingContext = createContext<BrandingContextValue>({ ...DEFAULT_BRANDING, refresh: async () => undefined });
 
-const CACHE_KEY = "branding:v1";
+const CACHE_KEY = "branding:v2";
 
 function applyCssVars(b: BrandingDTO) {
   const root = document.documentElement;

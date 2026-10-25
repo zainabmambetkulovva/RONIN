@@ -100,12 +100,75 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
     }
   };
 
+  // Кнопку можно перетащить пальцем или мышью; место запоминается (на этом устройстве)
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ startX: number; startY: number; baseX: number; baseY: number; moved: boolean } | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("ai-button-offset") || "null");
+      if (saved && typeof saved.x === "number" && typeof saved.y === "number") setOffset(saved);
+    } catch {
+      /* нет хранилища — остаётся на месте */
+    }
+  }, []);
+
+  const clampOffset = (x: number, y: number) => {
+    const el = wrapRef.current;
+    if (!el) return { x, y };
+    const r = el.getBoundingClientRect();
+    // Исходное положение кнопки без сдвига
+    const baseLeft = r.left - offset.x;
+    const baseTop = r.top - offset.y;
+    const size = 56;
+    const minX = 8 - (baseLeft + r.width - size);
+    const maxX = window.innerWidth - 8 - (baseLeft + r.width);
+    const minY = 8 - (baseTop + r.height - size);
+    const maxY = window.innerHeight - 8 - (baseTop + r.height);
+    return { x: Math.min(maxX, Math.max(minX, x)), y: Math.min(maxY, Math.max(minY, y)) };
+  };
+
+  const onButtonPointerDown = (e: React.PointerEvent) => {
+    drag.current = { startX: e.clientX, startY: e.clientY, baseX: offset.x, baseY: offset.y, moved: false };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onButtonPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!d.moved && Math.hypot(dx, dy) < 6) return;
+    d.moved = true;
+    if (isOpen) setIsOpen(false);
+    setOffset(clampOffset(d.baseX + dx, d.baseY + dy));
+  };
+  const onButtonPointerUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    if (d.moved) {
+      try {
+        localStorage.setItem("ai-button-offset", JSON.stringify(offset));
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    setIsOpen((o) => !o);
+  };
+
   const positionClasses = position === "bottom-right"
     ? "bottom-4 right-4 sm:bottom-6 sm:right-6"
     : "bottom-4 left-4 sm:bottom-6 sm:left-6";
 
   return (
-    <div className={`fixed ${positionClasses} z-[60] mb-20 sm:mb-4`}>
+    <div
+      ref={wrapRef}
+      className={`fixed ${positionClasses} z-[60] mb-20 sm:mb-4`}
+      // Открытый чат — на обычном месте, чтобы окно помещалось на экране
+      style={{ transform: isOpen ? undefined : `translate(${offset.x}px, ${offset.y}px)` }}
+    >
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -261,8 +324,13 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden"
+        onPointerDown={onButtonPointerDown}
+        onPointerMove={onButtonPointerMove}
+        onPointerUp={onButtonPointerUp}
+        onPointerCancel={() => (drag.current = null)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setIsOpen((o) => !o))}
+        aria-label="AI"
+        className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden touch-none cursor-grab active:cursor-grabbing"
         style={{
           background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
           boxShadow: "0 0 40px rgba(59,130,246,0.6)"

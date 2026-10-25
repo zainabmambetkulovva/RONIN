@@ -205,6 +205,9 @@ export interface BrandingDTO {
   heroImageUrl: string;
   customLogo: boolean;
   customHero: boolean;
+  socials: { instagram: string; tiktok: string; whatsapp: string };
+  /** Зоны зала для 3D-карты (номера ПК идут подряд по зонам). */
+  zones: Array<{ label: string; count: number; columns: number }>;
 }
 
 /** Игра в блоке «Популярные игры» (список задаёт администратор). */
