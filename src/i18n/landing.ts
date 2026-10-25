@@ -69,7 +69,7 @@ const ru = {
   "pcs.maintenance": "на обслуживании",
   "pcs.map.title": "Карта клуба",
   "pcs.map.text": "Интерактивная 3D-карта зала появится позже. Сейчас компьютер можно выбрать на схеме бронирования.",
-  "pcs.map.cta": "Выбрать компьютер",
+  "pcs.map.cta": "Открыть 3D-карту",
   "pcs.map.soon": "Скоро 3D",
   "pcs.error": "Не удалось загрузить данные о компьютерах.",
 
@@ -187,7 +187,7 @@ const en: Dict = {
   "pcs.maintenance": "in maintenance",
   "pcs.map.title": "Club map",
   "pcs.map.text": "An interactive 3D map of the hall is coming later. For now, pick a PC on the booking layout.",
-  "pcs.map.cta": "Pick a PC",
+  "pcs.map.cta": "Open the 3D map",
   "pcs.map.soon": "3D soon",
   "pcs.error": "Could not load computer data.",
 
@@ -303,7 +303,7 @@ const ky: Dict = {
   "pcs.maintenance": "тейлөөдө",
   "pcs.map.title": "Клубдун картасы",
   "pcs.map.text": "Залдын интерактивдүү 3D-картасы кийинчерээк чыгат. Азырынча компьютерди брондоо схемасынан тандасаңыз болот.",
-  "pcs.map.cta": "Компьютер тандоо",
+  "pcs.map.cta": "3D-картаны ачуу",
   "pcs.map.soon": "Жакында 3D",
   "pcs.error": "Компьютерлер тууралуу маалыматты жүктөө мүмкүн болгон жок.",
 

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, Clock, Monitor, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
 import { CabinetShell, PageTitle, Panel } from "@/components/cabinet/CabinetShell";
-import { SeatGrid } from "@/components/cabinet/SeatGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/hooks/useSession";
 import { api, ApiClientError } from "@/lib/api-client";
@@ -14,6 +13,7 @@ import { combineDayTime, dayKey, formatDate, formatMoney, formatTimeRange } from
 import { formatDuration } from "@/components/landing/useClubData";
 import { BOOKING_HOLD_MINUTES } from "@/server/config";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { SeatPicker3D } from "@/components/map/SeatPicker3D";
 import type { CategoryDTO, ComputerDTO, TariffDTO } from "@/types/api";
 
 const DAYS_AHEAD = 14;
@@ -283,7 +283,7 @@ export default function BookingPage() {
                 <p className="mb-4 text-sm text-rn-muted">
                   {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {computers.length}
                 </p>
-                <SeatGrid computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
+                <SeatPicker3D computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
               </>
             )}
             {computers && computers.length > 0 && freeCount === 0 && <p className="mt-4 text-sm text-rn-pink">{t("cab.book.noneFree")}</p>}

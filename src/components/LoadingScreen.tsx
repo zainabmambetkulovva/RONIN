@@ -99,27 +99,6 @@ export function LoadingScreen() {
             </motion.div>
           </div>
 
-          {/* Loading text */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 text-center"
-          >
-            <motion.div
-              animate={{
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-              }}
-            >
-              <p className="text-white font-bold text-xl uppercase tracking-widest">
-                {brand.clubName}
-              </p>
-            </motion.div>
-          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
