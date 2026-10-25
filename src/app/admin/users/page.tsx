@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Plus, Search, Trash2, Ban, CheckCircle } from "lucide-react";
 import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { UserCard } from "@/components/admin/users/UserCard";
 
 interface User {
@@ -162,7 +163,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center gap-2"
+          className="min-h-[52px] px-7 py-3.5 rounded-2xl font-bold text-sm sm:text-base uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(217,70,239,0.45)] active:scale-[0.97] flex items-center gap-2"
           style={{
             background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
             color: "#fff",
@@ -203,7 +204,7 @@ export default function UsersPage() {
           </div>
 
           {/* Role filter */}
-          <select
+          <StyledSelect
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -217,10 +218,10 @@ export default function UsersPage() {
             <option value="client">Clients</option>
             <option value="manager">Managers</option>
             <option value="admin">Admins</option>
-          </select>
+          </StyledSelect>
 
           {/* Status filter */}
-          <select
+          <StyledSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -233,7 +234,7 @@ export default function UsersPage() {
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
             <option value="blocked">Blocked</option>
-          </select>
+          </StyledSelect>
         </div>
 
         {/* Results count */}

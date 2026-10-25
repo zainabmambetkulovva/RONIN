@@ -135,10 +135,12 @@ export function CyberFooter() {
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="group mt-2 flex items-center gap-2 rounded-full border border-rn-line bg-white/[0.03] px-4 py-2 text-xs font-semibold text-white/80 transition hover:border-rn-violet hover:text-white sm:mt-0"
+          aria-label={t("footer.toTop")}
+          title={t("footer.toTop")}
+          className="group mt-2 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-[0_0_30px_rgba(59,130,246,0.5)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(139,92,246,0.7)] active:scale-95 sm:mt-0"
+          style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
         >
-          <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
-          {t("footer.toTop")}
+          <ArrowUp className="h-5 w-5 transition-transform duration-300 group-hover:-translate-y-0.5" />
         </button>
       </div>
     </footer>

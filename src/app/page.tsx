@@ -9,7 +9,6 @@ import { AdvantagesSection } from "@/components/landing/AdvantagesSection";
 import { TariffsSection } from "@/components/landing/TariffsSection";
 import { ComputersSection } from "@/components/landing/ComputersSection";
 import { GamesSection } from "@/components/landing/GamesSection";
-import { MapSection } from "@/components/landing/MapSection";
 import { ContactsSection } from "@/components/landing/ContactsSection";
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { AIChatWidget } from "@/components/ai/AIChatWidget";
@@ -27,7 +26,6 @@ export default function HomePage() {
           <AdvantagesSection />
           <TariffsSection />
           <ComputersSection />
-          <MapSection />
           <GamesSection />
           <ContactsSection />
           <ReviewsSection />

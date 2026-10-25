@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { X } from "lucide-react";
 
 export function EditTariffModal({ tariff, categories, onClose, onSuccess }: any) {
@@ -63,12 +64,12 @@ export function EditTariffModal({ tariff, categories, onClose, onSuccess }: any)
           </div>
           <div>
             <label className="block text-white font-bold text-sm mb-2">Тип</label>
-            <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(15,15,30,0.8)", border: "1px solid rgba(59,130,246,0.3)", color: "#fff" }}>
+            <StyledSelect value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-3 rounded-xl text-sm" style={{ background: "rgba(15,15,30,0.8)", border: "1px solid rgba(59,130,246,0.3)", color: "#fff" }}>
               <option value="hourly">Почасовой</option>
               <option value="package">Пакетный</option>
               <option value="night">Ночной</option>
               <option value="morning">Утренний</option>
-            </select>
+            </StyledSelect>
           </div>
           {error && <div className="p-3 rounded-lg text-sm text-red-400" style={{ background: "rgba(239,68,68,0.1)" }}>{error}</div>}
           <div className="flex gap-3">

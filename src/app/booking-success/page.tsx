@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import QRCode from "qrcode";
 import { motion } from "framer-motion";
-import { CheckCircle2, Clock, Loader2, AlertTriangle, XCircle, Printer, CalendarClock, Phone } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, AlertTriangle, XCircle, Download, Share2, CalendarClock, Phone } from "lucide-react";
+import { UserAvatar } from "@/components/cabinet/UserAvatar";
+import { useSession } from "@/hooks/useSession";
+import type { AvatarDTO } from "@/types/api";
 import { CabinetShell, Panel } from "@/components/cabinet/CabinetShell";
 import { StatusChip, bookingView, useCountdown } from "@/components/cabinet/BookingStatus";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -24,7 +26,11 @@ export default function BookingSuccessPage() {
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<number | string | null>(null);
   const [pollTimedOut, setPollTimedOut] = useState(false);
-  const [qr, setQr] = useState<string | null>(null);
+  const [avatars, setAvatars] = useState<AvatarDTO[]>([]);
+  const [busyFile, setBusyFile] = useState<"pdf" | "share" | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
   const [paying, setPaying] = useState(false);
   const startedAt = useRef(Date.now());
 
@@ -118,13 +124,72 @@ export default function BookingSuccessPage() {
   const paidAndValid = view === "confirmed" || view === "active" || view === "completed";
   const countdown = useCountdown(view === "awaiting_payment" || view === "payment_failed" ? booking?.holdExpiresAt ?? null : null);
 
+  // Персонаж, которого выбрал пользователь, — на чеке вместо QR-кода
   useEffect(() => {
-    if (paidAndValid && booking) {
-      QRCode.toDataURL(booking.bookingCode, { margin: 1, width: 240, color: { dark: "#0b0818", light: "#ffffff" } })
-        .then(setQr)
-        .catch(() => setQr(null));
+    if (paidAndValid) api.avatars().then((r) => setAvatars(r.avatars)).catch(() => setAvatars([]));
+  }, [paidAndValid]);
+
+  /** Чек в PDF: снимок карточки чека (кириллица и оформление сохраняются как на экране). */
+  const makePdf = async (): Promise<Blob | null> => {
+    const node = receiptRef.current;
+    if (!node || !booking) return null;
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+    const canvas = await html2canvas(node, { backgroundColor: "#0b0818", scale: 2, useCORS: true });
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const margin = 8;
+    const w = pageW - margin * 2;
+    const h = (canvas.height / canvas.width) * w;
+    pdf.setFillColor(11, 8, 24);
+    pdf.rect(0, 0, pageW, pdf.internal.pageSize.getHeight(), "F");
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, w, h);
+    return pdf.output("blob");
+  };
+
+  const fileName = booking ? `RONIN-${booking.bookingCode}.pdf` : "RONIN.pdf";
+
+  const downloadPdf = async () => {
+    setBusyFile("pdf");
+    setShareNote(null);
+    try {
+      const blob = await makePdf();
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch {
+      setShareNote(t("cab.receipt.fileError"));
+    } finally {
+      setBusyFile(null);
     }
-  }, [paidAndValid, booking]);
+  };
+
+  const share = async () => {
+    if (!booking) return;
+    setBusyFile("share");
+    setShareNote(null);
+    const text = `${t("cab.receipt.receipt")} RONIN · ${t("cab.receipt.code")}: ${booking.bookingCode} · ${t("cab.seat.pc")} № ${booking.computer.number} · ${formatDate(booking.startAt, language, { weekday: "short" })} ${formatTimeRange(booking.startAt, booking.endAt, language)}`;
+    try {
+      const blob = await makePdf().catch(() => null);
+      const file = blob ? new File([blob], fileName, { type: "application/pdf" }) : null;
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "RONIN", text });
+      } else if (navigator.share) {
+        await navigator.share({ title: "RONIN", text, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+        setShareNote(t("cab.receipt.copied"));
+      }
+    } catch (e) {
+      // Пользователь закрыл окно «Поделиться» — это не ошибка
+      if (!(e instanceof DOMException && e.name === "AbortError")) setShareNote(t("cab.receipt.fileError"));
+    } finally {
+      setBusyFile(null);
+    }
+  };
 
   const payAgain = async () => {
     if (!booking) return;
@@ -222,6 +287,7 @@ export default function BookingSuccessPage() {
           </div>
 
           {/* Чек */}
+          <div ref={receiptRef}>
           <Panel className={`relative overflow-hidden ${paidAndValid ? "border-rn-violet/50" : ""}`}>
             {paidAndValid && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rn-violet via-rn-magenta to-rn-cyan" aria-hidden />}
             <div className="flex items-start justify-between gap-4">
@@ -237,11 +303,10 @@ export default function BookingSuccessPage() {
                 <div>
                   <p className="text-xs uppercase tracking-wider text-rn-muted">{t("cab.receipt.code")}</p>
                   <p className="font-display text-5xl font-black tracking-[0.15em] text-white">{booking.bookingCode}</p>
-                  <p className="mt-1 text-xs text-rn-muted">{t("cab.receipt.codeHint")}</p>
+                  <p className="mt-2 text-xs text-rn-muted">{t("cab.receipt.codeHint")}</p>
                 </div>
-                {qr && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={qr} alt={`QR ${booking.bookingCode}`} className="h-32 w-32 rounded-xl bg-white p-1.5" />
+                {session && (
+                  <UserAvatar name={session.user.name ?? ""} avatarCode={session.user.avatar} image={session.user.image} avatars={avatars} size={120} />
                 )}
               </div>
             )}
@@ -257,6 +322,7 @@ export default function BookingSuccessPage() {
               {booking.paymentMethod && <Item label={t("cab.receipt.method")} value={t(`cab.method.${booking.paymentMethod.replace("offline:", "")}`)} />}
             </dl>
           </Panel>
+          </div>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3 print:hidden">
             {(view === "awaiting_payment" || view === "payment_failed") && countdown.left > 0 && (
@@ -270,9 +336,14 @@ export default function BookingSuccessPage() {
               </button>
             )}
             {paidAndValid && (
-              <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-2xl border border-rn-line px-6 py-3 text-sm font-semibold text-white hover:border-rn-violet">
-                <Printer className="h-4 w-4" /> {t("cab.receipt.print")}
-              </button>
+              <>
+                <button onClick={downloadPdf} disabled={!!busyFile} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rn-violet to-rn-magenta px-6 py-3 text-sm font-bold text-white disabled:opacity-60">
+                  {busyFile === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {t("cab.receipt.download")}
+                </button>
+                <button onClick={share} disabled={!!busyFile} className="inline-flex items-center gap-2 rounded-2xl border border-rn-line px-6 py-3 text-sm font-semibold text-white hover:border-rn-violet disabled:opacity-60">
+                  {busyFile === "share" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />} {t("cab.receipt.share")}
+                </button>
+              </>
             )}
             {(view === "hold_expired" || view === "cancelled") && (
               <Link href="/booking" className="rounded-2xl bg-gradient-to-r from-rn-magenta to-rn-violet px-6 py-3 text-sm font-bold uppercase tracking-wider text-white">
@@ -283,6 +354,7 @@ export default function BookingSuccessPage() {
               <CalendarClock className="h-4 w-4" /> {t("cab.nav.bookings")}
             </Link>
           </div>
+          {shareNote && <p className="mt-3 text-center text-sm text-rn-muted">{shareNote}</p>}
           {error && booking && <p className="mt-4 text-center text-sm text-rn-pink">{error}</p>}
         </motion.div>
       )}

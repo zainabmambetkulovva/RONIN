@@ -23,16 +23,17 @@ interface StoredGame {
   version?: number;
 }
 
+// Обложки Dota 2, Apex, Overwatch 2, Cyberpunk — официальные вертикальные постеры из магазина Steam
 const DEFAULT_GAMES: StoredGame[] = [
   { id: "cs2", name: "Counter-Strike 2", genre: "FPS", staticImage: "/Counter-Strike 2 (FPS).jpg" },
   { id: "valorant", name: "Valorant", genre: "FPS", staticImage: "/Valorant.png" },
-  { id: "dota2", name: "Dota 2", genre: "MOBA" },
+  { id: "dota2", name: "Dota 2", genre: "MOBA", staticImage: "https://cdn.cloudflare.steamstatic.com/steam/apps/570/library_600x900_2x.jpg" },
   // Файл называется «Apex Legends.png», но на изображении — обложка League of Legends
   { id: "lol", name: "League of Legends", genre: "MOBA", staticImage: "/Apex Legends.png" },
-  { id: "apex", name: "Apex Legends", genre: "Battle Royale" },
+  { id: "apex", name: "Apex Legends", genre: "Battle Royale", staticImage: "https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900_2x.jpg" },
   { id: "fortnite", name: "Fortnite", genre: "Battle Royale" },
-  { id: "overwatch2", name: "Overwatch 2", genre: "FPS" },
-  { id: "cyberpunk", name: "Cyberpunk 2077", genre: "RPG" },
+  { id: "overwatch2", name: "Overwatch 2", genre: "FPS", staticImage: "https://cdn.cloudflare.steamstatic.com/steam/apps/2357570/library_600x900_2x.jpg" },
+  { id: "cyberpunk", name: "Cyberpunk 2077", genre: "RPG", staticImage: "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_600x900_2x.jpg" },
 ];
 
 const image = z

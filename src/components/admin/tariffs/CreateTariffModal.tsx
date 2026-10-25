@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { X } from "lucide-react";
 
 export function CreateTariffModal({ categories, onClose, onSuccess }: any) {
@@ -118,7 +119,7 @@ export function CreateTariffModal({ categories, onClose, onSuccess }: any) {
 
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2">Тип *</label>
-            <select 
+            <StyledSelect 
               value={formData.type} 
               onChange={(e) => setFormData({ ...formData, type: e.target.value })} 
               className="w-full px-4 py-3 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all" 
@@ -131,12 +132,12 @@ export function CreateTariffModal({ categories, onClose, onSuccess }: any) {
               <option value="package">Пакетный</option>
               <option value="night">Ночной</option>
               <option value="morning">Утренний</option>
-            </select>
+            </StyledSelect>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-300 mb-2">Категория</label>
-            <select 
+            <StyledSelect 
               value={formData.categoryId} 
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} 
               className="w-full px-4 py-3 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all" 
@@ -149,7 +150,7 @@ export function CreateTariffModal({ categories, onClose, onSuccess }: any) {
               {categories.map((cat: any) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
-            </select>
+            </StyledSelect>
           </div>
 
           {error && (

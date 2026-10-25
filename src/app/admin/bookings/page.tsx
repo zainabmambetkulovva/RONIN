@@ -54,7 +54,7 @@ export default function AdminBookingsPage() {
             <Button onClick={reload} aria-label="Обновить">
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button variant="primary" onClick={() => setCreating(true)}>
+            <Button variant="primary" className="min-h-[52px] px-7 text-base" onClick={() => setCreating(true)}>
               <Plus className="h-4 w-4" /> Новая бронь
             </Button>
           </>

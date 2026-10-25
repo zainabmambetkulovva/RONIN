@@ -154,40 +154,73 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
       scene.add(label);
     }
 
-    // Столы, кресла, мониторы, подсветка пола — по одному InstancedMesh на тип
+    // Перегородки посередине залов (как в клубе: ряды разделены стенкой с неоновой полосой)
+    const glassMat = track(new THREE.MeshStandardMaterial({ color: 0x1c1640, roughness: 0.25, metalness: 0.4, transparent: true, opacity: 0.72 }));
+    const neonMat = track(new THREE.MeshBasicMaterial({ color: 0x8b5cf6, toneMapped: false }));
+    for (const d of CLUB_LAYOUT.dividers) {
+      const len = d.x2 - d.x1;
+      const wall = new THREE.Mesh(track(new THREE.BoxGeometry(len, 1.5, 0.08)), glassMat);
+      wall.position.set(d.x1 + len / 2, 0.75, d.z);
+      scene.add(wall);
+      const strip = new THREE.Mesh(track(new THREE.BoxGeometry(len, 0.04, 0.1)), neonMat);
+      strip.position.set(d.x1 + len / 2, 1.52, d.z);
+      scene.add(strip);
+    }
+
+    // Рабочее место: стол, монитор (рамка + экран + подставка), системный блок с подсветкой,
+    // клавиатура, кресло (сиденье, спинка, стойка, крестовина) — по одному InstancedMesh на деталь
     const n = slots.length;
-    const desks = new THREE.InstancedMesh(track(new THREE.BoxGeometry(1.1, 0.06, 0.65)), track(new THREE.MeshStandardMaterial({ color: 0x1f1b3a, roughness: 0.5 })), n);
-    const legs = new THREE.InstancedMesh(track(new THREE.BoxGeometry(1.0, 0.7, 0.04)), track(new THREE.MeshStandardMaterial({ color: 0x0f0c24 })), n);
-    const chairs = new THREE.InstancedMesh(track(new THREE.BoxGeometry(0.5, 0.9, 0.12)), track(new THREE.MeshStandardMaterial({ color: 0x241f45, roughness: 0.6 })), n);
-    const seatsMesh = new THREE.InstancedMesh(track(new THREE.BoxGeometry(0.52, 0.08, 0.5)), track(new THREE.MeshStandardMaterial({ color: 0x241f45, roughness: 0.6 })), n);
-    const monitors = new THREE.InstancedMesh(track(new THREE.BoxGeometry(0.72, 0.42, 0.04)), track(new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })), n);
-    const glows = new THREE.InstancedMesh(
-      track(new THREE.PlaneGeometry(1.25, 1.9)),
-      track(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false })),
-      n
+    const inst = (geo: THREE.BufferGeometry, mat: THREE.Material) => new THREE.InstancedMesh(track(geo), track(mat), n);
+    const dark = () => new THREE.MeshStandardMaterial({ color: 0x14112b, roughness: 0.45, metalness: 0.35 });
+    const desks = inst(new THREE.BoxGeometry(1.15, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: 0x221d40, roughness: 0.35, metalness: 0.2 }));
+    const legs = inst(new THREE.BoxGeometry(1.05, 0.72, 0.03), dark());
+    const frames = inst(new THREE.BoxGeometry(0.76, 0.45, 0.035), dark());
+    const monitors = inst(new THREE.PlaneGeometry(0.72, 0.41), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+    const stands = inst(new THREE.BoxGeometry(0.05, 0.2, 0.05), dark());
+    const standBase = inst(new THREE.BoxGeometry(0.24, 0.015, 0.16), dark());
+    const towers = inst(new THREE.BoxGeometry(0.22, 0.48, 0.46), new THREE.MeshStandardMaterial({ color: 0x0f0c22, roughness: 0.3, metalness: 0.6 }));
+    const towerGlow = inst(new THREE.PlaneGeometry(0.16, 0.4), new THREE.MeshBasicMaterial({ color: 0xa855f7, toneMapped: false, transparent: true, opacity: 0.9 }));
+    const keyboards = inst(new THREE.BoxGeometry(0.44, 0.018, 0.14), new THREE.MeshStandardMaterial({ color: 0x1a1535, emissive: 0x3b1d7a, emissiveIntensity: 0.6 }));
+    const seatsMesh = inst(new THREE.BoxGeometry(0.52, 0.09, 0.5), new THREE.MeshStandardMaterial({ color: 0x2a2350, roughness: 0.7 }));
+    const chairs = inst(new THREE.BoxGeometry(0.5, 0.78, 0.1), new THREE.MeshStandardMaterial({ color: 0x2a2350, roughness: 0.7 }));
+    const poles = inst(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), dark());
+    const bases = inst(new THREE.CylinderGeometry(0.28, 0.28, 0.04, 5), dark());
+    const glows = inst(
+      new THREE.PlaneGeometry(1.25, 1.9),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })
     );
     // Невидимые «коробки» для попадания касанием (весь стол целиком)
-    const hits = new THREE.InstancedMesh(track(new THREE.BoxGeometry(1.25, 1.2, 1.8)), track(new THREE.MeshBasicMaterial({ visible: false })), n);
+    const hits = inst(new THREE.BoxGeometry(1.25, 1.2, 1.8), new THREE.MeshBasicMaterial({ visible: false }));
+    const parts = [desks, legs, frames, monitors, stands, standBase, towers, towerGlow, keyboards, seatsMesh, chairs, poles, bases, glows, hits];
 
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const up = new THREE.Vector3(0, 1, 0);
-    const place = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, rot: number, localZ: number, rx = 0) => {
-      const offset = new THREE.Vector3(0, 0, localZ).applyAxisAngle(up, rot);
-      q.setFromEuler(new THREE.Euler(rx, rot, 0));
+    const place = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, rot: number, localZ: number, rx = 0, localX = 0, ry = 0) => {
+      const offset = new THREE.Vector3(localX, 0, localZ).applyAxisAngle(up, rot);
+      q.setFromEuler(new THREE.Euler(rx, rot + ry, 0));
       m.compose(new THREE.Vector3(x + offset.x, y, z + offset.z), q, new THREE.Vector3(1, 1, 1));
       mesh.setMatrixAt(i, m);
     };
     slots.forEach((s, i) => {
-      place(desks, i, s.x, 0.74, s.z, s.rotation, 0);
-      place(legs, i, s.x, 0.37, s.z, s.rotation, -0.28);
-      place(monitors, i, s.x, 1.05, s.z, s.rotation, -0.2);
-      place(seatsMesh, i, s.x, 0.48, s.z, s.rotation, 0.75);
-      place(chairs, i, s.x, 0.95, s.z, s.rotation, 1.0, -0.12);
-      place(glows, i, s.x, 0.015, s.z, s.rotation, 0.4, -Math.PI / 2);
-      place(hits, i, s.x, 0.6, s.z, s.rotation, 0.35);
+      const r = s.rotation;
+      place(desks, i, s.x, 0.74, s.z, r, 0);
+      place(legs, i, s.x, 0.37, s.z, r, -0.3);
+      place(standBase, i, s.x, 0.775, s.z, r, -0.2);
+      place(stands, i, s.x, 0.88, s.z, r, -0.22);
+      place(frames, i, s.x, 1.1, s.z, r, -0.2);
+      place(monitors, i, s.x, 1.1, s.z, r, -0.18);
+      place(keyboards, i, s.x, 0.775, s.z, r, 0.1);
+      place(towers, i, s.x, 0.24, s.z, r, -0.08, 0, 0.42);
+      place(towerGlow, i, s.x, 0.24, s.z, r, -0.08, 0, 0.305, -Math.PI / 2);
+      place(seatsMesh, i, s.x, 0.48, s.z, r, 0.72);
+      place(chairs, i, s.x, 0.92, s.z, r, 0.98, -0.14);
+      place(poles, i, s.x, 0.25, s.z, r, 0.72);
+      place(bases, i, s.x, 0.04, s.z, r, 0.72);
+      place(glows, i, s.x, 0.015, s.z, r, 0.4, -Math.PI / 2);
+      place(hits, i, s.x, 0.6, s.z, r, 0.35);
     });
-    for (const mesh of [desks, legs, chairs, seatsMesh, monitors, glows, hits]) {
+    for (const mesh of parts) {
       mesh.instanceMatrix.needsUpdate = true;
       scene.add(mesh);
     }
@@ -195,7 +228,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     // Номера над мониторами
     const labels: THREE.Sprite[] = slots.map((s) => {
       const sprite = makeLabel(String(s.number));
-      sprite.position.set(s.x, 1.55, s.z - 0.2);
+      sprite.position.set(s.x, 1.6, s.z - 0.2);
       scene.add(sprite);
       return sprite;
     });
@@ -330,7 +363,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
         l.material.map?.dispose();
         l.material.dispose();
       });
-      for (const mesh of [desks, legs, chairs, seatsMesh, monitors, glows, hits]) mesh.dispose();
+      for (const mesh of parts) mesh.dispose();
       disposables.forEach((d) => d.dispose());
       renderer.dispose();
       host.removeChild(renderer.domElement);

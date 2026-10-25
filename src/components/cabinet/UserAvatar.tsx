@@ -25,7 +25,7 @@ export function UserAvatar({
       className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-rn-violet to-rn-magenta font-display font-bold text-white ring-2 ring-rn-violet/40"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
-      {src ? <Image src={src} alt="" fill sizes={`${size}px`} className="object-cover" /> : (name.trim().charAt(0) || "R").toUpperCase()}
+      {src ? <Image src={src} alt="" fill sizes={`${Math.max(96, size * 3)}px`} quality={92} className="object-cover object-top" /> : (name.trim().charAt(0) || "R").toUpperCase()}
     </span>
   );
 }
