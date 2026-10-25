@@ -74,6 +74,9 @@ const ru = {
   "pcs.error": "Не удалось загрузить данные о компьютерах.",
 
   "games.eyebrow": "Игры",
+  "map.eyebrow": "3D-карта",
+  "map.title": "Карта клуба",
+  "map.subtitle": "Зелёный — свободен, красный — занят. Нажмите на ПК, чтобы увидеть, с какого и до какого времени он свободен.",
   "games.title": "Популярные игры",
   "games.subtitle": "Наличие конкретной игры и обновлений уточняйте у администратора.",
 
@@ -189,6 +192,9 @@ const en: Dict = {
   "pcs.error": "Could not load computer data.",
 
   "games.eyebrow": "Games",
+  "map.eyebrow": "3D map",
+  "map.title": "Club map",
+  "map.subtitle": "Green — free, red — busy. Tap a PC to see when it is free.",
   "games.title": "Popular games",
   "games.subtitle": "Please check with the admin whether a specific game is installed and updated.",
 
@@ -302,6 +308,9 @@ const ky: Dict = {
   "pcs.error": "Компьютерлер тууралуу маалыматты жүктөө мүмкүн болгон жок.",
 
   "games.eyebrow": "Оюндар",
+  "map.eyebrow": "3D-карта",
+  "map.title": "Клубдун картасы",
+  "map.subtitle": "Жашыл — бош, кызыл — бош эмес. Компьютер качан бош экенин көрүү үчүн аны басыңыз.",
   "games.title": "Популярдуу оюндар",
   "games.subtitle": "Белгилүү бир оюн орнотулганын администратордон тактаңыз.",
 
