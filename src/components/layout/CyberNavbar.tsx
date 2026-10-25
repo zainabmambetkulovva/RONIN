@@ -73,7 +73,7 @@ export function CyberNavbar() {
           <span className="relative h-9 w-9 lg:h-10 lg:w-10">
             <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="40px" priority className="object-contain transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110" />
           </span>
-          <span className="font-display text-lg font-black tracking-[0.18em] text-white lg:text-xl">{brand.clubName}</span>
+          <span className="hidden font-display text-lg font-black tracking-[0.18em] text-white min-[380px]:inline lg:text-xl">{brand.clubName}</span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
@@ -94,9 +94,7 @@ export function CyberNavbar() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:block">
-            <LanguageSwitcher />
-          </div>
+          <LanguageSwitcher />
 
           {status !== "loading" &&
             (session ? (
@@ -163,13 +161,6 @@ export function CyberNavbar() {
             </nav>
 
             <div className="mt-8 flex flex-col gap-3">
-              <Link
-                href="/booking"
-                onClick={() => setOpen(false)}
-                className="rounded-2xl bg-gradient-to-r from-rn-magenta via-rn-purple to-rn-electric py-4 text-center font-display text-sm font-bold uppercase tracking-widest text-white"
-              >
-                {t("nav.book")}
-              </Link>
               {session ? (
                 <Link href="/profile" onClick={() => setOpen(false)} className="rounded-2xl border border-rn-line py-4 text-center font-semibold text-white">
                   {t("nav.profile")}
@@ -184,9 +175,6 @@ export function CyberNavbar() {
                   </Link>
                 </div>
               )}
-              <div className="mt-4 flex justify-center sm:hidden">
-                <LanguageSwitcher />
-              </div>
             </div>
           </motion.div>
         )}

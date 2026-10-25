@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ImagePlus, Palette, RotateCcw, Save, Tags, Type } from "lucide-react";
+import { Gamepad2, ImagePlus, Palette, RotateCcw, Save, Tags, Type } from "lucide-react";
+import { GamesManager } from "@/components/admin/settings/GamesManager";
 import { ApiClientError } from "@/lib/api-client";
 import { DEFAULT_BRANDING, useBranding } from "@/contexts/BrandingContext";
 import { Button, ErrorNote, Loading, PageHeader } from "@/components/admin/ui";
@@ -171,6 +172,12 @@ export default function SettingsPage() {
                 </label>
               ))}
             </div>
+          </Section>
+
+          {/* Игры */}
+          <Section icon={<Gamepad2 className="h-5 w-5" />} title="Игры">
+            <p className="mb-4 text-sm text-rn-muted">Блок «Популярные игры» на главной. Изменения применяются сразу. Обложка — вертикальная картинка (3:4).</p>
+            <GamesManager />
           </Section>
 
           {/* Тарифы */}

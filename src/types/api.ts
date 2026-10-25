@@ -206,3 +206,12 @@ export interface BrandingDTO {
   customLogo: boolean;
   customHero: boolean;
 }
+
+/** Игра в блоке «Популярные игры» (список задаёт администратор). */
+export interface GameDTO {
+  id: string;
+  name: string;
+  genre: string;
+  /** null — обложки нет, показывается оформленная карточка с названием. */
+  imageUrl: string | null;
+}
