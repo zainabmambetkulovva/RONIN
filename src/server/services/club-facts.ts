@@ -6,20 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { club } from "@/config/club";
 import { BOOKING_HOLD_MINUTES } from "@/server/config";
 import { findBusyComputerIds } from "@/server/services/availability";
-
-/** Кыргызстан живёт по UTC+6 круглый год. */
-const BISHKEK_OFFSET_MIN = 6 * 60;
-
-function bishkekNow() {
-  return new Date(Date.now() + BISHKEK_OFFSET_MIN * 60_000);
-}
-
-/** Момент «день + hh:mm по Бишкеку» в UTC. */
-function bishkekMoment(dayOffset: number, h: number, m: number) {
-  const local = bishkekNow();
-  const utc = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + dayOffset, h, m) - BISHKEK_OFFSET_MIN * 60_000;
-  return new Date(utc);
-}
+import { bishkekMoment, bishkekShifted } from "@/server/time";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -77,7 +64,7 @@ export async function buildClubFacts(lastUserMessage: string): Promise<string> {
     .join("\n");
 
   const now = new Date();
-  const nowLocal = bishkekNow();
+  const nowLocal = bishkekShifted();
   const sections = [
     `Клуб: ${club.name}, киберспортивный клуб, ${club.city}.`,
     `Адрес: ${club.address.ru}, ${club.district.ru}. Телефон: ${club.phone.display}. Работаем круглосуточно.`,

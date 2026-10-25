@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Проверка сессии персонала (cookie `admin-token` или `Authorization: Bearer`).
- * Возвращает текущего сотрудника — используется AdminGuard и боковой панелью.
+ * Возвращает текущего сотрудника — используется оболочкой панели управления (StaffShell).
  */
 async function verify(req: Request) {
   const user = await requireStaff(req);

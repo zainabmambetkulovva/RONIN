@@ -43,6 +43,7 @@ const updateSchema = z.object({
   phone: z.string().trim().min(1).max(20).optional(),
   email: z.string().trim().email("Некорректный email").optional(),
   password: z.string().min(8, "Пароль должен быть не короче 8 символов").optional(),
+  telegramChatId: z.string().trim().regex(/^-?\d{4,20}$/, "Telegram chat ID — только цифры").optional().or(z.literal("")),
 });
 
 // PATCH /api/admin/managers/[id] - обновить данные, статус или пароль
@@ -61,6 +62,7 @@ export const PATCH = handle<{ id: string }>(async (req, { params }) => {
       ...(input.phone && { phone: input.phone }),
       ...(input.email && { email: input.email }),
       ...(input.password && { password: await bcrypt.hash(input.password, 10) }),
+      ...(input.telegramChatId !== undefined && { telegram_chat_id: input.telegramChatId || null }),
       updated_at: new Date(),
     },
     select: userListSelect,

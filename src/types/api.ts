@@ -112,6 +112,8 @@ export interface BookingDTO {
   user?: { id: string; name: string; email: string | null; phone: string | null; avatar: string | null };
   computer: { id: string; number: number; category: CategoryRefDTO };
   tariff: { id: string; name: string; type: TariffType };
+  /** Идущая сейчас игровая сессия по этой брони. */
+  activeSessionId: string | null;
   payments?: Array<{ status: PaymentStatus; amount: number; method: string; paidAt: string | null }>;
 }
 
@@ -120,4 +122,76 @@ export interface AvatarDTO {
   code: string;
   imageUrl: string;
   isActive: boolean;
+}
+
+// ---------- Панель управления ----------
+
+/** Операционное состояние ПК: обслуживание задаёт персонал, «занят» — активная сессия или идущая бронь. */
+export type ComputerState = "available" | "occupied" | "maintenance";
+
+export interface AdminComputerDTO {
+  id: string;
+  number: number;
+  status: ComputerStatus;
+  state: ComputerState;
+  category: CategoryRefDTO;
+  specifications: unknown;
+  /** Идущая сейчас игровая сессия. */
+  activeSession: { id: string; startedAt: string; bookingId: string; userName: string } | null;
+  /** Бронь, интервал которой включает текущий момент. */
+  currentBooking: { id: string; bookingCode: string; startAt: string; endAt: string; userName: string } | null;
+  /** Ближайшая будущая бронь (подтверждённая/оплаченная/удерживаемая). */
+  nextBooking: { id: string; bookingCode: string; startAt: string; endAt: string } | null;
+}
+
+export type GamingSessionStatus = "active" | "completed" | "expired";
+
+export interface GamingSessionDTO {
+  id: string;
+  status: GamingSessionStatus;
+  startedAt: string;
+  endedAt: string | null;
+  /** Фактическая длительность в минутах (для активной — на текущий момент). */
+  durationMinutes: number;
+  computer: { id: string; number: number; category: string };
+  booking: { id: string; bookingCode: string; startAt: string; endAt: string; tariffName: string };
+  client: { id: string; name: string; phone: string | null };
+  startedBy: { id: string; name: string };
+}
+
+export interface PaymentDTO {
+  id: string;
+  amount: number;
+  status: PaymentStatus;
+  method: string;
+  provider: string | null;
+  transactionId: string | null;
+  paidAt: string | null;
+  refundedAt: string | null;
+  createdAt: string;
+  booking: { id: string; bookingCode: string; bookingNumber: string; price: number; status: BookingStatus };
+  client: { id: string; name: string; phone: string | null };
+}
+
+export interface ClientDTO {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  status: UserStatus;
+  createdAt: string;
+  bookingsCount: number;
+  lastBookingAt: string | null;
+}
+
+export interface AdminStatsDTO {
+  period: { from: string; to: string; key: "today" | "week" | "month" };
+  computers: { total: number; available: number; occupied: number; maintenance: number };
+  bookings: { activeNow: number; awaitingPayment: number; inPeriod: number; cancelledInPeriod: number };
+  sessions: { active: number; inPeriod: number };
+  /** Только для администратора; для менеджера — null. */
+  payments: { count: number; amount: number; online: number; offline: number } | null;
+  clients: { total: number; newInPeriod: number };
+  /** Выручка по дням периода (по Бишкеку); для менеджера — пустой массив. */
+  revenueByDay: Array<{ day: string; amount: number }>;
 }

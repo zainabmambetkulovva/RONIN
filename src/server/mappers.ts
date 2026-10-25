@@ -126,6 +126,7 @@ export const bookingInclude = {
   computers: { select: { id: true, number: true, computer_categories: { select: { id: true, name: true } } } },
   tariffs: { select: { id: true, name: true, type: true } },
   payments: { select: { status: true, amount: true, method: true, paid_at: true } },
+  gaming_sessions: { where: { status: "active" }, select: { id: true }, take: 1 },
 } satisfies Prisma.bookingsInclude;
 
 type BookingWithRelations = Prisma.bookingsGetPayload<{ include: typeof bookingInclude }>;
@@ -175,6 +176,7 @@ export function toBookingDTO(booking: BookingWithRelations, { includeUser = true
       },
     },
     tariff: { id: booking.tariffs.id, name: booking.tariffs.name, type: booking.tariffs.type },
+    activeSessionId: booking.gaming_sessions[0]?.id ?? null,
     payments: booking.payments.map((p) => ({
       status: p.status,
       amount: Number(p.amount),

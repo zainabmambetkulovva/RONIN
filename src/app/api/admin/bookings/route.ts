@@ -14,7 +14,8 @@ const STATUSES = ["pending", "confirmed", "cancelled", "completed", "expired"] a
 
 /**
  * GET /api/admin/bookings - все бронирования (admin, manager)
- * Фильтры: ?status=, ?code= (5-значный код), ?from=&to= (ISO, по времени начала), ?userId=
+ * Фильтры: ?status=, ?code= (5-значный код), ?q= (код, номер, имя/телефон клиента),
+ * ?from=&to= (ISO, по времени начала), ?userId=, ?computerId=
  */
 export const GET = handle(async (req) => {
   await requireStaff(req);
@@ -25,6 +26,8 @@ export const GET = handle(async (req) => {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   const userId = searchParams.get("userId");
+  const computerId = searchParams.get("computerId");
+  const q = searchParams.get("q")?.trim();
 
   const where: Prisma.bookingsWhereInput = {};
   if (status && status !== "all") {
@@ -33,6 +36,15 @@ export const GET = handle(async (req) => {
   }
   if (code) where.booking_code = code;
   if (userId) where.user_id = userId;
+  if (computerId) where.computer_id = computerId;
+  if (q) {
+    where.OR = [
+      { booking_code: q },
+      { booking_number: { contains: q, mode: "insensitive" } },
+      { users: { name: { contains: q, mode: "insensitive" } } },
+      { users: { phone: { contains: q.replace(/\s/g, "") } } },
+    ];
+  }
   if (from || to) {
     const range: Prisma.DateTimeFilter = {};
     if (from) range.gte = new Date(from);
@@ -44,7 +56,7 @@ export const GET = handle(async (req) => {
   const bookings = await prisma.bookings.findMany({
     where,
     include: bookingInclude,
-    orderBy: { created_at: "desc" },
+    orderBy: from || to ? { start_at: "asc" } : { created_at: "desc" },
     take: 500,
   });
 

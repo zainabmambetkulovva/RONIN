@@ -29,6 +29,8 @@ const createSchema = z.object({
   phone: z.string({ required_error: "Name and phone are required" }).trim().min(1).max(20),
   email: z.string().trim().email("Некорректный email").optional().or(z.literal("")),
   password: z.string({ required_error: "Пароль обязателен" }).min(8, "Пароль должен быть не короче 8 символов"),
+  /** Нужен для входа: в production код подтверждения приходит только в Telegram. */
+  telegramChatId: z.string().trim().regex(/^-?\d{4,20}$/, "Telegram chat ID — только цифры").optional().or(z.literal("")),
 });
 
 // POST /api/admin/managers - создать менеджера
@@ -51,6 +53,7 @@ export const POST = handle(async (req) => {
       phone: input.phone,
       email,
       password: await bcrypt.hash(input.password, 10),
+      telegram_chat_id: input.telegramChatId || null,
       role: "manager",
       status: "active",
       avatar: "default",

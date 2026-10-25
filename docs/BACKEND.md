@@ -54,8 +54,13 @@ src/lib/api-client.ts       типизированный клиент API для
 
 | Операция | admin | manager |
 |---|---|---|
-| Брони: список, поиск, создание для клиента, отмена, смена статуса | ✅ | ✅ |
-| Компьютеры: просмотр; статистика | ✅ | ✅ |
+| Брони: список, поиск, создание для клиента, отмена, оплата в клубе (наличные/карта/QR) | ✅ | ✅ |
+| Игровые сессии: старт (только оплаченная бронь, не раньше 15 мин до начала), завершение | ✅ | ✅ |
+| Компьютеры: просмотр, перевод на обслуживание и обратно | ✅ | ✅ |
+| Компьютеры: добавление, номер/зона/характеристики | ✅ | ❌ |
+| Клиенты: поиск, карточка, создание гостя без пароля | ✅ | ✅ |
+| Статистика: загрузка, брони, сессии | ✅ | ✅ |
+| Статистика: выручка; журнал платежей; суммы в карточке клиента | ✅ | ❌ |
 | Пользователи, менеджеры, тарифы (изменение) | ✅ | ❌ |
 
 ## Бронирование
@@ -72,6 +77,9 @@ src/lib/api-client.ts       типизированный клиент API для
 Компьютер занят в интервале, если пересекается бронь: `confirmed`, или оплаченная (`payment_status = paid`),
 или `pending` моложе срока удержания. ПК со статусом `maintenance` недоступен всегда.
 
+Состояние ПК в админке (`state`): `maintenance` → `occupied` (идёт сессия или текущая блокирующая бронь) → `available`.
+Сессия, у которой бронь закончилась, переводится cron-ом в `expired`, бронь — в `completed`.
+
 ## Основные эндпоинты
 
 Публичные: `GET /api/tariffs[?categoryId]`, `GET /api/categories`,
@@ -80,11 +88,16 @@ src/lib/api-client.ts       типизированный клиент API для
 Клиент: `GET|PATCH /api/user/profile`, `POST /api/user/update-profile`, `PATCH /api/user/avatar`,
 `GET|POST /api/bookings`, `GET /api/bookings/[id]` (только своя бронь).
 
-Персонал: `GET|POST /api/admin/bookings`, `GET|PATCH|DELETE /api/admin/bookings/[id]`,
-`POST /api/manager/bookings/[id]/cancel`, `GET /api/admin/computers`, `GET /api/admin/stats`,
+Персонал: `GET|POST /api/admin/bookings[?q&code&status&computerId&from&to]`, `GET|PATCH|DELETE /api/admin/bookings/[id]`,
+`POST /api/admin/bookings/[id]/payment` (`{method: cash|card|qr}`), `POST /api/manager/bookings/[id]/cancel`,
+`GET /api/admin/computers`, `GET|PATCH /api/admin/computers/[id]` (менеджер — только `status`),
+`GET /api/admin/sessions?scope=active|history`, `POST /api/admin/sessions` (`{bookingId}`), `POST /api/admin/sessions/[id]/end`,
+`GET|POST /api/admin/clients[?q]`, `GET /api/admin/clients/[id]`,
+`GET /api/admin/stats?period=today|week|month` (для менеджера денежные поля = `null`),
 `GET /api/admin/auth/verify-token`, `POST /api/admin/auth/logout`.
 
-Только admin: `/api/admin/users*`, `/api/admin/managers*`, `GET|POST /api/admin/tariffs`,
+Только admin: `/api/admin/users*`, `/api/admin/managers*` (с `telegramChatId`), `POST /api/admin/computers`,
+`GET /api/admin/payments[?status&source=online|offline&from&to]`, `GET|POST /api/admin/price-list`, `GET|POST /api/admin/tariffs`,
 `PATCH|DELETE /api/admin/tariffs/[id]`, `PATCH /api/admin/tariffs/[id]/toggle`.
 
 Оплата (Finik, без изменений): `POST /api/finik/create-payment`, `POST /api/finik/webhook`.

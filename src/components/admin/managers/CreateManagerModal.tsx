@@ -1,231 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { ApiClientError } from "@/lib/api-client";
+import { Button, ErrorNote, Modal } from "@/components/admin/ui";
 
 interface CreateManagerModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
 
+/** Создание менеджера: пароль обязателен, Telegram chat ID нужен для входа с кодом подтверждения. */
 export function CreateManagerModal({ onClose, onSuccess }: CreateManagerModalProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", telegramChatId: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!formData.name.trim()) {
-      setError("Введите имя");
-      return;
-    }
-
-    if (!formData.email && !formData.phone) {
-      setError("Укажите email или телефон");
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const res = await fetch("/api/admin/users", {
+      const res = await fetch("/api/admin/managers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          role: "manager", // Always create as manager
-        }),
+        body: JSON.stringify(form),
       });
-
-      if (res.ok) {
-        onSuccess();
-      } else {
-        const data = await res.json();
-        setError(data.error || "Ошибка создания менеджера");
-      }
-    } catch (error) {
-      console.error("Create error:", error);
-      setError("Ошибка сети");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new ApiClientError(res.status, data?.error || "Ошибка создания менеджера", data?.code || "error");
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Ошибка сети");
     } finally {
       setLoading(false);
     }
   };
 
+  const field = (key: keyof typeof form, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
+    <label className="block text-sm">
+      <span className="mb-1 block text-rn-muted">{label}</span>
+      <input
+        {...props}
+        value={form[key]}
+        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-white outline-none focus:border-rn-cyan"
+      />
+    </label>
+  );
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(3,3,10,0.9)", backdropFilter: "blur(8px)" }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl p-8"
-        style={{
-          background: "linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%)",
-          border: "1px solid rgba(139,92,246,0.3)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight">
-            Новый менеджер
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-            style={{
-              background: "rgba(239,68,68,0.2)",
-              border: "1px solid rgba(239,68,68,0.3)",
-            }}
-          >
-            <X className="w-5 h-5" style={{ color: "#ef4444" }} />
-          </button>
+    <Modal open onClose={onClose} title="Новый менеджер">
+      <form onSubmit={submit} className="space-y-3">
+        {field("name", "Имя", { required: true, maxLength: 100 })}
+        {field("phone", "Телефон", { required: true, type: "tel", placeholder: "+996 …" })}
+        {field("email", "Email (логин для входа)", { required: true, type: "email" })}
+        {field("password", "Пароль (не короче 8 символов)", { required: true, type: "password", minLength: 8, autoComplete: "new-password" })}
+        {field("telegramChatId", "Telegram chat ID (для кода входа)", { inputMode: "numeric", placeholder: "например, 123456789" })}
+        <p className="text-xs text-rn-muted">
+          Без Telegram chat ID менеджер не сможет войти в production: код подтверждения приходит только в Telegram. Chat ID можно узнать скриптом
+          get-telegram-chat-id.js после того, как менеджер напишет боту /start.
+        </p>
+        {error && <ErrorNote>{error}</ErrorNote>}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button type="submit" variant="primary" loading={loading}>
+            Создать
+          </Button>
         </div>
-
-        {/* Info */}
-        <div
-          className="mb-6 p-4 rounded-lg text-sm"
-          style={{
-            background: "rgba(139,92,246,0.1)",
-            border: "1px solid rgba(139,92,246,0.3)",
-            color: "#a78bfa",
-          }}
-        >
-          Менеджер получит доступ к панели управления для работы с бронированиями и клиентами.
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-white font-bold text-sm mb-2">
-              Имя <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Введите имя менеджера"
-              className="w-full px-4 py-3 rounded-lg text-sm transition-all focus:outline-none"
-              style={{
-                background: "rgba(15,15,30,0.6)",
-                border: "1px solid rgba(59,130,246,0.3)",
-                color: "#fff",
-                boxShadow: "0 0 20px rgba(59,130,246,0.1)",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#3b82f6";
-                e.target.style.boxShadow = "0 0 30px rgba(59,130,246,0.3)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "rgba(59,130,246,0.3)";
-                e.target.style.boxShadow = "0 0 20px rgba(59,130,246,0.1)";
-              }}
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-white font-bold text-sm mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="email@example.com"
-              className="w-full px-4 py-3 rounded-lg text-sm transition-all focus:outline-none"
-              style={{
-                background: "rgba(15,15,30,0.6)",
-                border: "1px solid rgba(139,92,246,0.3)",
-                color: "#fff",
-                boxShadow: "0 0 20px rgba(139,92,246,0.1)",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#8b5cf6";
-                e.target.style.boxShadow = "0 0 30px rgba(139,92,246,0.3)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "rgba(139,92,246,0.3)";
-                e.target.style.boxShadow = "0 0 20px rgba(139,92,246,0.1)";
-              }}
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-white font-bold text-sm mb-2">
-              Телефон
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+996 XXX XXX XXX"
-              className="w-full px-4 py-3 rounded-lg text-sm transition-all focus:outline-none"
-              style={{
-                background: "rgba(15,15,30,0.6)",
-                border: "1px solid rgba(139,92,246,0.3)",
-                color: "#fff",
-                boxShadow: "0 0 20px rgba(139,92,246,0.1)",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#8b5cf6";
-                e.target.style.boxShadow = "0 0 30px rgba(139,92,246,0.3)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "rgba(139,92,246,0.3)";
-                e.target.style.boxShadow = "0 0 20px rgba(139,92,246,0.1)";
-              }}
-            />
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div
-              className="p-3 rounded-lg text-sm text-red-400"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white/5"
-              style={{
-                border: "1px solid rgba(139,92,246,0.3)",
-                color: "#a78bfa",
-              }}
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                color: "#fff",
-              }}
-            >
-              {loading ? "Создание..." : "Создать"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }

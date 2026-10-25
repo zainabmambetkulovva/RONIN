@@ -1,134 +1,124 @@
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { BookingsTable } from "@/components/admin/BookingsTable";
-import { getStaffUser } from "@/server/auth/staff";
+"use client";
 
-// Данные читаются на каждый запрос и только после проверки сессии персонала
-export const dynamic = "force-dynamic";
+import { useEffect, useState } from "react";
+import { Plus, RefreshCw } from "lucide-react";
+import { adminApi } from "@/lib/admin-api";
+import { BookingActions } from "@/components/admin/BookingActions";
+import { NewBookingModal } from "@/components/admin/NewBookingModal";
+import { BookingBadges, Button, Empty, ErrorNote, Loading, Modal, PageHeader, SearchInput, Select, Table, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
+import { dayKey } from "@/lib/format";
+import type { BookingDTO } from "@/types/api";
 
-export default async function BookingsPage() {
-  const staff = await getStaffUser();
-  if (!staff) redirect("/admin/login");
+function dayRange(day: string) {
+  const [y, m, d] = day.split("-").map(Number);
+  return { from: new Date(y, m - 1, d).toISOString(), to: new Date(y, m - 1, d + 1).toISOString() };
+}
 
-  // Получить все бронирования с пользователями и компьютерами
-  const bookingsData = await prisma.bookings.findMany({
-    include: {
-      users: true,
-      computers: true,
-      tariffs: true,
-    },
-    orderBy: {
-      created_at: "desc",
-    },
-  });
+export default function AdminBookingsPage() {
+  const [day, setDay] = useState(dayKey(new Date()));
+  const [allDays, setAllDays] = useState(false);
+  const [status, setStatus] = useState("all");
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  const [selected, setSelected] = useState<BookingDTO | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  // Transform snake_case to camelCase for frontend
-  const bookings = bookingsData.map((b) => ({
-    id: b.id,
-    bookingNumber: b.booking_number,
-    bookingCode: b.booking_code,
-    startAt: b.start_at,
-    endAt: b.end_at,
-    durationMinutes: b.duration_minutes,
-    price: Number(b.price),
-    status: b.status,
-    user: {
-      name: b.users.name,
-      email: b.users.email,
-      phone: b.users.phone,
-    },
-    computer: {
-      number: b.computers.number,
-    },
-    tariff: {
-      name: b.tariffs.name,
-    },
-  }));
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(id);
+  }, [q]);
 
-  // Статистика
-  const stats = {
-    total: bookings.length,
-    pending: bookings.filter((b) => b.status === "pending").length,
-    confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
-    cancelled: bookings.filter((b) => b.status === "cancelled").length,
+  const { data, error, loading, reload } = useLoader(
+    () => adminApi.bookings({ q: debouncedQ || undefined, status, ...(allDays || debouncedQ ? {} : dayRange(day)) }).then((r) => r.bookings),
+    [day, allDays, status, debouncedQ]
+  );
+
+  const refreshSelected = async () => {
+    await reload();
+    if (selected) {
+      const { bookings } = await adminApi.bookings({ code: selected.bookingCode });
+      setSelected(bookings.find((b) => b.id === selected.id) ?? null);
+    }
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Бронирования</h1>
-        <p className="text-gray-400">Управление бронированиями компьютеров</p>
+    <>
+      <PageHeader
+        title="Бронирования"
+        subtitle={data ? `Найдено: ${data.length}` : undefined}
+        actions={
+          <>
+            <Button onClick={reload} aria-label="Обновить">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button variant="primary" onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" /> Новая бронь
+            </Button>
+          </>
+        }
+      />
+
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <SearchInput value={q} onChange={setQ} placeholder="Код, номер, имя или телефон" />
+        <input
+          type="date"
+          value={day}
+          disabled={allDays || !!debouncedQ}
+          onChange={(e) => setDay(e.target.value)}
+          aria-label="День"
+          className="rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-sm [color-scheme:dark] disabled:opacity-40"
+        />
+        <label className="flex items-center gap-2 text-sm text-rn-muted">
+          <input type="checkbox" checked={allDays} onChange={(e) => setAllDays(e.target.checked)} className="accent-fuchsia-500" /> Все дни
+        </label>
+        <Select
+          label="Статус"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: "all", label: "Все статусы" },
+            { value: "pending", label: "Ждут оплаты" },
+            { value: "confirmed", label: "Подтверждены" },
+            { value: "completed", label: "Завершены" },
+            { value: "cancelled", label: "Отменены" },
+            { value: "expired", label: "Истекли" },
+          ]}
+        />
       </div>
 
-      {/* Статистика */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(59,130,246,0.3)",
-          }}
-        >
-          <div className="text-sm text-gray-400 mb-1">Всего</div>
-          <div className="text-3xl font-black text-white">{stats.total}</div>
-        </div>
+      {error && <ErrorNote>{error}</ErrorNote>}
+      {loading && !data && <Loading />}
+      {data && data.length === 0 && <Empty>Броней нет</Empty>}
 
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(251,146,60,0.3)",
-          }}
-        >
-          <div className="text-sm text-gray-400 mb-1">Ожидание</div>
-          <div className="text-3xl font-black" style={{ color: "#fb923c" }}>
-            {stats.pending}
-          </div>
-        </div>
+      {data && data.length > 0 && (
+        <Table head={["Код", "Время", "Клиент", "ПК", "Тариф", "Цена", "Статус"]}>
+          {data.map((b) => (
+            <tr key={b.id} onClick={() => setSelected(b)} className="cursor-pointer transition hover:bg-white/[0.03]" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setSelected(b)}>
+              <td className="px-4 py-3 font-display font-bold tracking-wider">{b.bookingCode}</td>
+              <td className="whitespace-nowrap px-4 py-3">
+                {new Date(b.startAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} {fmtTime(b.startAt)}–{fmtTime(b.endAt)}
+              </td>
+              <td className="px-4 py-3">
+                <div className="font-medium">{b.user?.name}</div>
+                <div className="text-xs text-rn-muted">{b.user?.phone ?? b.user?.email}</div>
+              </td>
+              <td className="px-4 py-3">
+                № {b.computer.number} <span className="text-xs text-rn-muted">{b.computer.category.name}</span>
+              </td>
+              <td className="px-4 py-3">{b.tariff.name}</td>
+              <td className="whitespace-nowrap px-4 py-3">{fmtMoney(b.price)}</td>
+              <td className="px-4 py-3">
+                <BookingBadges booking={b} />
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
 
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(59,130,246,0.3)",
-          }}
-        >
-          <div className="text-sm text-gray-400 mb-1">Подтверждено</div>
-          <div className="text-3xl font-black" style={{ color: "#3b82f6" }}>
-            {stats.confirmed}
-          </div>
-        </div>
-
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(34,197,94,0.3)",
-          }}
-        >
-          <div className="text-sm text-gray-400 mb-1">Завершено</div>
-          <div className="text-3xl font-black" style={{ color: "#22c55e" }}>
-            {stats.completed}
-          </div>
-        </div>
-
-        <div
-          className="p-6 rounded-xl"
-          style={{
-            background: "linear-gradient(135deg, #0d0b2a 0%, #07061a 100%)",
-            border: "1px solid rgba(239,68,68,0.3)",
-          }}
-        >
-          <div className="text-sm text-gray-400 mb-1">Отменено</div>
-          <div className="text-3xl font-black" style={{ color: "#ef4444" }}>
-            {stats.cancelled}
-          </div>
-        </div>
-      </div>
-
-      {/* Таблица бронирований */}
-      <BookingsTable bookings={bookings} />
-    </div>
+      <Modal open={!!selected} onClose={() => setSelected(null)} title="Бронь" wide>
+        {selected && <BookingActions booking={selected} onChanged={refreshSelected} />}
+      </Modal>
+      <NewBookingModal open={creating} onClose={() => setCreating(false)} onCreated={reload} />
+    </>
   );
 }

@@ -123,6 +123,13 @@ const ru = {
   "cab.home.noBooking": "У вас пока нет предстоящих броней.",
   "cab.home.halls": "Залы прямо сейчас",
   "cab.home.from": "от",
+
+  // Роли и статусы в панели управления
+  "admin.clients": "Клиент",
+  "admin.managers": "Менеджер",
+  "admin.admins": "Администратор",
+  "admin.active": "Активен",
+  "admin.blocked": "Заблокирован",
 };
 
 type Dict = Record<keyof typeof ru, string>;
@@ -247,6 +254,13 @@ const en: Dict = {
   "cab.home.noBooking": "You have no upcoming bookings yet.",
   "cab.home.halls": "Halls right now",
   "cab.home.from": "from",
+
+  // Роли и статусы в панели управления
+  "admin.clients": "Client",
+  "admin.managers": "Manager",
+  "admin.admins": "Admin",
+  "admin.active": "Active",
+  "admin.blocked": "Blocked",
 };
 
 const ky: Dict = {
@@ -369,6 +383,13 @@ const ky: Dict = {
   "cab.home.noBooking": "Азырынча алдыдагы брондоолоруңуз жок.",
   "cab.home.halls": "Залдар азыр",
   "cab.home.from": "баштап",
+
+  // Роли и статусы в панели управления
+  "admin.clients": "Кардар",
+  "admin.managers": "Менеджер",
+  "admin.admins": "Администратор",
+  "admin.active": "Активдүү",
+  "admin.blocked": "Бөгөттөлгөн",
 };
 
 export const cabinetTranslations = { ru, en, ky } as const;
