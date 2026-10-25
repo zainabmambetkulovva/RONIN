@@ -37,15 +37,26 @@ export function HorizontalCarousel({
   const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
   const [isDragging, setIsDragging] = useState(false);
   const [edges, setEdges] = useState({ start: true, end: false });
+  const [active, setActive] = useState(0);
+  const count = Children.count(children);
+
+  const slideStep = () => {
+    const el = trackRef.current;
+    const slide = el?.firstElementChild as HTMLElement | null;
+    return slide ? slide.offsetWidth + 20 : 1;
+  };
 
   const updateEdges = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
+    const slide = el.firstElementChild as HTMLElement | null;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    setActive(atEnd ? count - 1 : slide ? Math.round(el.scrollLeft / (slide.offsetWidth + 20)) : 0);
     setEdges({
       start: el.scrollLeft <= 4,
       end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
     });
-  }, []);
+  }, [count]);
 
   useEffect(() => {
     updateEdges();
@@ -62,8 +73,7 @@ export function HorizontalCarousel({
     const id = setInterval(() => {
       const el = trackRef.current;
       if (!el || paused.current || drag.current.active || document.hidden) return;
-      const slide = el.firstElementChild as HTMLElement | null;
-      const step = slide ? slide.offsetWidth + 20 : el.clientWidth * 0.8;
+      const step = slideStep();
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
       el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + step, behavior: "smooth" });
     }, autoPlayMs);
@@ -174,6 +184,21 @@ export function HorizontalCarousel({
           </motion.div>
         ))}
       </div>
+
+      {count > 1 && (
+        <div className="mt-4 flex justify-center gap-1.5">
+          {Array.from({ length: count }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => trackRef.current?.scrollTo({ left: i * slideStep(), behavior: "smooth" })}
+              aria-label={`${t("carousel.goTo")} ${i + 1}`}
+              aria-current={i === active}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? "w-6 bg-gradient-to-r from-rn-violet to-rn-magenta" : "w-1.5 bg-white/20 hover:bg-white/40"}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -82,6 +82,8 @@ const ru = {
   "reviews.subtitle": "Подтверждённые отзывы с 2GIS.",
   "reviews.all": "Все отзывы на 2GIS",
   "reviews.ratings": "оценок",
+  "reviews.more": "Читать полностью",
+  "reviews.less": "Свернуть",
 
   "contacts.eyebrow": "Контакты",
   "contacts.title": "Ждём вас в клубе",
@@ -106,6 +108,7 @@ const ru = {
 
   "carousel.prev": "Назад",
   "carousel.next": "Вперёд",
+  "carousel.goTo": "Перейти к слайду",
 };
 
 type Dict = Record<keyof typeof ru, string>;
@@ -188,6 +191,8 @@ const en: Dict = {
   "reviews.subtitle": "Verified reviews from 2GIS (in original language).",
   "reviews.all": "All reviews on 2GIS",
   "reviews.ratings": "ratings",
+  "reviews.more": "Read more",
+  "reviews.less": "Show less",
 
   "contacts.eyebrow": "Contacts",
   "contacts.title": "See you at the club",
@@ -212,6 +217,7 @@ const en: Dict = {
 
   "carousel.prev": "Previous",
   "carousel.next": "Next",
+  "carousel.goTo": "Go to slide",
 };
 
 const ky: Dict = {
@@ -292,6 +298,8 @@ const ky: Dict = {
   "reviews.subtitle": "2GIS'тен тастыкталган пикирлер (түп нускада).",
   "reviews.all": "2GIS'теги бардык пикирлер",
   "reviews.ratings": "баа",
+  "reviews.more": "Толук окуу",
+  "reviews.less": "Жыйыштыруу",
 
   "contacts.eyebrow": "Байланыш",
   "contacts.title": "Клубда күтөбүз",
@@ -316,6 +324,7 @@ const ky: Dict = {
 
   "carousel.prev": "Артка",
   "carousel.next": "Алдыга",
+  "carousel.goTo": "Слайдга өтүү",
 };
 
 export const landingTranslations = { ru, en, ky } as const;

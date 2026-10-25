@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ExternalLink, Quote, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { HorizontalCarousel } from "@/components/ui/HorizontalCarousel";
@@ -46,17 +47,17 @@ export function ReviewsSection() {
         </Reveal>
       </div>
 
-      <HorizontalCarousel ariaLabel={t("reviews.title")} itemClassName="w-[300px] sm:w-[380px]" autoPlayMs={4500}>
+      <HorizontalCarousel ariaLabel={t("reviews.title")} itemClassName="w-[270px] sm:w-[340px]" autoPlayMs={4500}>
         {reviews.map((review, i) => (
           <figure
             key={`${review.author}-${review.date}`}
-            className="group relative flex h-full min-h-[260px] flex-col rounded-3xl border border-rn-line bg-rn-surface p-6 transition hover:border-rn-violet/60"
+            className="group relative flex h-full flex-col rounded-2xl border border-rn-line bg-rn-surface p-5 transition hover:border-rn-violet/60"
           >
-            <Quote className="h-8 w-8 text-rn-violet/60" aria-hidden />
-            <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-white/85">{review.text}</blockquote>
-            <figcaption className="mt-6 flex items-center gap-3 border-t border-rn-line pt-4">
+            <Quote className="h-6 w-6 text-rn-violet/60" aria-hidden />
+            <ReviewText text={review.text} />
+            <figcaption className="mt-4 flex items-center gap-3 border-t border-rn-line pt-3">
               <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${ACCENTS[i % ACCENTS.length]} font-display text-sm font-bold text-white`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${ACCENTS[i % ACCENTS.length]} font-display text-sm font-bold text-white`}
                 aria-hidden
               >
                 {review.author.trim().charAt(0).toUpperCase()}
@@ -72,5 +73,22 @@ export function ReviewsSection() {
         ))}
       </HorizontalCarousel>
     </Section>
+  );
+}
+
+/** Текст отзыва: по умолчанию 4 строки, длинный можно развернуть. */
+function ReviewText({ text }: { text: string }) {
+  const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const long = text.length > 140;
+  return (
+    <div className="mt-3 flex-1">
+      <blockquote className={`text-sm leading-relaxed text-white/85 ${open ? "" : "line-clamp-4"}`}>{text}</blockquote>
+      {long && (
+        <button type="button" onClick={() => setOpen(!open)} className="mt-2 text-xs font-semibold text-rn-cyan hover:text-white">
+          {open ? t("reviews.less") : t("reviews.more")}
+        </button>
+      )}
+    </div>
   );
 }
