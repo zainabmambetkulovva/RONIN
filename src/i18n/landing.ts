@@ -102,6 +102,9 @@ const ru = {
   "contacts.socialsLabel": "Соцсети",
   "contacts.call": "Позвонить",
   "contacts.open2gis": "Открыть в 2GIS",
+  "footer.toTop": "Наверх",
+  "contacts.more": "Показать полностью",
+  "contacts.less": "Свернуть",
   "contacts.mapTitle": "RONIN на карте 2GIS",
 
   "footer.navigation": "Навигация",
@@ -220,6 +223,9 @@ const en: Dict = {
   "contacts.socialsLabel": "Social media",
   "contacts.call": "Call",
   "contacts.open2gis": "Open in 2GIS",
+  "footer.toTop": "Back to top",
+  "contacts.more": "Show more",
+  "contacts.less": "Show less",
   "contacts.mapTitle": "RONIN on the 2GIS map",
 
   "footer.navigation": "Navigation",
@@ -336,6 +342,9 @@ const ky: Dict = {
   "contacts.socialsLabel": "Социалдык тармактар",
   "contacts.call": "Чалуу",
   "contacts.open2gis": "2GIS'те ачуу",
+  "footer.toTop": "Өйдө",
+  "contacts.more": "Толук көрсөтүү",
+  "contacts.less": "Жыйыштыруу",
   "contacts.mapTitle": "RONIN 2GIS картасында",
 
   "footer.navigation": "Навигация",

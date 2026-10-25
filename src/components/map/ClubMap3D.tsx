@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { CLUB_LAYOUT } from "@/config/club-layout";
+import type { ClubLayout } from "@/config/club-layout";
 
 export type SeatState = "free" | "busy" | "maintenance" | "unknown";
 
@@ -13,6 +13,7 @@ export interface SeatView {
 }
 
 interface ClubMap3DProps {
+  layout: ClubLayout;
   seats: SeatView[];
   selected: number | null;
   onSelect: (number: number) => void;
@@ -66,7 +67,7 @@ function makeFloorText(text: string) {
  * 3D-зал на three.js: столы, кресла и мониторы — InstancedMesh (мало вызовов отрисовки, быстро на телефоне),
  * цвет экрана и подсветки пола — состояние ПК. Вращение/масштаб пальцем или мышью, выбор ПК — касанием.
  */
-export default function ClubMap3D({ seats, selected, onSelect }: ClubMap3DProps) {
+export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap3DProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<{ setStates: (s: SeatView[]) => void; setSelected: (n: number | null) => void } | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -74,6 +75,7 @@ export default function ClubMap3D({ seats, selected, onSelect }: ClubMap3DProps)
 
   useEffect(() => {
     const host = hostRef.current!;
+    const CLUB_LAYOUT = layout;
     const slots = CLUB_LAYOUT.slots;
     const cx = CLUB_LAYOUT.width / 2;
     const cz = CLUB_LAYOUT.depth / 2;
@@ -334,8 +336,17 @@ export default function ClubMap3D({ seats, selected, onSelect }: ClubMap3DProps)
       host.removeChild(renderer.domElement);
       apiRef.current = null;
     };
-  }, []);
+  }, [layout]);
 
+  // Новая сцена (смена схемы) получает текущие цвета и выбор
+  const seatsRef = useRef(seats);
+  seatsRef.current = seats;
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  useEffect(() => {
+    apiRef.current?.setStates(seatsRef.current);
+    apiRef.current?.setSelected(selectedRef.current);
+  }, [layout]);
   useEffect(() => apiRef.current?.setStates(seats), [seats]);
   useEffect(() => apiRef.current?.setSelected(selected), [selected]);
 

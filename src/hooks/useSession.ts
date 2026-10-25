@@ -39,38 +39,51 @@ function toSession(user: CurrentUserDTO): Session {
  * Текущая сессия пользователя (cookie `session-token`, проверяется сервером через /api/user/profile).
  * `update()` перечитывает профиль с сервера, например после его изменения.
  */
+// Один запрос профиля на всю страницу: шапка, кабинет, футер и т. д. используют общий результат (кэш 30 с)
+let shared: { at: number; promise: Promise<Session | null> } | null = null;
+const listeners = new Set<(s: Session | null) => void>();
+
+async function fetchSession(): Promise<Session | null> {
+  try {
+    const response = await fetch("/api/user/profile", { credentials: "include", cache: "no-store" });
+    if (!response.ok) return null;
+    const data: { user: CurrentUserDTO } = await response.json();
+    return toSession(data.user);
+  } catch (error) {
+    console.error("[useSession] Error:", error);
+    return null;
+  }
+}
+
+function getSession(force = false): Promise<Session | null> {
+  if (force || !shared || Date.now() - shared.at > 30_000) {
+    const promise = fetchSession();
+    shared = { at: Date.now(), promise };
+    promise.then((s) => listeners.forEach((l) => l(s)));
+  }
+  return shared.promise;
+}
+
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<SessionStatus>("loading");
 
-  const load = useCallback(async (): Promise<Session | null> => {
-    try {
-      const response = await fetch("/api/user/profile", { credentials: "include", cache: "no-store" });
-      if (!response.ok) {
-        setSession(null);
-        setStatus("unauthenticated");
-        return null;
-      }
-      const data: { user: CurrentUserDTO } = await response.json();
-      const next = toSession(data.user);
-      setSession(next);
-      setStatus("authenticated");
-      return next;
-    } catch (error) {
-      console.error("[useSession] Error:", error);
-      setSession(null);
-      setStatus("unauthenticated");
-      return null;
-    }
+  const apply = useCallback((next: Session | null) => {
+    setSession(next);
+    setStatus(next ? "authenticated" : "unauthenticated");
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    listeners.add(apply);
+    getSession().then(apply);
+    return () => {
+      listeners.delete(apply);
+    };
+  }, [apply]);
 
   // Аргумент принимается для совместимости со старыми вызовами и игнорируется:
   // источник правды — сервер
-  const update = useCallback((_data?: unknown) => load(), [load]);
+  const update = useCallback((_data?: unknown) => getSession(true), []);
 
   return { data: session, status, update };
 }
@@ -84,6 +97,7 @@ export async function signOut(options?: { callbackUrl?: string }) {
   } catch (error) {
     console.error("[signOut] Error:", error);
   } finally {
+    shared = null;
     window.location.href = options?.callbackUrl || "/";
   }
 }

@@ -124,11 +124,6 @@ export default function DashboardPage() {
                 <Link href={`/booking?categoryId=${h.id}`} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] px-4 py-3 transition hover:bg-white/[0.06]">
                   <span>
                     <span className="block font-semibold">{h.name}</span>
-                    {h.from !== null && (
-                      <span className="text-xs text-rn-muted">
-                        {t("cab.home.from")} {formatMoney(h.from)}
-                      </span>
-                    )}
                   </span>
                   <span className="text-right text-sm">
                     <span className="font-display text-lg font-bold text-emerald-300">{h.free}</span>

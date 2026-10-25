@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Instagram, MapPin, Phone, Clock } from "lucide-react";
+import { Instagram, MapPin, Phone, Clock, ArrowUp } from "lucide-react";
+import { useSession } from "@/hooks/useSession";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -20,17 +21,19 @@ const NAV = [
 /** Подвал сайта: логотип, навигация, контакты, соцсети. */
 export function CyberFooter() {
   const brand = useBranding();
+  // Нижнее меню на телефоне есть только после входа — только тогда нужен запас снизу
+  const { status } = useSession();
   const { t, language } = useLanguage();
   const year = new Date().getFullYear();
 
   const socials = [
-    { href: club.socials.instagram, label: "Instagram", icon: <Instagram className="h-5 w-5" /> },
-    { href: club.socials.tiktok, label: "TikTok", icon: <TikTokIcon className="h-5 w-5" /> },
-    { href: club.socials.whatsapp, label: "WhatsApp", icon: <WhatsAppIcon className="h-5 w-5" /> },
+    { href: brand.socials.instagram, label: "Instagram", icon: <Instagram className="h-5 w-5" /> },
+    { href: brand.socials.tiktok, label: "TikTok", icon: <TikTokIcon className="h-5 w-5" /> },
+    { href: brand.socials.whatsapp, label: "WhatsApp", icon: <WhatsAppIcon className="h-5 w-5" /> },
   ];
 
   return (
-    <footer className="relative overflow-hidden border-t border-rn-line bg-rn-void pb-24 pt-16 md:pb-10">
+    <footer className={`relative overflow-hidden border-t border-rn-line bg-rn-void pt-16 md:pb-8 ${status === "authenticated" ? "pb-24" : "pb-8"}`}>
       <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-rn-magenta/60 to-transparent" aria-hidden />
       <div className="pointer-events-none absolute -bottom-40 left-1/2 h-80 w-[700px] -translate-x-1/2 rounded-full bg-rn-violet/10 blur-[120px]" aria-hidden />
 
@@ -108,7 +111,7 @@ export function CyberFooter() {
           </ul>
           {/* Соцсети — под контактами */}
           <div className="mt-6 flex gap-3">
-            {socials.map((s) => (
+            {socials.filter((s) => s.href).map((s) => (
               <a
                 key={s.label}
                 href={s.href}
@@ -129,6 +132,14 @@ export function CyberFooter() {
           © {year} {brand.clubName} · {club.city}. {t("footer.rights")}
         </span>
         <span className="font-display uppercase tracking-[0.3em] text-white/30">Play · Connect · Level up</span>
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="group mt-2 flex items-center gap-2 rounded-full border border-rn-line bg-white/[0.03] px-4 py-2 text-xs font-semibold text-white/80 transition hover:border-rn-violet hover:text-white sm:mt-0"
+        >
+          <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+          {t("footer.toTop")}
+        </button>
       </div>
     </footer>
   );

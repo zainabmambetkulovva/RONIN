@@ -1,6 +1,6 @@
 // RONIN Gaming Club - Service Worker
 // Версия кэша - обновляйте при изменениях
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.1.0';
 const CACHE_NAME = `ronin-cache-${CACHE_VERSION}`;
 
 // Файлы для кэширования при установке
@@ -59,8 +59,30 @@ self.addEventListener('fetch', (event) => {
     request.url.includes('/api/') ||
     request.url.includes('chrome-extension') ||
     request.url.includes('_next/webpack-hmr') ||
-    request.method !== 'GET'
+    request.method !== 'GET' ||
+    // Переходы между страницами Next.js (RSC) и сами страницы — напрямую в сеть, без задержки
+    request.headers.get('RSC') ||
+    url.searchParams.has('_rsc') ||
+    request.mode === 'navigate'
   ) {
+    return;
+  }
+
+  // Неизменяемые файлы сборки — сразу из кэша (мгновенно), в сеть — только если их нет
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (response.status === 200) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          })
+      )
+    );
     return;
   }
 

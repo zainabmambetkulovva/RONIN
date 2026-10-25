@@ -84,7 +84,7 @@ export default function MyBookingsPage() {
         </Panel>
       )}
 
-      <div role="tablist" className="mb-6 flex gap-2 overflow-x-auto rn-no-scrollbar">
+      <div role="tablist" className="rn-no-scrollbar -mx-2 mb-4 flex gap-2 overflow-x-auto px-2 py-2">
         {tabs.map((key) => (
           <button
             key={key}

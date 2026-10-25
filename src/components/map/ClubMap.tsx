@@ -4,23 +4,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Box, CalendarClock, Clock, Loader2, Monitor, RefreshCw, User, X } from "lucide-react";
-import { CLUB_LAYOUT } from "@/config/club-layout";
+import { useClubLayout } from "./useClubLayout";
+import type { ClubLayout } from "@/config/club-layout";
 import { DatePicker, toDayKey } from "@/components/ui/DatePicker";
 import { Dropdown } from "@/components/ui/Dropdown";
 import type { ComputerScheduleDTO } from "@/types/api";
 import type { SeatState, SeatView } from "./ClubMap3D";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ClubMap3D = dynamic(() => import("./ClubMap3D"), {
   ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-rn-muted">
-      <Loader2 className="h-5 w-5 animate-spin" /> Загружаем 3D-зал…
-    </div>
-  ),
+  loading: () => <Loading3D />,
 });
 
+function Loading3D() {
+  const { t } = useLanguage();
+  return (
+    <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-rn-muted">
+      <Loader2 className="h-5 w-5 animate-spin" /> {t("map.loading3d")}
+    </div>
+  );
+}
+
+const LOCALES = { ru: "ru-RU", en: "en-GB", ky: "ky-KG" } as const;
 const TIME = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" });
-const DAY = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" });
 const fmt = (d: Date) => TIME.format(d);
 
 const HOURS = Array.from({ length: 24 }, (_, h) => ({ value: String(h), label: `${String(h).padStart(2, "0")}:00` }));
@@ -79,6 +86,9 @@ interface ClubMapProps {
 
 /** 3D-карта клуба: цвет ПК — занят/свободен в выбранный момент, панель — расписание выбранного ПК на день. */
 export function ClubMap({ mode = "public", onOpenBooking, className = "" }: ClubMapProps) {
+  const { t, language } = useLanguage();
+  const CLUB_LAYOUT = useClubLayout();
+  const DAY = useMemo(() => new Intl.DateTimeFormat(LOCALES[language] ?? "ru-RU", { day: "numeric", month: "long" }), [language]);
   const [isNow, setIsNow] = useState(true);
   const [day, setDay] = useState(toDayKey(new Date()));
   const [hour, setHour] = useState(String(new Date().getHours()));
@@ -121,7 +131,7 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
       const json = (await res.json()) as { computers: ComputerScheduleDTO[] };
       setData(json.computers);
     } catch {
-      setError("Не удалось загрузить состояние компьютеров");
+      setError("loadError");
     }
   }, [dayStart]);
 
@@ -144,8 +154,8 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
     const map = new Map<number, SeatInfo>();
     for (const s of CLUB_LAYOUT.slots) map.set(s.number, seatInfo(byNumber.get(s.number) ?? null, moment, isNow));
     return map;
-  }, [byNumber, moment, isNow]);
-  const seats: SeatView[] = useMemo(() => CLUB_LAYOUT.slots.map((s) => ({ number: s.number, state: infos.get(s.number)!.state })), [infos]);
+  }, [byNumber, moment, isNow, CLUB_LAYOUT]);
+  const seats: SeatView[] = useMemo(() => CLUB_LAYOUT.slots.map((s) => ({ number: s.number, state: infos.get(s.number)?.state ?? "unknown" })), [infos, CLUB_LAYOUT]);
   const counts = useMemo(() => {
     const c = { free: 0, busy: 0, maintenance: 0 };
     for (const s of seats) if (s.state !== "unknown") c[s.state]++;
@@ -158,25 +168,25 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
     <div className={`overflow-hidden rounded-3xl border border-rn-line bg-rn-surface/60 ${className}`}>
       {/* Панель управления */}
       <div className="flex flex-wrap items-center gap-2 border-b border-rn-line/70 p-3 sm:p-4">
-        <div className="flex rounded-xl border border-rn-line p-0.5" role="tablist" aria-label="Время">
+        <div className="flex rounded-xl border border-rn-line p-0.5" role="tablist" aria-label={t("map.pickTime")}>
           <button role="tab" aria-selected={isNow} onClick={() => { setIsNow(true); setNow(new Date()); }} className={`rounded-lg px-3 py-1.5 text-sm ${isNow ? "bg-rn-violet/30 text-white" : "text-rn-muted hover:text-white"}`}>
-            Сейчас
+            {t("map.now")}
           </button>
           <button role="tab" aria-selected={!isNow} onClick={() => setIsNow(false)} className={`rounded-lg px-3 py-1.5 text-sm ${!isNow ? "bg-rn-violet/30 text-white" : "text-rn-muted hover:text-white"}`}>
-            Выбрать время
+            {t("map.pickTime")}
           </button>
         </div>
         {!isNow && (
           <>
-            <DatePicker label="День" value={day} onChange={setDay} min={toDayKey(new Date())} />
-            <Dropdown label="Час" value={hour} onChange={setHour} options={HOURS} className="w-28" />
+            <DatePicker label={t("map.day")} value={day} onChange={setDay} min={toDayKey(new Date())} />
+            <Dropdown label={t("map.hour")} value={hour} onChange={setHour} options={HOURS} className="w-28" />
           </>
         )}
         <div className="ml-auto flex flex-wrap items-center gap-3 text-xs">
-          <Legend color="bg-emerald-500" label={`Свободен · ${counts.free}`} />
-          <Legend color="bg-rose-500" label={`Занят · ${counts.busy}`} />
-          {counts.maintenance > 0 && <Legend color="bg-zinc-500" label={`Сервис · ${counts.maintenance}`} />}
-          <button onClick={load} className="rounded-lg border border-rn-line p-1.5 text-rn-muted hover:text-white" aria-label="Обновить">
+          <Legend color="bg-emerald-500" label={`${t("map.free")} · ${counts.free}`} />
+          <Legend color="bg-rose-500" label={`${t("map.busy")} · ${counts.busy}`} />
+          {counts.maintenance > 0 && <Legend color="bg-zinc-500" label={`${t("map.service")} · ${counts.maintenance}`} />}
+          <button onClick={load} className="rounded-lg border border-rn-line p-1.5 text-rn-muted hover:text-white" aria-label={t("map.refresh")}>
             <RefreshCw className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -185,11 +195,11 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
       <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Сцена */}
         <div ref={hostRef} className="relative h-[72vh] max-h-[640px] min-h-[380px] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_60%)] lg:h-[560px]">
-          {error && <p className="absolute left-4 top-4 z-10 rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-rose-200">{error}</p>}
-          {inView && webgl === true && <ClubMap3D seats={seats} selected={selected} onSelect={setSelected} />}
-          {inView && webgl === false && <FlatMap seats={seats} selected={selected} onSelect={setSelected} />}
+          {error && <p className="absolute left-4 top-4 z-10 rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-rose-200">{t("map.loadError")}</p>}
+          {inView && webgl === true && <ClubMap3D layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
+          {inView && webgl === false && <FlatMap layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
           <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/70 backdrop-blur">
-            {isNow ? `Сейчас, ${fmt(moment)}` : `${DAY.format(moment)}, ${fmt(moment)}`} · вращайте и приближайте
+            {isNow ? `${t("map.now")}, ${fmt(moment)}` : `${DAY.format(moment)}, ${fmt(moment)}`} · {t("map.rotate")}
           </p>
         </div>
 
@@ -198,7 +208,7 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
           {!info ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 py-8 text-center text-sm text-rn-muted">
               <Box className="h-10 w-10 text-rn-purple" />
-              Нажмите на компьютер, чтобы увидеть, когда он свободен
+              {t("map.tapPc")}
             </div>
           ) : (
             <SeatPanel number={selected!} info={info} moment={moment} dayStart={dayStart} mode={mode} onClose={() => setSelected(null)} onOpenBooking={onOpenBooking} />
@@ -226,16 +236,17 @@ function SeatPanel({
   onClose: () => void;
   onOpenBooking?: (code: string) => void;
 }) {
+  const { t } = useLanguage();
   const dayEnd = new Date(dayStart.getTime() + 24 * 3600_000);
   const today = info.intervals.filter((i) => i.end > dayStart && i.start < dayEnd);
   const status =
     info.state === "busy"
-      ? { text: info.until ? `Занят до ${fmt(info.until)}` : "Занят", cls: "text-rose-300", dot: "bg-rose-500" }
+      ? { text: info.until ? t("map.busyUntil").replace("{time}", fmt(info.until)) : t("map.busy"), cls: "text-rose-300", dot: "bg-rose-500" }
       : info.state === "free"
-        ? { text: info.until ? `Свободен до ${fmt(info.until)}` : "Свободен весь день", cls: "text-emerald-300", dot: "bg-emerald-500" }
+        ? { text: info.until ? t("map.freeUntil").replace("{time}", fmt(info.until)) : t("map.freeAllDay"), cls: "text-emerald-300", dot: "bg-emerald-500" }
         : info.state === "maintenance"
-          ? { text: "На обслуживании", cls: "text-zinc-300", dot: "bg-zinc-500" }
-          : { text: "Нет в системе", cls: "text-rn-muted", dot: "bg-zinc-700" };
+          ? { text: t("map.maintenance"), cls: "text-zinc-300", dot: "bg-zinc-500" }
+          : { text: t("map.notInSystem"), cls: "text-rn-muted", dot: "bg-zinc-700" };
 
   const bookHref =
     info.computer && info.state === "free"
@@ -251,7 +262,7 @@ function SeatPanel({
           </p>
           {info.computer && <p className="text-sm text-rn-muted">{info.computer.category.name}</p>}
         </div>
-        <button onClick={onClose} className="rounded-lg p-1 text-rn-muted hover:text-white" aria-label="Закрыть">
+        <button onClick={onClose} className="rounded-lg p-1 text-rn-muted hover:text-white" aria-label={t("map.close")}>
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -281,10 +292,10 @@ function SeatPanel({
 
       <div>
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-rn-muted">
-          <CalendarClock className="h-3.5 w-3.5" /> Занят в этот день
+          <CalendarClock className="h-3.5 w-3.5" /> {t("map.busyThatDay")}
         </p>
         {today.length === 0 ? (
-          <p className="text-sm text-emerald-300">Броней нет — свободен весь день</p>
+          <p className="text-sm text-emerald-300">{t("map.noBookings")}</p>
         ) : (
           <ul className="space-y-1.5">
             {today.map((i, k) => (
@@ -293,7 +304,7 @@ function SeatPanel({
                   <Clock className="h-3.5 w-3.5 text-rose-300" />
                   {fmt(i.start)}–{fmt(i.end)}
                 </span>
-                <span className="text-xs text-rn-muted">{i.kind === "session" ? "играет" : i.kind === "hold" ? "ждёт оплаты" : "бронь"}</span>
+                <span className="text-xs text-rn-muted">{i.kind === "session" ? t("map.kindSession") : i.kind === "hold" ? t("map.kindHold") : t("map.kindBooking")}</span>
                 {mode === "staff" && (i.clientName || i.bookingCode) && (
                   <button
                     type="button"
@@ -313,7 +324,7 @@ function SeatPanel({
 
       {mode === "public" && bookHref && (
         <Link href={bookHref} className="rn-brand-gradient block rounded-2xl py-3 text-center font-display text-sm font-bold uppercase tracking-widest text-white">
-          Забронировать ПК № {number}
+          {t("map.book").replace("{n}", String(number))}
         </Link>
       )}
     </div>
@@ -330,7 +341,7 @@ function Legend({ color, label }: { color: string; label: string }) {
 }
 
 /** Плоская схема для устройств без WebGL — те же цвета и выбор. */
-function FlatMap({ seats, selected, onSelect }: { seats: SeatView[]; selected: number | null; onSelect: (n: number) => void }) {
+function FlatMap({ layout: CLUB_LAYOUT, seats, selected, onSelect }: { layout: ClubLayout; seats: SeatView[]; selected: number | null; onSelect: (n: number) => void }) {
   const state = new Map(seats.map((s) => [s.number, s.state]));
   const W = CLUB_LAYOUT.width;
   const D = CLUB_LAYOUT.depth;

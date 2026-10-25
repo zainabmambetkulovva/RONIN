@@ -22,7 +22,7 @@ export default function BookingSuccessPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [booking, setBooking] = useState<BookingDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<number | null>(null);
+  const [errorCode, setErrorCode] = useState<number | string | null>(null);
   const [pollTimedOut, setPollTimedOut] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
@@ -32,8 +32,21 @@ export default function BookingSuccessPage() {
     // Платёжная система может дописать свои параметры к адресу возврата — берём только сам id
     const raw = new URLSearchParams(window.location.search).get("bookingId");
     const id = raw?.split(/[?&#/\s]/)[0]?.trim();
-    if (id) setBookingId(id);
-    else setError(t("cab.receipt.notFound"));
+    if (id) {
+      setBookingId(id);
+      return;
+    }
+    // Платёжная система вернула без номера брони — показываем последнюю бронь клиента за последний час
+    api
+      .myBookings()
+      .then(({ bookings }) => {
+        const recent = bookings
+          .filter((b) => Date.now() - new Date(b.createdAt).getTime() < 60 * 60_000)
+          .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
+        if (recent) setBookingId(recent.id);
+        else setError(t("cab.receipt.notFound"));
+      })
+      .catch(() => setError(t("cab.receipt.notFound")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -42,19 +55,34 @@ export default function BookingSuccessPage() {
     // Временные сбои (холодный старт, сеть) не должны сразу показывать ошибку: до 4 попыток
     for (let attempt = 0; attempt < 4; attempt++) {
       try {
-        const { booking } = await api.booking(bookingId);
-        setBooking(booking);
+        const res = await api.booking(bookingId);
+        if (!res?.booking) throw new Error("empty_response");
+        setBooking(res.booking);
         setError(null);
-        return booking;
+        return res.booking;
       } catch (e) {
         const status = e instanceof ApiClientError ? e.status : null;
+        // Запасной путь: та же бронь из списка «Мои брони»
+        if (status !== 401 && status !== 404) {
+          try {
+            const { bookings } = await api.myBookings();
+            const own = bookings.find((b) => b.id === bookingId);
+            if (own) {
+              setBooking(own);
+              setError(null);
+              return own;
+            }
+          } catch {
+            /* пробуем ещё раз ниже */
+          }
+        }
         if (status === 401) {
           // Сессия потерялась по дороге с платёжной страницы — войти и вернуться к чеку
           window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
           return null;
         }
         if (status === 404 || attempt === 3) {
-          setErrorCode(status);
+          setErrorCode(status ?? (e instanceof Error ? e.message.slice(0, 60) : "unknown"));
           setError(status === 404 ? t("cab.receipt.notFound") : t("cab.receipt.loadError"));
           return null;
         }
