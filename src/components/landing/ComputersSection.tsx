@@ -71,10 +71,10 @@ export function ComputersSection() {
           ))}
         </div>
 
-        {/* Карта клуба — вход в будущую 3D-карту */}
+        {/* Карта клуба — переход к 3D-карте ниже */}
         <Reveal delay={0.15}>
           <Link
-            href="/booking"
+            href="#map"
             className="group relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden rounded-3xl border border-rn-violet/40 bg-gradient-to-br from-rn-surface-2 via-rn-surface to-rn-void p-7 transition hover:border-rn-magenta/70 hover:shadow-[0_0_60px_rgba(217,70,239,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan sm:p-9"
           >
             {/* Декоративная схема зала (не интерактивная) */}
