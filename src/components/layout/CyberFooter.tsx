@@ -104,10 +104,8 @@ export function CyberFooter() {
               {t("contacts.hoursValue")}
             </li>
           </ul>
-        </div>
-      </div>
-
-      <div className="relative mx-auto mt-12 flex max-w-7xl justify-center gap-3 border-t border-rn-line/60 px-4 pt-8 sm:px-6 lg:px-8">
+          {/* Соцсети — под контактами */}
+          <div className="mt-6 flex gap-3">
             {socials.map((s) => (
               <a
                 key={s.label}
@@ -120,9 +118,11 @@ export function CyberFooter() {
                 {s.icon}
               </a>
             ))}
+          </div>
+        </div>
       </div>
 
-      <div className="relative mx-auto mt-6 flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-xs text-rn-muted sm:flex-row sm:px-6 lg:px-8">
+      <div className="relative mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-2 border-t border-rn-line/60 px-4 pt-6 text-xs text-rn-muted sm:flex-row sm:px-6 lg:px-8">
         <span>
           © {year} RONIN · {club.city}. {t("footer.rights")}
         </span>

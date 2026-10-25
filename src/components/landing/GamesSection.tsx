@@ -29,7 +29,7 @@ export function GamesSection() {
       <div className="pointer-events-none absolute -right-40 top-10 h-96 w-96 rounded-full bg-rn-magenta/15 blur-[120px]" aria-hidden />
       <SectionHeading eyebrow={t("games.eyebrow")} title={t("games.title")} subtitle={t("games.subtitle")} />
 
-      <Marquee ariaLabel={t("games.title")} itemClassName="w-[200px] sm:w-[240px]" speed={45}>
+      <Marquee ariaLabel={t("games.title")} itemClassName="w-[240px] sm:w-[300px]" speed={45}>
         {GAMES.map((game) => (
           <article
             key={game.name}

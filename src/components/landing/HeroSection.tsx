@@ -2,14 +2,44 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ChevronDown, Clock, Monitor, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
-import { Marquee } from "@/components/ui/Marquee";
+import { useClubData } from "./useClubData";
 
 const TAG_KEYS = ["hero.tag1", "hero.tag2", "hero.tag3", "hero.tag4", "hero.tag5"] as const;
-import { useClubData } from "./useClubData";
+const SLOGAN_INTERVAL_MS = 3000;
+const SLOGAN_COLORS = ["text-white", "text-rn-magenta", "text-rn-cyan", "text-rn-purple", "text-rn-pink"];
+
+/** Крупный слоган, меняется каждые 3 секунды (как строка «Играй. Общайся. Развивайся.»). */
+function RotatingSlogan({ slogans, label }: { slogans: string[]; label: string }) {
+  const reduce = useReducedMotion();
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % slogans.length), SLOGAN_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [slogans.length]);
+
+  return (
+    <div aria-label={label} className="relative min-h-[4rem] overflow-hidden sm:min-h-[4.75rem]">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.p
+          key={index}
+          initial={{ opacity: 0, y: reduce ? 0 : 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduce ? 0 : -24 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className={`font-display text-2xl font-bold uppercase leading-tight sm:text-3xl ${SLOGAN_COLORS[index % SLOGAN_COLORS.length]}`}
+        >
+          {slogans[index]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function HeroSection() {
   const { t } = useLanguage();
@@ -95,20 +125,8 @@ export function HeroSection() {
             {t("hero.description")}
           </motion.p>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 1.05 }} className="mt-6 min-w-0">
-            <Marquee ariaLabel={t("hero.tagsLabel")} itemClassName="w-auto" speed={30}>
-              {TAG_KEYS.map((key, i) => (
-                <span
-                  key={key}
-                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-rn-line bg-rn-surface/60 px-4 py-2 font-display text-[11px] font-bold uppercase tracking-wider text-white/90 backdrop-blur sm:text-xs"
-                >
-                  <span className={i % 2 ? "text-rn-cyan" : "text-rn-magenta"} aria-hidden>
-                    ✦
-                  </span>
-                  {t(key)}
-                </span>
-              ))}
-            </Marquee>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 1.05 }} className="mt-6">
+            <RotatingSlogan slogans={TAG_KEYS.map((key) => t(key))} label={t("hero.tagsLabel")} />
           </motion.div>
 
           <motion.div

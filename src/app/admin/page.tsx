@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { RefreshCw } from "lucide-react";
+import { CalendarClock, CheckCircle2, CircleDollarSign, MonitorCheck, MonitorX, RefreshCw, Timer, UserPlus, Users, Wrench } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
-import { Button, Card, ErrorNote, Loading, PageHeader, StatTile, fmtMoney, useLoader } from "@/components/admin/ui";
+import { useStaff } from "@/components/admin/StaffShell";
+import { AreaChart, Donut, Gauge } from "@/components/admin/charts";
+import { BookingBadges, Empty, ErrorNote, Loading, fmtDateTime, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
 
 const PERIODS = [
   { key: "today", label: "Сегодня" },
@@ -12,101 +14,216 @@ const PERIODS = [
   { key: "month", label: "30 дней" },
 ] as const;
 
-export default function AdminDashboardPage() {
-  const [period, setPeriod] = useState<"today" | "week" | "month">("today");
-  const { data, error, loading, reload } = useLoader(() => adminApi.stats(period).then((r) => r.stats), [period]);
+type Period = (typeof PERIODS)[number]["key"];
 
-  const maxDay = Math.max(1, ...(data?.revenueByDay.map((d) => d.amount) ?? [1]));
+/** Обзор клуба для администратора: все цифры — из базы, без примерных данных. */
+export default function AdminDashboardPage() {
+  const staff = useStaff();
+  const [period, setPeriod] = useState<Period>("week");
+  const stats = useLoader(() => adminApi.stats(period).then((r) => r.stats), [period]);
+  const recent = useLoader(() => adminApi.bookings({}).then((r) => r.bookings.slice(0, 6)), []);
+  const sessions = useLoader(() => adminApi.sessions("active").then((r) => r.sessions), []);
+
+  const reloadAll = () => {
+    stats.reload();
+    recent.reload();
+    sessions.reload();
+  };
+
+  const data = stats.data;
+  const load = data && data.computers.total > 0 ? (data.computers.occupied / data.computers.total) * 100 : 0;
 
   return (
-    <>
-      <PageHeader
-        title="Обзор клуба"
-        subtitle="Все показатели считаются по данным системы. Время — Бишкек."
-        actions={
-          <>
-            <div className="flex rounded-xl border border-rn-line p-0.5" role="tablist" aria-label="Период">
-              {PERIODS.map((p) => (
-                <button
-                  key={p.key}
-                  role="tab"
-                  aria-selected={period === p.key}
-                  onClick={() => setPeriod(p.key)}
-                  className={`rounded-lg px-3 py-1.5 text-sm ${period === p.key ? "bg-rn-violet/30 text-white" : "text-rn-muted hover:text-white"}`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-            <Button onClick={reload} aria-label="Обновить">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </>
-        }
-      />
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-wide sm:text-3xl">Обзор клуба</h1>
+          <p className="mt-1 text-sm text-rn-muted">Здравствуйте, {staff.name}. Данные из системы, время — Бишкек.</p>
+        </div>
+        <button onClick={reloadAll} className="flex h-10 items-center gap-2 rounded-xl border border-rn-line bg-rn-surface px-4 text-sm text-rn-muted transition hover:text-white" aria-label="Обновить">
+          <RefreshCw className={`h-4 w-4 ${stats.loading ? "animate-spin" : ""}`} /> Обновить
+        </button>
+      </div>
 
-      {error && <ErrorNote>{error}</ErrorNote>}
-      {loading && !data && <Loading />}
+      {stats.error && <ErrorNote>{stats.error}</ErrorNote>}
+      {stats.loading && !data && <Loading />}
 
       {data && (
-        <div className="space-y-6">
-          <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-rn-muted">Компьютеры сейчас</h2>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <StatTile label="Всего" value={data.computers.total} accent="violet" />
-              <StatTile label="🟢 Свободны" value={data.computers.available} accent="green" />
-              <StatTile label="🔴 Заняты" value={data.computers.occupied} accent="red" />
-              <StatTile label="⚫ Обслуживание" value={data.computers.maintenance} accent="gray" />
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-rn-muted">Бронирования и сессии</h2>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <StatTile label="Идут сейчас" value={data.bookings.activeNow} accent="cyan" />
-              <StatTile label="Игровые сессии" value={data.sessions.active} hint={`за период: ${data.sessions.inPeriod}`} accent="cyan" />
-              <StatTile label="Ждут оплаты" value={data.bookings.awaitingPayment} accent="pink" />
-              <StatTile label="Брони за период" value={data.bookings.inPeriod} hint={`отменено: ${data.bookings.cancelledInPeriod}`} accent="violet" />
-            </div>
-          </section>
-
-          {data.payments && (
-            <section className="grid gap-3 lg:grid-cols-[1fr_2fr]">
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-                <StatTile label="Выручка за период" value={fmtMoney(data.payments.amount)} hint={`${data.payments.count} платежей`} accent="green" />
-                <StatTile label="Онлайн / в клубе" value={`${fmtMoney(data.payments.online)}`} hint={`в клубе: ${fmtMoney(data.payments.offline)}`} accent="violet" />
+        <>
+          {/* Ряд 1: текущее состояние + загрузка зала */}
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <Panel title="Сейчас в клубе" action={<Link href="/admin/computers" className="text-xs text-rn-cyan hover:text-white">Компьютеры →</Link>}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                <MiniStat icon={<MonitorCheck className="h-5 w-5" />} color="bg-emerald-500" value={data.computers.available} label="Свободно" />
+                <MiniStat icon={<MonitorX className="h-5 w-5" />} color="bg-rose-500" value={data.computers.occupied} label="Занято" />
+                <MiniStat icon={<Wrench className="h-5 w-5" />} color="bg-zinc-500" value={data.computers.maintenance} label="Обслуживание" />
+                <MiniStat icon={<Timer className="h-5 w-5" />} color="bg-rn-electric" value={data.sessions.active} label="Игровые сессии" />
+                <MiniStat icon={<CalendarClock className="h-5 w-5" />} color="bg-rn-magenta" value={data.bookings.awaitingPayment} label="Ждут оплаты" />
               </div>
-              <Card className="p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-rn-muted">Выручка по дням</h2>
-                  <Link href="/admin/payments" className="text-xs text-rn-cyan hover:text-white">
-                    Все платежи →
-                  </Link>
-                </div>
-                <div className="flex h-40 justify-center gap-1" role="img" aria-label="Выручка по дням">
-                  {data.revenueByDay.map((d) => (
-                    <div key={d.day} className="group relative flex max-w-16 flex-1 flex-col items-center justify-end" title={`${d.day}: ${fmtMoney(d.amount)}`}>
-                      <div
-                        className="w-full rounded-t bg-gradient-to-t from-rn-violet to-rn-cyan transition group-hover:from-rn-magenta"
-                        style={{ height: `${Math.max(2, (d.amount / maxDay) * 100)}%`, opacity: d.amount ? 1 : 0.25 }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 flex justify-between text-[10px] text-rn-muted">
-                  <span>{data.revenueByDay[0]?.day.slice(5)}</span>
-                  <span>{data.revenueByDay[data.revenueByDay.length - 1]?.day.slice(5)}</span>
-                </div>
-              </Card>
-            </section>
-          )}
+            </Panel>
+            <Panel title="Загрузка зала">
+              <Gauge percent={load} label="Занято" caption={`${data.computers.occupied} из ${data.computers.total} компьютеров`} />
+            </Panel>
+          </div>
 
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatTile label="Клиентов всего" value={data.clients.total} accent="violet" />
-            <StatTile label="Новых за период" value={data.clients.newInPeriod} accent="cyan" />
-          </section>
-        </div>
+          {/* Ряд 2: выручка + компьютеры */}
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <Panel
+              title="Выручка"
+              action={
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value as Period)}
+                  aria-label="Период"
+                  className="rounded-xl border border-rn-line bg-rn-night px-3 py-1.5 text-sm text-white outline-none focus:border-rn-cyan"
+                >
+                  {PERIODS.map((p) => (
+                    <option key={p.key} value={p.key}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              }
+            >
+              {data.payments ? (
+                <>
+                  <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <Kpi icon={<CircleDollarSign className="h-4 w-4" />} label="За период" value={fmtMoney(data.payments.amount)} />
+                    <Kpi icon={<CheckCircle2 className="h-4 w-4" />} label="Платежей" value={String(data.payments.count)} />
+                    <Kpi label="Онлайн" value={fmtMoney(data.payments.online)} />
+                    <Kpi label="В клубе" value={fmtMoney(data.payments.offline)} />
+                  </div>
+                  <AreaChart data={data.revenueByDay.map((d) => ({ label: d.day.slice(5).split("-").reverse().join("."), value: d.amount }))} format={fmtMoney} />
+                </>
+              ) : (
+                <Empty>Выручка доступна только администратору</Empty>
+              )}
+            </Panel>
+            <Panel title="Компьютеры">
+              <Donut
+                centerLabel="Всего"
+                centerValue={String(data.computers.total)}
+                segments={[
+                  { label: "Свободно", value: data.computers.available, color: "#10b981" },
+                  { label: "Занято", value: data.computers.occupied, color: "#d946ef" },
+                  { label: "Обслуживание", value: data.computers.maintenance, color: "#71717a" },
+                ]}
+              />
+              <ul className="mt-5 space-y-2 text-sm">
+                <Legend color="bg-emerald-500" label="Свободно" value={data.computers.available} />
+                <Legend color="bg-rn-magenta" label="Занято" value={data.computers.occupied} />
+                <Legend color="bg-zinc-500" label="Обслуживание" value={data.computers.maintenance} />
+              </ul>
+            </Panel>
+          </div>
+
+          {/* Ряд 3: брони + активные сессии + клиенты */}
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <Panel title="Последние брони" action={<Link href="/admin/bookings" className="text-xs text-rn-cyan hover:text-white">Все брони →</Link>}>
+              {recent.loading && !recent.data && <Loading />}
+              {recent.data?.length === 0 && <Empty>Броней пока нет</Empty>}
+              {recent.data && recent.data.length > 0 && (
+                <div className="-mx-5 overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-left text-sm">
+                    <thead className="text-xs text-rn-muted">
+                      <tr>
+                        <th className="px-5 py-2 font-medium">Дата</th>
+                        <th className="px-3 py-2 font-medium">Код</th>
+                        <th className="px-3 py-2 font-medium">Клиент</th>
+                        <th className="px-3 py-2 font-medium">ПК</th>
+                        <th className="px-3 py-2 font-medium">Сумма</th>
+                        <th className="px-5 py-2 font-medium">Статус</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recent.data.map((b) => (
+                        <tr key={b.id} className="border-t border-rn-line/60 transition hover:bg-white/[0.02]">
+                          <td className="whitespace-nowrap px-5 py-3 text-rn-muted">{fmtDateTime(b.startAt)}</td>
+                          <td className="px-3 py-3 font-display font-bold tracking-wider">{b.bookingCode}</td>
+                          <td className="max-w-[160px] truncate px-3 py-3">{b.user?.name ?? "—"}</td>
+                          <td className="px-3 py-3">№ {b.computer.number}</td>
+                          <td className="whitespace-nowrap px-3 py-3">{fmtMoney(b.price)}</td>
+                          <td className="px-5 py-3">
+                            <BookingBadges booking={b} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Panel>
+            <div className="min-w-0 space-y-5">
+              <Panel title="Играют сейчас" action={<Link href="/admin/sessions" className="text-xs text-rn-cyan hover:text-white">Сессии →</Link>}>
+                {sessions.data?.length === 0 && <Empty>Активных сессий нет</Empty>}
+                <ul className="space-y-2">
+                  {sessions.data?.slice(0, 5).map((s) => (
+                    <li key={s.id} className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2.5">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rn-violet/25 font-display text-xs font-bold text-white">{s.computer.number}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-white">{s.client.name}</span>
+                        <span className="block text-xs text-rn-muted">до {fmtTime(s.booking.endAt)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+              <Panel title="Клиенты">
+                <div className="grid grid-cols-2 gap-3">
+                  <MiniStat icon={<Users className="h-5 w-5" />} color="bg-rn-violet" value={data.clients.total} label="Всего" />
+                  <MiniStat icon={<UserPlus className="h-5 w-5" />} color="bg-rn-cyan" value={data.clients.newInPeriod} label="Новых" />
+                </div>
+              </Panel>
+            </div>
+          </div>
+        </>
       )}
-    </>
+    </div>
+  );
+}
+
+function Panel({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="min-w-0 rounded-2xl border border-rn-line/80 bg-rn-surface/70 p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-base font-semibold text-white">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function MiniStat({ icon, color, value, label }: { icon: ReactNode; color: string; value: number; label: string }) {
+  return (
+    <div className="rounded-xl border border-rn-line/70 bg-rn-night/60 p-4 transition hover:border-rn-violet/50">
+      <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg ${color}`}>{icon}</span>
+      <div className="mt-3 font-display text-2xl font-bold text-white">{value}</div>
+      <div className="text-xs text-rn-muted">{label}</div>
+    </div>
+  );
+}
+
+function Kpi({ icon, label, value }: { icon?: ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-white/[0.03] px-3 py-2.5">
+      <div className="flex items-center gap-1.5 text-xs text-rn-muted">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-1 truncate font-semibold text-white">{value}</div>
+    </div>
+  );
+}
+
+function Legend({ color, label, value }: { color: string; label: string; value: number }) {
+  return (
+    <li className="flex items-center justify-between">
+      <span className="flex items-center gap-2 text-rn-muted">
+        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+        {label}
+      </span>
+      <span className="font-semibold text-white">{value}</span>
+    </li>
   );
 }

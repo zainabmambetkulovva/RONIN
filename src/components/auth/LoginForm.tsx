@@ -52,6 +52,12 @@ export function LoginForm() {
         throw new Error(loginData.error || t("auth.invalidCredentials") || "Неверный email или пароль");
       }
 
+      // Сотрудники работают в админке: туда отдельный вход с кодом из Telegram (2FA)
+      if (loginData.user?.role === "admin" || loginData.user?.role === "manager") {
+        window.location.href = "/admin/login";
+        return;
+      }
+
       // Успешный вход: cookie сессии установлен сервером. Возвращаем туда, откуда пришёл пользователь
       // (только внутренние пути, чтобы ссылка не могла увести на чужой сайт)
       const callbackUrl = searchParams.get("callbackUrl");

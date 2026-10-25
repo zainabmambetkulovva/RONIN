@@ -11,6 +11,11 @@ export default function ClientsPage() {
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [selected, setSelected] = useState<ClientDTO | null>(null);
+  // Запрос из поиска в шапке панели (?q=...)
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("q");
+    if (initial) setQ(initial);
+  }, []);
   useEffect(() => {
     const id = setTimeout(() => setDebouncedQ(q.trim()), 300);
     return () => clearTimeout(id);
