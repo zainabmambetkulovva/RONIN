@@ -83,7 +83,7 @@ export function BookingModal({ computer, onClose }: Props) {
         return;
       }
 
-      // 2. Создаем платеж в Finik (5 сом)
+      // 2. Создаем платеж в Finik (тестовая сумма)
       console.log('Booking created:', bookingData.booking);
       
       const paymentRes = await fetch("/api/finik/create-payment", {
@@ -331,7 +331,7 @@ export function BookingModal({ computer, onClose }: Props) {
                     disabled={isLoading}
                     className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold text-lg uppercase hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/30"
                   >
-                    {isLoading ? "Создание..." : "Оплатить 5 сом"}
+                    {isLoading ? "Создание..." : "Оплатить 1 сом"}
                   </button>
 
                   <p className="text-center text-xs text-gray-400">

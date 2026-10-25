@@ -108,8 +108,11 @@ export interface FinikWebhookData {
   };
 }
 
+/** Тестовая сумма оплаты (сом), пока не включены настоящие цены. */
+export const FINIK_TEST_AMOUNT = 1;
+
 /**
- * Создает платеж в Finik Acquiring API с фиксированной ценой 5 сом
+ * Создает платеж в Finik Acquiring API с фиксированной тестовой ценой (FINIK_TEST_AMOUNT)
  */
 export async function createFinikPayment(data: CreatePaymentData): Promise<string> {
   // Проверка наличия credentials
@@ -129,7 +132,7 @@ export async function createFinikPayment(data: CreatePaymentData): Promise<strin
   const APP_URL = (data.appUrl || process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 
   // ФИКСИРОВАННАЯ ЦЕНА 5 СОМ (не берем из БД)
-  const FIXED_AMOUNT = 5;
+  const FIXED_AMOUNT = FINIK_TEST_AMOUNT;
 
   // Тело запроса согласно документации Finik
   const body = {
