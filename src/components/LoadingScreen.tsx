@@ -2,9 +2,11 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useEffect, useState } from "react";
 
 export function LoadingScreen() {
+  const brand = useBranding();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -82,8 +84,9 @@ export function LoadingScreen() {
                 className="relative w-24 h-24 sm:w-32 sm:h-32"
               >
                 <Image
-                  src="/logo-new.png"
-                  alt="RONIN"
+                  src={brand.logoUrl}
+                  unoptimized={brand.logoUrl.startsWith("/api/")}
+                  alt={brand.clubName}
                   fill
                   className="object-contain"
                   sizes="(max-width: 640px) 96px, 128px"
@@ -113,7 +116,7 @@ export function LoadingScreen() {
               }}
             >
               <p className="text-white font-bold text-xl uppercase tracking-widest">
-                RONIN
+                {brand.clubName}
               </p>
             </motion.div>
           </motion.div>

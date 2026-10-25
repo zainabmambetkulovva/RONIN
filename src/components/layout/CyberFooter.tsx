@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Instagram, MapPin, Phone, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
+import { useBranding } from "@/contexts/BrandingContext";
 import { TikTokIcon, WhatsAppIcon } from "@/components/landing/brand-icons";
 
 const NAV = [
@@ -18,6 +19,7 @@ const NAV = [
 
 /** Подвал сайта: логотип, навигация, контакты, соцсети. */
 export function CyberFooter() {
+  const brand = useBranding();
   const { t, language } = useLanguage();
   const year = new Date().getFullYear();
 
@@ -36,9 +38,9 @@ export function CyberFooter() {
         <div>
           <Link href="/" className="flex items-center gap-3">
             <span className="relative h-11 w-11">
-              <Image src="/logo-new.png" alt="" fill sizes="44px" className="object-contain" />
+              <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="44px" className="object-contain" />
             </span>
-            <span className="font-display text-2xl font-black tracking-[0.18em] text-white">RONIN</span>
+            <span className="font-display text-2xl font-black tracking-[0.18em] text-white">{brand.clubName}</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm text-rn-muted">{t("hero.description")}</p>
         </div>
@@ -124,7 +126,7 @@ export function CyberFooter() {
 
       <div className="relative mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-2 border-t border-rn-line/60 px-4 pt-6 text-xs text-rn-muted sm:flex-row sm:px-6 lg:px-8">
         <span>
-          © {year} RONIN · {club.city}. {t("footer.rights")}
+          © {year} {brand.clubName} · {club.city}. {t("footer.rights")}
         </span>
         <span className="font-display uppercase tracking-[0.3em] text-white/30">Play · Connect · Level up</span>
       </div>

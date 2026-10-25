@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { RefreshCw, Square } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
 import { ApiClientError } from "@/lib/api-client";
+import { ClubPulse } from "@/components/admin/ClubPulse";
 import { Button, Empty, ErrorNote, Loading, PageHeader, Table, fmtDateTime, fmtTime, useLoader } from "@/components/admin/ui";
 
 export default function SessionsPage() {
@@ -53,6 +54,8 @@ export default function SessionsPage() {
           </>
         }
       />
+
+      <ClubPulse />
 
       {(error || actionError) && <ErrorNote>{error || actionError}</ErrorNote>}
       {loading && !data && <Loading />}

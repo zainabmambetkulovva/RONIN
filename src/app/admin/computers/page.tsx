@@ -21,6 +21,7 @@ import {
   fmtTime,
   useLoader,
 } from "@/components/admin/ui";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { AdminComputerDTO, CategoryDTO } from "@/types/api";
 
 export default function ComputersPage() {
@@ -207,13 +208,7 @@ function ComputerModal({
         {editing && (
           <div className="grid gap-2 rounded-2xl border border-rn-line p-4 sm:grid-cols-[120px_1fr_auto]">
             <input type="number" min={1} className="rounded-xl border border-rn-line bg-rn-night px-3 py-2" value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} aria-label="Номер" />
-            <select className="rounded-xl border border-rn-line bg-rn-night px-3 py-2" value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} aria-label="Зал">
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Dropdown label="Зал" value={form.categoryId} onChange={(v) => setForm({ ...form, categoryId: v })} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
             <Button variant="primary" loading={busy} onClick={save}>
               Сохранить
             </Button>
@@ -287,13 +282,7 @@ function CreateComputerModal({ categories, onClose, onCreated }: { categories: C
         </label>
         <label className="block text-sm">
           <span className="mb-1 block text-rn-muted">Зал</span>
-          <select className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Dropdown label="Зал" value={categoryId} onChange={setCategoryId} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
         </label>
         {error && <ErrorNote>{error}</ErrorNote>}
         <div className="flex justify-end gap-2">

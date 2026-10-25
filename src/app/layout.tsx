@@ -6,6 +6,7 @@ import "../styles/typography.css";
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
+import { BrandingProvider } from "@/contexts/BrandingContext";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 const inter = Inter({
@@ -91,6 +92,7 @@ export default function RootLayout({
         <meta name="keywords" content="компьютерный клуб, gaming, киберспорт, Бишкек, игровые компьютеры" />
       </head>
       <body className={`${inter.variable} ${display.variable} font-sans antialiased bg-ronin-black`}>
+        <BrandingProvider>
         <LoadingScreen />
         <LanguageProvider>
           {children}
@@ -108,6 +110,7 @@ export default function RootLayout({
             }}
           />
         </LanguageProvider>
+        </BrandingProvider>
       </body>
     </html>
   );

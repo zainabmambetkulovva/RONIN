@@ -6,7 +6,8 @@
  * обозначают операционные состояния и не меняют палитру сайта.
  */
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Loader2, Search, X, AlertCircle } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, Inbox } from "lucide-react";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { BookingDTO, ComputerState } from "@/types/api";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
@@ -87,24 +88,8 @@ export function SearchInput({ value, onChange, placeholder }: { value: string; o
   );
 }
 
-export function Select({ value, onChange, options, label }: { value: string; onChange: (v: string) => void; options: Array<{ value: string; label: string }>; label: string }) {
-  return (
-    <label className="block">
-      <span className="sr-only">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={label}
-        className="rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-sm text-white outline-none focus:border-rn-cyan"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+export function Select({ value, onChange, options, label, className }: { value: string; onChange: (v: string) => void; options: Array<{ value: string; label: string }>; label: string; className?: string }) {
+  return <Dropdown value={value} onChange={onChange} options={options} label={label} className={className} />;
 }
 
 const STATE_STYLE: Record<ComputerState, { label: string; dot: string; chip: string }> = {
@@ -184,7 +169,25 @@ export function ErrorNote({ children }: { children: ReactNode }) {
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-2xl border border-dashed border-rn-line p-8 text-center text-sm text-rn-muted">{children}</div>;
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rn-line bg-rn-surface/30 px-6 py-10 text-center text-sm text-rn-muted">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-rn-violet/15 text-rn-purple" aria-hidden>
+        <Inbox className="h-6 w-6" />
+      </span>
+      {children}
+    </div>
+  );
+}
+
+/** Карточка показателя с цветной круглой иконкой (стиль обзора). */
+export function IconStat({ icon, color, value, label }: { icon: ReactNode; color: string; value: ReactNode; label: string }) {
+  return (
+    <div className="rounded-xl border border-rn-line/70 bg-rn-surface/70 p-4 transition hover:border-rn-violet/50">
+      <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg ${color}`}>{icon}</span>
+      <div className="mt-3 font-display text-2xl font-bold text-white">{value}</div>
+      <div className="text-xs text-rn-muted">{label}</div>
+    </div>
+  );
 }
 
 export function Loading() {

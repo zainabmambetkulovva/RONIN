@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useBranding } from "@/contexts/BrandingContext";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -22,6 +23,7 @@ import {
   Lock,
   Search,
   Bell,
+  Settings,
 } from "lucide-react";
 
 export type StaffRole = "admin" | "manager";
@@ -61,6 +63,7 @@ const NAV: NavItem[] = [
   { href: "/admin/tariffs", label: "Тарифы", icon: Tags, roles: ["admin"], group: "manage" },
   { href: "/admin/managers", label: "Менеджеры", icon: UserCog, roles: ["admin"], group: "manage" },
   { href: "/admin/users", label: "Аккаунты", icon: ShieldCheck, roles: ["admin"], group: "manage" },
+  { href: "/admin/settings", label: "Настройки", icon: Settings, roles: ["admin"], group: "manage" },
 ];
 
 const GROUPS: Array<{ key: NavItem["group"]; label: string }> = [
@@ -81,6 +84,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [staff, setStaff] = useState<StaffUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const brand = useBranding();
 
   useEffect(() => {
     let alive = true;
@@ -115,12 +119,9 @@ export function StaffShell({ children }: { children: ReactNode }) {
     <nav className="flex h-full flex-col" aria-label="Панель управления">
       <Link href={staff.role === "admin" ? "/admin" : "/manager"} className="flex items-center gap-3 px-5 py-5">
         <span className="relative h-9 w-9">
-          <Image src="/logo-new.png" alt="" fill sizes="36px" className="object-contain" />
+          <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="36px" className="object-contain" />
         </span>
-        <span>
-          <span className="block font-display text-base font-black tracking-[0.18em] text-white">RONIN</span>
-          <span className="block text-[10px] uppercase tracking-[0.25em] text-rn-cyan">{staff.role === "admin" ? "Администратор" : "Менеджер"}</span>
-        </span>
+        <span className="block font-display text-base font-black tracking-[0.18em] text-white">{brand.clubName}</span>
       </Link>
       <div className="flex-1 space-y-5 overflow-y-auto px-3 py-2">
         {GROUPS.map((group) => {
@@ -155,7 +156,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       <div className="p-3">
         <div className="mb-3 rounded-2xl border border-rn-violet/30 bg-gradient-to-br from-rn-violet/20 to-rn-magenta/10 p-4 text-center">
           <span className="relative mx-auto block h-10 w-10">
-            <Image src="/logo-new.png" alt="" fill sizes="40px" className="object-contain" />
+            <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="40px" className="object-contain" />
           </span>
           <p className="mt-2 text-xs text-white/85">Работаем 24/7 — все данные в реальном времени</p>
           <Link href="/" className="mt-2 inline-block text-xs font-semibold text-rn-cyan hover:text-white">
@@ -194,10 +195,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rn-violet to-rn-magenta font-display text-sm font-bold text-white">
               {staff.name.trim().charAt(0).toUpperCase()}
             </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">Добро пожаловать, {staff.name}!</p>
-              <p className="truncate text-xs text-rn-muted">{staff.role === "admin" ? "Администратор" : "Менеджер"} · RONIN</p>
-            </div>
+            <p className="min-w-0 truncate text-sm font-semibold text-white">Добро пожаловать, {staff.name}!</p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();

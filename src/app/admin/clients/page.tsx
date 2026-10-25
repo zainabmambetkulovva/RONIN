@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { adminApi } from "@/lib/admin-api";
 import { useStaff } from "@/components/admin/StaffShell";
 import { BookingBadges, Empty, ErrorNote, Loading, Modal, PageHeader, SearchInput, StatTile, Table, fmtDateTime, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
+import { ClubPulse } from "@/components/admin/ClubPulse";
 import type { ClientDTO } from "@/types/api";
 
 export default function ClientsPage() {
@@ -26,6 +27,8 @@ export default function ClientsPage() {
   return (
     <>
       <PageHeader title="Клиенты" subtitle={staff.role === "admin" ? "Блокировка и роли — в разделе «Аккаунты»." : undefined} />
+      <ClubPulse />
+
       <div className="mb-5">
         <SearchInput value={q} onChange={setQ} placeholder="Имя, телефон или email" />
       </div>

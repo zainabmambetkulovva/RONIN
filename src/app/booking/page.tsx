@@ -13,6 +13,7 @@ import { api, ApiClientError } from "@/lib/api-client";
 import { combineDayTime, dayKey, formatDate, formatMoney, formatTimeRange } from "@/lib/format";
 import { formatDuration } from "@/components/landing/useClubData";
 import { BOOKING_HOLD_MINUTES } from "@/server/config";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { CategoryDTO, ComputerDTO, TariffDTO } from "@/types/api";
 
 const DAYS_AHEAD = 14;
@@ -246,24 +247,16 @@ export default function BookingPage() {
                 );
               })}
             </div>
-            <label className="mb-2 flex items-center gap-2 text-sm text-rn-muted" htmlFor="start-time">
+            <p className="mb-2 flex items-center gap-2 text-sm text-rn-muted">
               <Clock className="h-4 w-4" /> {t("cab.book.startTime")}
-            </label>
-            <select
-              id="start-time"
+            </p>
+            <Dropdown
+              label={t("cab.book.startTime")}
+              className="w-full sm:w-60"
               value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full rounded-2xl border border-rn-line bg-rn-night px-4 py-3 text-white outline-none focus:border-rn-cyan sm:w-60"
-            >
-              {timeSlots().map((slot) => {
-                const past = combineDayTime(day, slot).getTime() < Date.now() - 60_000;
-                return (
-                  <option key={slot} value={slot} disabled={past}>
-                    {slot}
-                  </option>
-                );
-              })}
-            </select>
+              onChange={setTime}
+              options={timeSlots().map((slot) => ({ value: slot, label: slot, disabled: combineDayTime(day, slot).getTime() < Date.now() - 60_000 }))}
+            />
             {startInPast && <p className="mt-2 text-sm text-rn-pink">{t("cab.book.pastTime")}</p>}
           </Panel>
 

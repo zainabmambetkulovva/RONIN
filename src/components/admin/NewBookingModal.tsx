@@ -7,6 +7,8 @@ import { api, ApiClientError } from "@/lib/api-client";
 import { SeatGrid } from "@/components/cabinet/SeatGrid";
 import type { BookingDTO, CategoryDTO, ClientDTO, ComputerDTO, TariffDTO } from "@/types/api";
 import { BookingActions } from "./BookingActions";
+import { Dropdown } from "@/components/ui/Dropdown";
+import { DatePicker, toDayKey } from "@/components/ui/DatePicker";
 import { Button, ErrorNote, Modal, fmtMoney } from "./ui";
 
 function toLocalInput(d: Date) {
@@ -185,27 +187,24 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
           <section className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">2. Зал</span>
-              <select className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <Dropdown label="Зал" value={categoryId} onChange={setCategoryId} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
             </label>
             <label className="text-sm">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">Тариф</span>
-              <select className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2" value={tariffId} onChange={(e) => setTariffId(e.target.value)}>
-                {hallTariffs.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} — {fmtMoney(t.price)}
-                  </option>
-                ))}
-              </select>
+              <Dropdown label="Тариф" value={tariffId} onChange={setTariffId} options={hallTariffs.map((t) => ({ value: t.id, label: `${t.name} — ${fmtMoney(t.price)}` }))} />
             </label>
             <label className="text-sm">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">Начало</span>
-              <input type="datetime-local" className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2 [color-scheme:dark]" value={start} onChange={(e) => setStart(e.target.value)} />
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <DatePicker label="День" value={start.slice(0, 10)} min={toDayKey(new Date())} onChange={(d) => setStart(`${d}T${start.slice(11, 16)}`)} />
+                <Dropdown
+                  label="Время"
+                  className="w-28"
+                  value={start.slice(11, 16)}
+                  onChange={(time) => setStart(`${start.slice(0, 10)}T${time}`)}
+                  options={timeOptions(start.slice(11, 16))}
+                />
+              </div>
             </label>
           </section>
 
@@ -226,4 +225,12 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
       )}
     </Modal>
   );
+}
+
+/** Время с шагом 15 минут (+ текущее значение, если оно не на сетке). */
+function timeOptions(current: string) {
+  const list: string[] = [];
+  for (let m = 0; m < 24 * 60; m += 15) list.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  if (current && !list.includes(current)) list.push(current);
+  return list.sort().map((v) => ({ value: v, label: v }));
 }

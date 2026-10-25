@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ChevronDown, Clock, Monitor, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useClubData } from "./useClubData";
 
 const TAG_KEYS = ["hero.tag1", "hero.tag2", "hero.tag3", "hero.tag4", "hero.tag5"] as const;
@@ -48,7 +49,9 @@ export function HeroSection() {
   const pcCount = clubData.status === "ready" ? clubData.data.computers.length : null;
 
   const slogan = [t("hero.slogan1"), t("hero.slogan2"), t("hero.slogan3")];
-  const character = club.heroCharacter ?? "/logo-new.png";
+  const brand = useBranding();
+  const character = brand.heroImageUrl;
+  const isPortrait = true;
 
   return (
     <section id="hero" className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
@@ -91,14 +94,14 @@ export function HeroSection() {
               transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="rn-text-gradient block text-[clamp(4.5rem,16vw,11.5rem)] drop-shadow-[0_0_40px_rgba(168,85,247,0.35)]"
             >
-              RONIN
+              {brand.clubName}
             </motion.span>
             {/* Контурное «эхо» заголовка для глубины */}
             <span
               aria-hidden
               className="pointer-events-none absolute left-1 top-2 -z-10 block select-none text-[clamp(4.5rem,16vw,11.5rem)] text-transparent [-webkit-text-stroke:1px_rgba(34,211,238,0.35)]"
             >
-              RONIN
+              {brand.clubName}
             </span>
           </h1>
 
@@ -137,7 +140,7 @@ export function HeroSection() {
           >
             <Link
               href="/booking"
-              className="group relative inline-flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-rn-magenta via-rn-purple to-rn-electric px-8 py-4 font-display text-sm font-bold uppercase tracking-widest text-white shadow-[0_0_40px_rgba(217,70,239,0.45)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_60px_rgba(217,70,239,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan"
+              className="rn-brand-gradient group relative inline-flex items-center gap-3 overflow-hidden rounded-2xl px-8 py-4 font-display text-sm font-bold uppercase tracking-widest text-white shadow-[0_0_40px_rgba(217,70,239,0.45)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_60px_rgba(217,70,239,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan"
             >
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" aria-hidden />
               {t("hero.cta")}
@@ -172,7 +175,7 @@ export function HeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={`relative mx-auto w-full ${
-            club.heroCharacter
+            isPortrait
               ? "aspect-[4/5] max-w-[320px] sm:max-w-[440px] lg:max-w-[540px]"
               : "aspect-square max-w-[300px] sm:max-w-[420px] lg:max-w-[520px]"
           }`}
@@ -189,11 +192,12 @@ export function HeroSection() {
           <div className="relative h-full w-full drop-shadow-[0_0_40px_rgba(168,85,247,0.45)] motion-safe:animate-rn-float">
             <Image
               src={character}
-              alt={club.heroCharacter ? "Самурай RONIN" : "RONIN"}
+              alt={brand.clubName}
+              unoptimized={character.startsWith("/api/")}
               fill
               priority
               sizes="(min-width: 1024px) 540px, (min-width: 640px) 440px, 320px"
-              className={`object-contain ${club.heroCharacter ? "object-bottom [mask-image:linear-gradient(to_bottom,black_72%,transparent_98%)]" : "p-[16%]"}`}
+              className={`object-contain ${isPortrait ? "object-bottom [mask-image:linear-gradient(to_bottom,black_72%,transparent_98%)]" : "p-[16%]"}`}
             />
           </div>
         </motion.div>

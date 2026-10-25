@@ -22,13 +22,16 @@ export default function BookingSuccessPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [booking, setBooking] = useState<BookingDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<number | null>(null);
   const [pollTimedOut, setPollTimedOut] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const startedAt = useRef(Date.now());
 
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("bookingId");
+    // Платёжная система может дописать свои параметры к адресу возврата — берём только сам id
+    const raw = new URLSearchParams(window.location.search).get("bookingId");
+    const id = raw?.split(/[?&#/\s]/)[0]?.trim();
     if (id) setBookingId(id);
     else setError(t("cab.receipt.notFound"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,14 +39,29 @@ export default function BookingSuccessPage() {
 
   const load = useCallback(async () => {
     if (!bookingId) return null;
-    try {
-      const { booking } = await api.booking(bookingId);
-      setBooking(booking);
-      return booking;
-    } catch (e) {
-      setError(e instanceof ApiClientError && e.status === 404 ? t("cab.receipt.notFound") : t("cab.receipt.loadError"));
-      return null;
+    // Временные сбои (холодный старт, сеть) не должны сразу показывать ошибку: до 4 попыток
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const { booking } = await api.booking(bookingId);
+        setBooking(booking);
+        setError(null);
+        return booking;
+      } catch (e) {
+        const status = e instanceof ApiClientError ? e.status : null;
+        if (status === 401) {
+          // Сессия потерялась по дороге с платёжной страницы — войти и вернуться к чеку
+          window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return null;
+        }
+        if (status === 404 || attempt === 3) {
+          setErrorCode(status);
+          setError(status === 404 ? t("cab.receipt.notFound") : t("cab.receipt.loadError"));
+          return null;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
     }
+    return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
@@ -98,9 +116,24 @@ export default function BookingSuccessPage() {
         <Panel className="mx-auto max-w-lg text-center">
           <XCircle className="mx-auto h-12 w-12 text-rn-pink" />
           <p className="mt-4 text-white">{error}</p>
-          <Link href="/bookings" className="mt-6 inline-block text-rn-cyan hover:text-white">
-            {t("cab.nav.bookings")}
-          </Link>
+          {errorCode && errorCode !== 404 && <p className="mt-1 text-xs text-rn-muted">Код ошибки: {errorCode}</p>}
+          <div className="mt-6 flex justify-center gap-5">
+            {bookingId && errorCode !== 404 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  load();
+                }}
+                className="text-rn-cyan hover:text-white"
+              >
+                {t("cab.receipt.retry")}
+              </button>
+            )}
+            <Link href="/bookings" className="text-rn-cyan hover:text-white">
+              {t("cab.nav.bookings")}
+            </Link>
+          </div>
         </Panel>
       )}
 

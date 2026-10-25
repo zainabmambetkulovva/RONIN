@@ -6,7 +6,7 @@ import { CalendarClock, CheckCircle2, CircleDollarSign, MonitorCheck, MonitorX, 
 import { adminApi } from "@/lib/admin-api";
 import { useStaff } from "@/components/admin/StaffShell";
 import { AreaChart, Donut, Gauge } from "@/components/admin/charts";
-import { BookingBadges, Empty, ErrorNote, Loading, fmtDateTime, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
+import { BookingBadges, Empty, ErrorNote, IconStat, Loading, Select, fmtDateTime, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
 
 const PERIODS = [
   { key: "today", label: "Сегодня" },
@@ -54,11 +54,11 @@ export default function AdminDashboardPage() {
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
             <Panel title="Сейчас в клубе" action={<Link href="/admin/computers" className="text-xs text-rn-cyan hover:text-white">Компьютеры →</Link>}>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                <MiniStat icon={<MonitorCheck className="h-5 w-5" />} color="bg-emerald-500" value={data.computers.available} label="Свободно" />
-                <MiniStat icon={<MonitorX className="h-5 w-5" />} color="bg-rose-500" value={data.computers.occupied} label="Занято" />
-                <MiniStat icon={<Wrench className="h-5 w-5" />} color="bg-zinc-500" value={data.computers.maintenance} label="Обслуживание" />
-                <MiniStat icon={<Timer className="h-5 w-5" />} color="bg-rn-electric" value={data.sessions.active} label="Игровые сессии" />
-                <MiniStat icon={<CalendarClock className="h-5 w-5" />} color="bg-rn-magenta" value={data.bookings.awaitingPayment} label="Ждут оплаты" />
+                <IconStat icon={<MonitorCheck className="h-5 w-5" />} color="bg-emerald-500" value={data.computers.available} label="Свободно" />
+                <IconStat icon={<MonitorX className="h-5 w-5" />} color="bg-rose-500" value={data.computers.occupied} label="Занято" />
+                <IconStat icon={<Wrench className="h-5 w-5" />} color="bg-zinc-500" value={data.computers.maintenance} label="Обслуживание" />
+                <IconStat icon={<Timer className="h-5 w-5" />} color="bg-rn-electric" value={data.sessions.active} label="Игровые сессии" />
+                <IconStat icon={<CalendarClock className="h-5 w-5" />} color="bg-rn-magenta" value={data.bookings.awaitingPayment} label="Ждут оплаты" />
               </div>
             </Panel>
             <Panel title="Загрузка зала">
@@ -71,18 +71,7 @@ export default function AdminDashboardPage() {
             <Panel
               title="Выручка"
               action={
-                <select
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value as Period)}
-                  aria-label="Период"
-                  className="rounded-xl border border-rn-line bg-rn-night px-3 py-1.5 text-sm text-white outline-none focus:border-rn-cyan"
-                >
-                  {PERIODS.map((p) => (
-                    <option key={p.key} value={p.key}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                <Select label="Период" value={period} onChange={(v) => setPeriod(v as Period)} options={PERIODS.map((p) => ({ value: p.key, label: p.label }))} />
               }
             >
               {data.payments ? (
@@ -170,8 +159,8 @@ export default function AdminDashboardPage() {
               </Panel>
               <Panel title="Клиенты">
                 <div className="grid grid-cols-2 gap-3">
-                  <MiniStat icon={<Users className="h-5 w-5" />} color="bg-rn-violet" value={data.clients.total} label="Всего" />
-                  <MiniStat icon={<UserPlus className="h-5 w-5" />} color="bg-rn-cyan" value={data.clients.newInPeriod} label="Новых" />
+                  <IconStat icon={<Users className="h-5 w-5" />} color="bg-rn-violet" value={data.clients.total} label="Всего" />
+                  <IconStat icon={<UserPlus className="h-5 w-5" />} color="bg-rn-cyan" value={data.clients.newInPeriod} label="Новых" />
                 </div>
               </Panel>
             </div>
@@ -194,15 +183,6 @@ function Panel({ title, action, children }: { title: string; action?: ReactNode;
   );
 }
 
-function MiniStat({ icon, color, value, label }: { icon: ReactNode; color: string; value: number; label: string }) {
-  return (
-    <div className="rounded-xl border border-rn-line/70 bg-rn-night/60 p-4 transition hover:border-rn-violet/50">
-      <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg ${color}`}>{icon}</span>
-      <div className="mt-3 font-display text-2xl font-bold text-white">{value}</div>
-      <div className="text-xs text-rn-muted">{label}</div>
-    </div>
-  );
-}
 
 function Kpi({ icon, label, value }: { icon?: ReactNode; label: string; value: string }) {
   return (

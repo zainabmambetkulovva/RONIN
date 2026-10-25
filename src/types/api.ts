@@ -195,3 +195,14 @@ export interface AdminStatsDTO {
   /** Выручка по дням периода (по Бишкеку); для менеджера — пустой массив. */
   revenueByDay: Array<{ day: string; amount: number }>;
 }
+
+/** Оформление сайта клуба (настраивается в админке). */
+export interface BrandingDTO {
+  clubName: string;
+  /** Три цвета градиента заголовка и главных кнопок, #RRGGBB. */
+  gradient: [string, string, string];
+  logoUrl: string;
+  heroImageUrl: string;
+  customLogo: boolean;
+  customHero: boolean;
+}

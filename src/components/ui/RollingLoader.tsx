@@ -1,14 +1,17 @@
 import React from "react";
+import { useBranding } from "@/contexts/BrandingContext";
 import Image from "next/image";
 
 export function RollingLoader() {
+  const brand = useBranding();
   return (
     <div className="rolling-loader-container">
       {/* RONIN Logo с пульсацией */}
       <div className="logo-pulse">
         <Image
-          src="/logo-new.png"
-          alt="RONIN"
+          src={brand.logoUrl}
+          unoptimized={brand.logoUrl.startsWith("/api/")}
+          alt={brand.clubName}
           width={60}
           height={60}
           className="logo-image"

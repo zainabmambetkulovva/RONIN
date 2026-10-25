@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, User } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useSession } from "@/hooks/useSession";
 
 const NAV_LINKS = [
@@ -21,6 +22,7 @@ const NAV_LINKS = [
 
 /** Шапка сайта. Ссылки ведут на секции главной страницы и работают с любой страницы. */
 export function CyberNavbar() {
+  const brand = useBranding();
   const { t } = useLanguage();
   const { data: session, status } = useSession();
   const pathname = usePathname();
@@ -69,9 +71,9 @@ export function CyberNavbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-20 lg:px-8">
         <Link href="/" className="group flex shrink-0 items-center gap-3" onClick={() => setOpen(false)}>
           <span className="relative h-9 w-9 lg:h-10 lg:w-10">
-            <Image src="/logo-new.png" alt="" fill sizes="40px" priority className="object-contain transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110" />
+            <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="40px" priority className="object-contain transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110" />
           </span>
-          <span className="font-display text-lg font-black tracking-[0.18em] text-white lg:text-xl">RONIN</span>
+          <span className="font-display text-lg font-black tracking-[0.18em] text-white lg:text-xl">{brand.clubName}</span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
@@ -114,7 +116,7 @@ export function CyberNavbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-full bg-gradient-to-r from-rn-violet to-rn-magenta px-5 py-2 text-sm font-bold text-white shadow-[0_0_24px_rgba(217,70,239,0.35)] transition hover:shadow-[0_0_36px_rgba(217,70,239,0.6)]"
+                  className="rn-brand-gradient rounded-full px-5 py-2 text-sm font-bold text-white shadow-[0_0_24px_rgba(217,70,239,0.35)] transition hover:shadow-[0_0_36px_rgba(217,70,239,0.6)]"
                 >
                   {t("nav.register")}
                 </Link>

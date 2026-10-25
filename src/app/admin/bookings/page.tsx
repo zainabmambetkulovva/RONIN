@@ -7,6 +7,8 @@ import { BookingActions } from "@/components/admin/BookingActions";
 import { NewBookingModal } from "@/components/admin/NewBookingModal";
 import { BookingBadges, Button, Empty, ErrorNote, Loading, Modal, PageHeader, SearchInput, Select, Table, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
 import { dayKey } from "@/lib/format";
+import { ClubPulse } from "@/components/admin/ClubPulse";
+import { DatePicker } from "@/components/ui/DatePicker";
 import type { BookingDTO } from "@/types/api";
 
 function dayRange(day: string) {
@@ -16,7 +18,8 @@ function dayRange(day: string) {
 
 export default function AdminBookingsPage() {
   const [day, setDay] = useState(dayKey(new Date()));
-  const [allDays, setAllDays] = useState(false);
+  // По умолчанию — все брони, новые сверху (бронь на завтра не должна «теряться» за фильтром дня)
+  const [allDays, setAllDays] = useState(true);
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
@@ -58,16 +61,11 @@ export default function AdminBookingsPage() {
         }
       />
 
+      <ClubPulse />
+
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Код, номер, имя или телефон" />
-        <input
-          type="date"
-          value={day}
-          disabled={allDays || !!debouncedQ}
-          onChange={(e) => setDay(e.target.value)}
-          aria-label="День"
-          className="rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-sm [color-scheme:dark] disabled:opacity-40"
-        />
+        <DatePicker value={day} onChange={setDay} label="День" disabled={allDays || !!debouncedQ} />
         <label className="flex items-center gap-2 text-sm text-rn-muted">
           <input type="checkbox" checked={allDays} onChange={(e) => setAllDays(e.target.checked)} className="accent-fuchsia-500" /> Все дни
         </label>
