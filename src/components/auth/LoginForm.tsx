@@ -25,7 +25,8 @@ export function LoginForm() {
         'oauth_error': 'Ошибка OAuth авторизации',
         'access_denied': 'Вы отклонили доступ к Google аккаунту',
         'config': 'Ошибка конфигурации OAuth (свяжитесь с администратором)',
-        'account_blocked': 'Аккаунт заблокирован. Обратитесь в клуб'
+        'account_blocked': 'Аккаунт заблокирован. Обратитесь в клуб',
+        'state': 'Сессия входа устарела. Попробуйте войти через Google ещё раз'
       };
       setError(errorMessages[errorParam] || 'Ошибка авторизации через Google');
     }
@@ -166,7 +167,10 @@ export function LoginForm() {
           {/* Google OAuth Button */}
           <button
             type="button"
-            onClick={() => window.location.href = '/api/auth/google'}
+            onClick={() => {
+              const callbackUrl = searchParams.get("callbackUrl");
+              window.location.href = `/api/auth/google${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`;
+            }}
             className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
             style={{
               background: "rgba(255,255,255,0.05)",

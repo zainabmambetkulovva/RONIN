@@ -33,7 +33,7 @@ export function GamesSection() {
         {GAMES.map((game) => (
           <article
             key={game.name}
-            className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface transition-all duration-500 hover:border-rn-magenta/60 hover:shadow-[0_0_40px_rgba(217,70,239,0.3)]"
+            className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface shadow-[0_10px_30px_-15px_rgba(217,70,239,0)] transition-all duration-700 ease-out hover:border-rn-magenta/60 hover:shadow-[0_10px_30px_-10px_rgba(217,70,239,0.45)]"
           >
             {game.image ? (
               <Image

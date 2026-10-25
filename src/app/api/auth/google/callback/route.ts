@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { createUserSession } from "@/server/auth/session";
+import { GOOGLE_STATE_COOKIE, googleRedirectUri, readGoogleState } from "../oauth";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=no_code', req.url));
     }
 
+    const saved = readGoogleState(req);
+    if (!saved || saved.state !== searchParams.get('state')) {
+      console.error('[Google OAuth Callback] State mismatch');
+      return NextResponse.redirect(new URL('/login?error=state', req.url));
+    }
+
     console.log('[Google OAuth Callback] Exchanging code for tokens...');
     
     // Exchange code for tokens
@@ -39,7 +46,7 @@ export async function GET(req: NextRequest) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/google/callback`,
+        redirect_uri: googleRedirectUri(req),
         grant_type: 'authorization_code'
       })
     });
@@ -101,10 +108,10 @@ export async function GET(req: NextRequest) {
     console.log('[Google OAuth Callback] Creating session...');
     await createUserSession(user);
 
-    console.log('[Google OAuth Callback] Success! Redirecting to home...');
-    
-    // Redirect to home (middleware will handle setup-profile redirect if needed)
-    return NextResponse.redirect(new URL('/', req.url));
+    // В личный кабинет (или туда, откуда пришли); незаполненный профиль middleware отправит на setup-profile
+    const res = NextResponse.redirect(new URL(saved.callbackUrl, req.url));
+    res.cookies.delete({ name: GOOGLE_STATE_COOKIE, path: '/api/auth/google' });
+    return res;
     
   } catch (error: any) {
     console.error('[Google OAuth Callback] Fatal error:', error.message);

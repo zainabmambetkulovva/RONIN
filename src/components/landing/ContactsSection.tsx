@@ -53,7 +53,7 @@ export function ContactsSection() {
                 {club.paymentMethods.map((method) => {
                   const Icon = PAY_ICONS[method];
                   return (
-                    <li key={method} className="flex items-center gap-2 rounded-xl bg-white/[0.03] px-3 py-2 text-sm text-white/85">
+                    <li key={method} className="flex items-center gap-2 rounded-xl border border-transparent bg-white/[0.03] px-3 py-2 text-sm text-white/85 transition-all duration-300 hover:border-rn-violet/40 hover:bg-white/[0.06] hover:text-white">
                       <Icon className="h-4 w-4 text-rn-muted" />
                       {t(`contacts.pay.${method}`)}
                     </li>
@@ -97,12 +97,16 @@ export function ContactsSection() {
 
 function InfoCard({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
-    <div className="h-full rounded-3xl border border-rn-line bg-rn-surface p-6 transition hover:border-rn-violet/50">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04]">{icon}</span>
+    <div className="group relative h-full overflow-hidden rounded-3xl border border-rn-line bg-rn-surface p-6 shadow-[0_0_0_rgba(139,92,246,0)] transition-all duration-500 ease-out hover:-translate-y-1 hover:border-rn-violet/60 hover:shadow-[0_12px_40px_-12px_rgba(139,92,246,0.55)]">
+      <div
+        className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-rn-violet/25 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+        aria-hidden
+      />
+      <div className="relative mb-4 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] transition-all duration-500 group-hover:scale-110 group-hover:bg-white/[0.08]">{icon}</span>
         <span className="text-xs font-semibold uppercase tracking-[0.2em] text-rn-muted">{label}</span>
       </div>
-      {children}
+      <div className="relative">{children}</div>
     </div>
   );
 }

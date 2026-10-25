@@ -91,7 +91,7 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
       role="region"
       aria-roledescription="carousel"
       aria-label={ariaLabel}
-      className={`rn-fade-x -mx-4 cursor-grab touch-pan-y select-none overflow-hidden py-2 active:cursor-grabbing ${className}`}
+      className={`rn-fade-x -mx-4 cursor-grab touch-pan-y select-none overflow-hidden py-8 -my-6 active:cursor-grabbing ${className}`}
       onPointerEnter={(e) => {
         if (e.pointerType === "mouse") state.current.hover = true;
       }}

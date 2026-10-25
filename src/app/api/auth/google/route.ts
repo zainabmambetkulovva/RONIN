@@ -1,33 +1,44 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { GOOGLE_STATE_COOKIE, googleRedirectUri, safeCallbackUrl } from "./oauth";
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/auth/google - Redirect to Google OAuth
+ * GET /api/auth/google[?callbackUrl=/booking] - Redirect to Google OAuth
+ *
+ * redirect_uri строится от адреса, на котором открыт сайт (production или preview),
+ * поэтому после входа пользователь возвращается на тот же сайт.
+ * state защищает от подмены ответа (CSRF) и хранит, куда вернуться после входа.
  */
-export async function GET() {
-  console.log('[Google OAuth Init] Starting redirect...');
-  console.log('[Google OAuth Init] Client ID exists:', !!process.env.GOOGLE_CLIENT_ID);
-  console.log('[Google OAuth Init] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
-  
+export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/google/callback`;
-  
+
   if (!clientId) {
     console.error('[Google OAuth Init] Missing GOOGLE_CLIENT_ID');
-    return NextResponse.redirect(new URL('/login?error=config', process.env.NEXTAUTH_URL!));
+    return NextResponse.redirect(new URL('/login?error=config', req.url));
   }
+
+  const state = crypto.randomBytes(16).toString('hex');
+  const callbackUrl = safeCallbackUrl(req.nextUrl.searchParams.get('callbackUrl'));
 
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: googleRedirectUri(req),
     response_type: 'code',
     scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent'
+    state,
+    // Всегда показывать выбор аккаунта Google
+    prompt: 'select_account',
   }).toString()}`;
 
-  console.log('[Google OAuth Init] Redirecting to:', authUrl.substring(0, 100) + '...');
-  
-  return NextResponse.redirect(authUrl);
+  const res = NextResponse.redirect(authUrl);
+  res.cookies.set(GOOGLE_STATE_COOKIE, JSON.stringify({ state, callbackUrl }), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/auth/google',
+    maxAge: 10 * 60,
+  });
+  return res;
 }
