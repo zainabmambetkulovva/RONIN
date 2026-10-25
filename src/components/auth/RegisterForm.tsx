@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function RegisterForm() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -106,8 +104,9 @@ export function RegisterForm() {
         throw new Error(data.error || "Ошибка регистрации");
       }
 
-      // Success — redirect to login
-      router.push("/login?registered=true");
+      // Сессия уже создана сервером — сразу в личный кабинет (или туда, откуда пришли)
+      const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+      window.location.href = callbackUrl && /^\/(?![\/\\])/.test(callbackUrl) ? callbackUrl : "/dashboard";
     } catch (err: any) {
       setError(err.message || "Произошла ошибка при регистрации");
       setIsLoading(false);

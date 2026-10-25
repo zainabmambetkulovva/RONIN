@@ -27,7 +27,7 @@ export const POST = handle(async (request: NextRequest) => {
     throw conflict('Время на оплату истекло. Создайте бронирование заново', 'hold_expired');
   }
 
-  const paymentData: CreatePaymentData = { bookingId, userId: user.id };
+  const paymentData: CreatePaymentData = { bookingId, userId: user.id, appUrl: request.nextUrl.origin };
 
   console.log(`📝 Creating payment for booking: ${bookingId}`);
   const paymentUrl = await createFinikPayment(paymentData);

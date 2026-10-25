@@ -73,6 +73,8 @@ ZwIDAQAB
 export interface CreatePaymentData {
   bookingId: string;
   userId: string;
+  /** Адрес сайта, с которого начата оплата (production или preview): туда вернёт Finik и придёт webhook. */
+  appUrl?: string;
 }
 
 // Интерфейс для webhook данных
@@ -124,7 +126,7 @@ export async function createFinikPayment(data: CreatePaymentData): Promise<strin
   const paymentId = crypto.randomUUID();
 
   // Получаем APP_URL из переменных окружения
-  const APP_URL = (process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const APP_URL = (data.appUrl || process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
 
   // ФИКСИРОВАННАЯ ЦЕНА 5 СОМ (не берем из БД)
   const FIXED_AMOUNT = 5;
@@ -134,7 +136,7 @@ export async function createFinikPayment(data: CreatePaymentData): Promise<strin
     Amount: FIXED_AMOUNT,
     CardType: 'FINIK_QR',
     PaymentId: paymentId,
-    RedirectUrl: `${APP_URL}/booking?bookingId=${data.bookingId}&payment=success`,
+    RedirectUrl: `${APP_URL}/booking-success?bookingId=${data.bookingId}`,
     Data: {
       accountId: FINIK_ACCOUNT_ID,
       merchantCategoryCode: '0742',

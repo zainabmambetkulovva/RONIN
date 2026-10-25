@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendNewUserNotification } from "@/lib/telegram";
 import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
+import { createUserSession } from "@/server/auth/session";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Создаем пользователя
-    const user = await prisma.users.create({
+    const created = await prisma.users.create({
       data: {
         id: crypto.randomUUID(),
         name: name.trim(),
@@ -74,15 +75,18 @@ export async function POST(req: NextRequest) {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        created_at: true,
-      },
     });
+
+    // Сразу входим: после регистрации клиент попадает в личный кабинет, без повторного ввода пароля
+    await createUserSession(created);
+    const user = {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      phone: created.phone,
+      role: created.role,
+      created_at: created.created_at,
+    };
 
     // Отправить уведомление в Telegram (не блокируем ответ если ошибка)
     const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
