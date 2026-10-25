@@ -41,20 +41,6 @@ export function CyberFooter() {
             <span className="font-display text-2xl font-black tracking-[0.18em] text-white">RONIN</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm text-rn-muted">{t("hero.description")}</p>
-          <div className="mt-6 flex gap-3">
-            {socials.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rn-line bg-white/[0.03] text-white/85 transition hover:-translate-y-0.5 hover:border-rn-magenta hover:text-white"
-              >
-                {s.icon}
-              </a>
-            ))}
-          </div>
         </div>
 
         <div>
@@ -121,7 +107,22 @@ export function CyberFooter() {
         </div>
       </div>
 
-      <div className="relative mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-2 border-t border-rn-line/60 px-4 pt-6 text-xs text-rn-muted sm:flex-row sm:px-6 lg:px-8">
+      <div className="relative mx-auto mt-12 flex max-w-7xl justify-center gap-3 border-t border-rn-line/60 px-4 pt-8 sm:px-6 lg:px-8">
+            {socials.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rn-line bg-white/[0.03] text-white/85 transition hover:-translate-y-0.5 hover:border-rn-magenta hover:text-white"
+              >
+                {s.icon}
+              </a>
+            ))}
+      </div>
+
+      <div className="relative mx-auto mt-6 flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-xs text-rn-muted sm:flex-row sm:px-6 lg:px-8">
         <span>
           © {year} RONIN · {club.city}. {t("footer.rights")}
         </span>

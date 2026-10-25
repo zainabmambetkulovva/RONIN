@@ -107,6 +107,12 @@ const ru = {
   "footer.rights": "Все права защищены.",
 
   "carousel.prev": "Назад",
+  "hero.tag1": "Заходи гостем — уходи ронином",
+  "hero.tag2": "Мощные ПК без компромиссов",
+  "hero.tag3": "Открыты 24/7 — играй, когда хочешь",
+  "hero.tag4": "Твоя команда уже здесь",
+  "hero.tag5": "Тихая кабинка или драйв общего зала — выбирай",
+  "hero.tagsLabel": "Слоганы клуба",
   "carousel.next": "Вперёд",
   "carousel.goTo": "Перейти к слайду",
 };
@@ -216,6 +222,12 @@ const en: Dict = {
   "footer.rights": "All rights reserved.",
 
   "carousel.prev": "Previous",
+  "hero.tag1": "Walk in a guest — leave a ronin",
+  "hero.tag2": "Powerful PCs, no compromises",
+  "hero.tag3": "Open 24/7 — play whenever you want",
+  "hero.tag4": "Your squad is already here",
+  "hero.tag5": "Quiet booth or the buzz of the main hall — your call",
+  "hero.tagsLabel": "Club slogans",
   "carousel.next": "Next",
   "carousel.goTo": "Go to slide",
 };
@@ -323,6 +335,12 @@ const ky: Dict = {
   "footer.rights": "Бардык укуктар корголгон.",
 
   "carousel.prev": "Артка",
+  "hero.tag1": "Конок болуп кел — ронин болуп кет",
+  "hero.tag2": "Компромисссиз күчтүү ПК",
+  "hero.tag3": "24/7 ачыкбыз — каалаган убакта ойно",
+  "hero.tag4": "Командаң бул жерде",
+  "hero.tag5": "Тынч кабина же шаңдуу зал — өзүң танда",
+  "hero.tagsLabel": "Клубдун ураандары",
   "carousel.next": "Алдыга",
   "carousel.goTo": "Слайдга өтүү",
 };

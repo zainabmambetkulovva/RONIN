@@ -6,6 +6,9 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ChevronDown, Clock, Monitor, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
+import { Marquee } from "@/components/ui/Marquee";
+
+const TAG_KEYS = ["hero.tag1", "hero.tag2", "hero.tag3", "hero.tag4", "hero.tag5"] as const;
 import { useClubData } from "./useClubData";
 
 export function HeroSection() {
@@ -91,6 +94,22 @@ export function HeroSection() {
           >
             {t("hero.description")}
           </motion.p>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 1.05 }} className="mt-6 min-w-0">
+            <Marquee ariaLabel={t("hero.tagsLabel")} itemClassName="w-auto" speed={30}>
+              {TAG_KEYS.map((key, i) => (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-rn-line bg-rn-surface/60 px-4 py-2 font-display text-[11px] font-bold uppercase tracking-wider text-white/90 backdrop-blur sm:text-xs"
+                >
+                  <span className={i % 2 ? "text-rn-cyan" : "text-rn-magenta"} aria-hidden>
+                    ✦
+                  </span>
+                  {t(key)}
+                </span>
+              ))}
+            </Marquee>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
