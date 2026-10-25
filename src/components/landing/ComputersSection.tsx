@@ -6,6 +6,7 @@ import { ArrowRight, Map, Monitor, Wrench } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { useClubData } from "./useClubData";
+import { useSession } from "@/hooks/useSession";
 
 interface HallStats {
   id: string;
@@ -19,6 +20,9 @@ interface HallStats {
 export function ComputersSection() {
   const { t } = useLanguage();
   const state = useClubData();
+  // После входа карточка-приглашение к карте не нужна: сама 3D-карта — ниже на странице
+  const { status: sessionStatus } = useSession();
+  const showMapCard = sessionStatus === "unauthenticated";
 
   // Статистика по залам — только из реальных данных
   const halls = useMemo<HallStats[]>(() => {
@@ -42,9 +46,9 @@ export function ComputersSection() {
     <Section id="computers" className="bg-rn-night">
       <SectionHeading eyebrow={t("pcs.eyebrow")} title={t("pcs.title")} subtitle={t("pcs.subtitle")} />
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.1fr]">
+      <div className={`grid gap-5 ${showMapCard ? "lg:grid-cols-[1fr_1.1fr]" : ""}`}>
         {/* Залы */}
-        <div className="grid content-start gap-5 sm:grid-cols-2 lg:grid-cols-1">
+        <div className={`grid content-start gap-5 sm:grid-cols-2 ${showMapCard ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
           {state.status === "loading" &&
             [0, 1, 2].map((i) => <div key={i} className="h-44 animate-pulse rounded-3xl border border-rn-line bg-rn-surface/60" />)}
 
@@ -72,6 +76,7 @@ export function ComputersSection() {
         </div>
 
         {/* Карта клуба — переход к 3D-карте ниже */}
+        {showMapCard && (
         <Reveal delay={0.15}>
           <Link
             href="#map"
@@ -110,6 +115,7 @@ export function ComputersSection() {
             </span>
           </Link>
         </Reveal>
+        )}
       </div>
     </Section>
   );
