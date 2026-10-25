@@ -8,8 +8,7 @@ import { ApiClientError } from "@/lib/api-client";
 import { useStaff } from "@/components/admin/StaffShell";
 import { BookingActions } from "@/components/admin/BookingActions";
 import { NewBookingModal } from "@/components/admin/NewBookingModal";
-import { ClubMap } from "@/components/map/ClubMap";
-import { BookingBadges, Button, Card, Empty, ErrorNote, Modal, PageHeader, StatTile, fmtTime } from "@/components/admin/ui";
+import { BookingBadges, Button, Card, Empty, ErrorNote, Modal, PageHeader, StatTile, computerStateDot, fmtTime } from "@/components/admin/ui";
 import type { AdminComputerDTO, BookingDTO, GamingSessionDTO } from "@/types/api";
 
 /** Панель менеджера: операционная работа на смене. */
@@ -83,15 +82,6 @@ export default function ManagerPage() {
     if (selected) {
       const { bookings } = await adminApi.bookings({ code: selected.bookingCode });
       setSelected(bookings.find((b) => b.id === selected.id) ?? null);
-    }
-  };
-
-  const openByCode = async (bookingCode: string) => {
-    try {
-      const { bookings } = await adminApi.bookings({ code: bookingCode });
-      if (bookings[0]) setSelected(bookings[0]);
-    } catch (e) {
-      setLoadError(e instanceof ApiClientError ? e.message : "Не удалось открыть бронь");
     }
   };
 
@@ -194,6 +184,26 @@ export default function ManagerPage() {
             <StatTile label="🔴 Заняты" value={counts.occupied} accent="red" />
             <StatTile label="⚫ Сервис" value={counts.maintenance} accent="gray" />
           </div>
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-rn-muted">Компьютеры</h2>
+              <Link href="/admin/computers" className="text-xs text-rn-cyan hover:text-white">
+                Управление →
+              </Link>
+            </div>
+            <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-12">
+              {computers.map((c) => (
+                <span
+                  key={c.id}
+                  title={`ПК ${c.number} · ${c.category.name}`}
+                  className="flex aspect-square items-center justify-center rounded-md border border-rn-line bg-white/[0.02] text-[10px] font-semibold"
+                >
+                  <span className={`mr-0.5 h-1.5 w-1.5 rounded-full ${computerStateDot(c.state)}`} aria-hidden />
+                  {c.number}
+                </span>
+              ))}
+            </div>
+          </Card>
 
           {/* Активные сессии */}
           <Card className="p-5">
@@ -220,17 +230,6 @@ export default function ManagerPage() {
           </Card>
         </div>
       </div>
-
-      {/* 3D-карта зала: кто где играет и когда ПК свободен */}
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-rn-muted">Карта зала</h2>
-          <Link href="/admin/computers" className="text-xs text-rn-cyan hover:text-white">
-            Управление ПК →
-          </Link>
-        </div>
-        <ClubMap mode="staff" onOpenBooking={openByCode} />
-      </section>
 
       <Modal open={!!selected} onClose={() => setSelected(null)} title="Бронь" wide>
         {selected && <BookingActions booking={selected} onChanged={refreshFound} />}

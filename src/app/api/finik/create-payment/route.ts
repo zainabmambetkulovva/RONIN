@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createFinikPayment, CreatePaymentData, FINIK_TEST_AMOUNT } from '@/lib/finik';
+import { createFinikPayment, CreatePaymentData } from '@/lib/finik';
 import { prisma } from '@/lib/prisma';
 import { conflict, handle, notFound, parseJson } from '@/server/http';
 import { requireUser } from '@/server/auth/session';
@@ -36,6 +36,6 @@ export const POST = handle(async (request: NextRequest) => {
   return NextResponse.json({
     success: true,
     paymentUrl,
-    amount: FINIK_TEST_AMOUNT, // Фиксированная тестовая цена (см. src/lib/finik.ts)
+    amount: 5, // Фиксированная цена (см. src/lib/finik.ts)
   });
 });

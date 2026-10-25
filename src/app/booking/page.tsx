@@ -64,16 +64,6 @@ export default function BookingPage() {
     }
     const preset = params.get("categoryId");
     if (preset) setCategoryId(preset);
-    // Переход с 3D-карты: сразу этот ПК и это время (округляем вверх до слота 30 минут)
-    const presetComputer = params.get("computerId");
-    if (presetComputer) setComputerId(presetComputer);
-    const presetStart = params.get("start");
-    const startDate = presetStart ? new Date(presetStart) : null;
-    if (startDate && !Number.isNaN(+startDate) && startDate.getTime() > Date.now() - 60_000) {
-      const slot = new Date(Math.ceil(startDate.getTime() / 1_800_000) * 1_800_000);
-      setDay(dayKey(slot));
-      setTime(`${String(slot.getHours()).padStart(2, "0")}:${String(slot.getMinutes()).padStart(2, "0")}`);
-    }
   }, [router]);
 
   useEffect(() => {

@@ -215,16 +215,3 @@ export interface GameDTO {
   /** null — обложки нет, показывается оформленная карточка с названием. */
   imageUrl: string | null;
 }
-
-/** Занятость компьютера для 3D-карты. */
-export interface ComputerScheduleDTO {
-  id: string;
-  number: number;
-  maintenance: boolean;
-  category: { id: string; name: string };
-  specs: string[];
-  /** Идёт игровая сессия прямо сейчас. */
-  inSessionNow: boolean;
-  /** Интервалы занятости (ISO), по возрастанию начала. clientName/bookingCode — только для персонала. */
-  busy: Array<{ start: string; end: string; kind: "booking" | "hold" | "session"; clientName?: string | null; bookingCode?: string }>;
-}
