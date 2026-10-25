@@ -175,14 +175,14 @@ export function HeroSection() {
 
 function HeroStat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-rn-line/80 bg-rn-surface/50 p-3 backdrop-blur sm:p-4">
+    <div className="min-w-0 rounded-2xl border border-rn-line/80 bg-rn-surface/50 px-2.5 py-3 backdrop-blur sm:p-4">
       <dt className="sr-only">{label}</dt>
       <dd>
         <div className="flex items-center gap-2 font-display text-xl font-bold text-white sm:text-2xl">
           {icon}
           {value}
         </div>
-        <div className="mt-1 break-words text-[9px] uppercase leading-tight tracking-normal text-rn-muted sm:text-xs sm:tracking-wider">{label}</div>
+        <div className="mt-1 break-words text-[10px] leading-tight text-rn-muted sm:text-xs sm:uppercase sm:tracking-wider">{label}</div>
       </dd>
     </div>
   );

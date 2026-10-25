@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Bot, Loader2 } from "lucide-react";
+import { club } from "@/config/club";
 
 interface Message {
   role: "user" | "assistant";
@@ -75,9 +76,9 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
       let errorMessage = "Извините, произошла ошибка. ";
       
       if (error.message.includes("API key")) {
-        errorMessage += "AI сервис временно недоступен. Пожалуйста, свяжитесь с нами:\n📞 +996 501 004 700\n📱 WhatsApp: wa.me/996501004700";
+        errorMessage += `AI сервис временно недоступен. Пожалуйста, свяжитесь с нами:\n📞 ${club.phone.display}\n📱 WhatsApp: ${club.socials.whatsapp}`;
       } else {
-        errorMessage += "Попробуйте позже или свяжитесь с нами по телефону +996 501 004 700.";
+        errorMessage += `Попробуйте позже или свяжитесь с нами по телефону ${club.phone.display}.`;
       }
       
       setMessages([

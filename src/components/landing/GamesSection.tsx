@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { HorizontalCarousel } from "@/components/ui/HorizontalCarousel";
+import { Marquee } from "@/components/ui/Marquee";
 import { Section, SectionHeading } from "./primitives";
 
 /**
@@ -29,11 +29,11 @@ export function GamesSection() {
       <div className="pointer-events-none absolute -right-40 top-10 h-96 w-96 rounded-full bg-rn-magenta/15 blur-[120px]" aria-hidden />
       <SectionHeading eyebrow={t("games.eyebrow")} title={t("games.title")} subtitle={t("games.subtitle")} />
 
-      <HorizontalCarousel ariaLabel={t("games.title")} itemClassName="w-[220px] sm:w-[250px]" autoPlayMs={2800}>
+      <Marquee ariaLabel={t("games.title")} itemClassName="w-[200px] sm:w-[240px]" speed={45}>
         {GAMES.map((game) => (
           <article
             key={game.name}
-            className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface transition-all duration-500 hover:-translate-y-1.5 hover:border-rn-magenta/60 hover:shadow-[0_0_40px_rgba(217,70,239,0.3)]"
+            className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface transition-all duration-500 hover:border-rn-magenta/60 hover:shadow-[0_0_40px_rgba(217,70,239,0.3)]"
           >
             {game.image ? (
               <Image
@@ -47,9 +47,6 @@ export function GamesSection() {
             ) : (
               <div className={`absolute inset-0 bg-gradient-to-br ${game.gradient}`} aria-hidden>
                 <div className="rn-grid-bg absolute inset-0 opacity-60" />
-                <span className="absolute -right-4 top-6 select-none font-display text-[5.5rem] font-black uppercase leading-none text-white/[0.06]">
-                  {game.name.split(" ")[0]}
-                </span>
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-rn-void via-rn-void/30 to-transparent" />
@@ -65,7 +62,7 @@ export function GamesSection() {
             </div>
           </article>
         ))}
-      </HorizontalCarousel>
+      </Marquee>
     </Section>
   );
 }

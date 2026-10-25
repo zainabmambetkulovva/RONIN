@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ExternalLink, Quote, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { HorizontalCarousel } from "@/components/ui/HorizontalCarousel";
+import { Marquee } from "@/components/ui/Marquee";
 import { club } from "@/config/club";
 import { reviews } from "@/config/reviews";
 import { Reveal, Section, SectionHeading } from "./primitives";
@@ -47,7 +47,7 @@ export function ReviewsSection() {
         </Reveal>
       </div>
 
-      <HorizontalCarousel ariaLabel={t("reviews.title")} itemClassName="w-[270px] sm:w-[340px]" autoPlayMs={4500}>
+      <Marquee ariaLabel={t("reviews.title")} itemClassName="w-[270px] sm:w-[340px]" speed={35}>
         {reviews.map((review, i) => (
           <figure
             key={`${review.author}-${review.date}`}
@@ -71,7 +71,7 @@ export function ReviewsSection() {
             </figcaption>
           </figure>
         ))}
-      </HorizontalCarousel>
+      </Marquee>
     </Section>
   );
 }

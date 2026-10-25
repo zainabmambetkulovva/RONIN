@@ -2,7 +2,7 @@
 
 import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HorizontalCarouselProps {
@@ -173,15 +173,9 @@ export function HorizontalCarousel({
         }`}
       >
         {Children.map(children, (child, i) => (
-          <motion.div
-            className={`shrink-0 snap-start ${itemClassName}`}
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.94 }}
-            whileInView={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.6, delay: Math.min(i, 6) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <div key={i} className={`shrink-0 snap-start ${itemClassName}`}>
             {child}
-          </motion.div>
+          </div>
         ))}
       </div>
 

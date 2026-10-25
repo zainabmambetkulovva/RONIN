@@ -43,7 +43,7 @@ export function SectionHeading({
 }) {
   const centered = align === "center";
   return (
-    <Reveal className={`mb-10 md:mb-14 ${centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}`}>
+    <Reveal className={`mb-8 md:mb-12 ${centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}`}>
       <p
         className={`mb-4 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-rn-cyan ${
           centered ? "justify-center" : ""
@@ -71,7 +71,7 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`relative scroll-mt-20 py-20 md:py-28 ${className}`}>
+    <section id={id} className={`relative scroll-mt-20 py-14 md:py-24 ${className}`}>
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
     </section>
   );

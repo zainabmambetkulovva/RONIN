@@ -6,6 +6,7 @@ import { ArrowLeft, Mail, Loader2, CheckCircle2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { club } from '@/config/club';
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
@@ -360,7 +361,7 @@ export default function ForgotPasswordPage() {
           <p className="text-gray-400 text-sm">
             Нужна помощь?{' '}
             <a
-              href="https://wa.me/996501004700"
+              href={club.socials.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
               className="text-purple-400 hover:text-purple-300 underline"

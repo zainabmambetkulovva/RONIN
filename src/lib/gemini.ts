@@ -35,7 +35,7 @@ class GeminiService {
 
   constructor(config: GeminiConfig) {
     this.apiKey = config.apiKey || process.env.GEMINI_API_KEY || '';
-    this.model = config.model || 'gemini-1.5-flash'; // Updated to correct model name
+    this.model = config.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     this.baseURL = 'https://generativelanguage.googleapis.com/v1beta';
     this.temperature = config.temperature || 0.7;
     this.maxTokens = config.maxTokens || 1024;
@@ -45,6 +45,20 @@ class GeminiService {
    * Базовый запрос к Gemini API
    */
   async generateContent(prompt: string): Promise<GeminiResponse> {
+    // gemini-1.5-* сняты Google с поддержки; если модель недоступна (404), пробуем следующую
+    const models = Array.from(new Set([this.model, 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash']));
+    let result: GeminiResponse = { text: 'Произошла ошибка при обращении к AI.', error: 'No model available' };
+    for (const model of models) {
+      result = await this.generateWithModel(model, prompt);
+      if (result.error !== 'model_not_found') {
+        if (!result.error) this.model = model;
+        return result;
+      }
+    }
+    return { ...result, text: 'AI временно недоступен. Попробуйте позже.' };
+  }
+
+  private async generateWithModel(model: string, prompt: string): Promise<GeminiResponse> {
     if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here') {
       console.error('Gemini API key not configured');
       return {
@@ -55,12 +69,12 @@ class GeminiService {
 
     try {
       // Gemini API accepts API keys via query parameter (not Authorization header)
-      const url = `${this.baseURL}/models/${this.model}:generateContent?key=${this.apiKey}`;
+      const url = `${this.baseURL}/models/${model}:generateContent?key=${this.apiKey}`;
       const headers = {
         'Content-Type': 'application/json',
       };
       
-      console.log('Calling Gemini API:', { model: this.model, url: url.replace(this.apiKey, '***') });
+      console.log('Calling Gemini API:', { model });
       
       const response = await fetch(url, {
         method: 'POST',
@@ -74,6 +88,8 @@ class GeminiService {
           generationConfig: {
             temperature: this.temperature,
             maxOutputTokens: this.maxTokens,
+            // У 2.5 «размышления» съедают лимит токенов ответа; для чата они не нужны
+            ...(model.startsWith('gemini-2.5') && { thinkingConfig: { thinkingBudget: 0 } }),
           }
         })
       });
@@ -81,8 +97,10 @@ class GeminiService {
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('Gemini API error response:', data);
+        console.error('Gemini API error response:', { model, status: response.status, error: data.error?.message });
         const errorMessage = data.error?.message || 'Gemini API error';
+
+        if (response.status === 404) return { text: '', error: 'model_not_found' };
         
         // Provide user-friendly error messages
         if (errorMessage.includes('API key not valid')) {
@@ -101,7 +119,8 @@ class GeminiService {
         throw new Error(errorMessage);
       }
 
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Нет ответа';
+      const parts: Array<{ text?: string; thought?: boolean }> = data.candidates?.[0]?.content?.parts ?? [];
+      const text = parts.filter((p) => !p.thought && p.text).map((p) => p.text).join('').trim() || 'Нет ответа';
 
       return {
         text,
@@ -232,18 +251,11 @@ ${conversationHistory}
   /**
    * Ответы на FAQ
    */
-  async answerFAQ(question: string): Promise<GeminiResponse> {
-    const prompt = `Ты - поддержка RONIN Gaming Club. Ответь на вопрос пользователя.
+  async answerFAQ(question: string, facts: string): Promise<GeminiResponse> {
+    const prompt = `Ты - поддержка компьютерного клуба RONIN в Бишкеке. Ответь на вопрос пользователя.
+Используй только факты ниже; если ответа в них нет — предложи позвонить в клуб.
 
-Информация о клубе:
-- Адрес: г. Бишкек, ул. Горького 130, 2 этаж
-- Телефон: +996 501 004 700
-- Режим работы: 24/7
-- Категории ПК: STANDART, VIP, ULTRA
-- Оплата: наличные, карты, FINIK Pay
-- Бронирование: онлайн через сайт или по телефону
-- Возрастное ограничение: 12+
-- В клубе: игровые ПК, удобные кресла, кондиционеры, снеки/напитки
+${facts}
 
 Вопрос пользователя: ${question}
 
@@ -259,9 +271,8 @@ let geminiService: GeminiService | null = null;
 export function getGeminiService(config?: Partial<GeminiConfig>): GeminiService {
   if (!geminiService) {
     geminiService = new GeminiService({
-      apiKey: process.env.GEMINI_API_KEY || '',
-      model: 'gemini-1.5-flash', // Updated to correct model name
-      ...config
+      ...(config as GeminiConfig),
+      apiKey: config?.apiKey || process.env.GEMINI_API_KEY || '',
     });
   }
   return geminiService;
