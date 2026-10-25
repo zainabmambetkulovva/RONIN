@@ -6,6 +6,7 @@ import { CreateTariffModal } from "@/components/admin/tariffs/CreateTariffModal"
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { EditTariffModal } from "@/components/admin/tariffs/EditTariffModal";
 import { TariffCard } from "@/components/admin/tariffs/TariffCard";
+import { PriceListImport } from "@/components/admin/tariffs/PriceListImport";
 
 interface Tariff {
   id: string;
@@ -162,6 +163,8 @@ export default function TariffsPage() {
             Управление тарифами • Всего: {tariffs.length} • Активных: {activeCount}
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-3">
+        <PriceListImport onApplied={() => { fetchTariffs(); fetchCategories(); }} />
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center gap-2"
@@ -173,6 +176,7 @@ export default function TariffsPage() {
           <Plus className="w-5 h-5" />
           Создать тариф
         </button>
+        </div>
       </div>
 
       {/* Stats Cards */}

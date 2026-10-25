@@ -7,6 +7,7 @@ import { CalendarCheck, Clock, CreditCard, QrCode, Star, Wallet, Banknote, Arrow
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
 import { Reveal, Section, SectionHeading } from "./primitives";
+import { useClubData } from "./useClubData";
 
 const CARD_COUNT = 6;
 
@@ -22,7 +23,16 @@ export function AdvantagesSection() {
     return () => clearInterval(timer);
   }, [reduce]);
 
-  const zoneMax = Math.max(...club.zones.map((z) => z.seats));
+  // Залы и количество мест — из БД (категории компьютеров)
+  const clubData = useClubData();
+  const zones =
+    clubData.status === "ready"
+      ? clubData.data.categories
+          .filter((c) => c._count.computers > 0)
+          .map((c) => ({ key: c.id, name: c.name, seats: c._count.computers }))
+          .sort((a, b) => b.seats - a.seats)
+      : [];
+  const zoneMax = Math.max(1, ...zones.map((z) => z.seats));
 
   return (
     <Section id="advantages" className="bg-rn-night">
@@ -35,10 +45,10 @@ export function AdvantagesSection() {
           <h3 className="font-display text-xl font-bold uppercase text-white">{t("adv.zones.title")}</h3>
           <p className="mt-2 text-sm text-rn-muted">{t("adv.zones.text")}</p>
           <ul className="mt-6 space-y-3">
-            {club.zones.map((zone, i) => (
+            {zones.map((zone, i) => (
               <li key={zone.key}>
                 <div className="mb-1 flex items-baseline justify-between text-sm">
-                  <span className="text-white/90">{t(`adv.zones.${zone.key}`)}</span>
+                  <span className="text-white/90">{zone.name}</span>
                   <span className="font-display font-bold text-white">{zone.seats}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-white/5">

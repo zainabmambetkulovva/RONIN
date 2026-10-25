@@ -5,6 +5,9 @@ import {
   FinikWebhookData 
 } from '@/lib/finik';
 import { prisma } from '@/lib/prisma';
+import { markBookingPaid, markBookingPaymentFailed } from '@/server/services/payments';
+import { writeAuditLog } from '@/server/services/audit';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 /**
  * POST /api/finik/webhook
@@ -103,43 +106,53 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Payment succeeded for booking: ${bookingId}`);
 
-      // 8. Обновляем статус бронирования в БД
+      // 8. Подтверждаем оплату: бронь -> confirmed, запись в payments (идемпотентно)
       try {
-        await prisma.booking.update({
-          where: { id: bookingId },
-          data: {
-            paymentStatus: 'paid',
-            paymentMethod: 'finik',
+        const booking = await prisma.bookings.findUnique({ where: { id: bookingId }, select: { user_id: true } });
+        if (!booking) {
+          console.error(`❌ Booking ${bookingId} from webhook metadata not found`);
+          return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+        }
+
+        const result = await markBookingPaid({
+          bookingId,
+          amount: Number(body.amount),
+          transactionId: body.transactionId,
+          paidAt: body.transactionDate ? new Date(body.transactionDate) : new Date(),
+          provider: 'finik',
+          method: 'electronic_wallet',
+          changedBy: booking.user_id,
+        });
+
+        console.log(`💾 Booking ${bookingId}: ${result.outcome}`);
+
+        await writeAuditLog({
+          userId: booking.user_id,
+          action: result.outcome === 'conflict' ? 'PAYMENT_CONFLICT' : 'PAYMENT_SUCCESS',
+          entityType: 'Booking',
+          entityId: bookingId,
+          newData: {
             transactionId: body.transactionId,
-            paidAt: new Date(body.transactionDate),
+            amount: body.amount,
+            paymentMethod: 'finik',
+            outcome: result.outcome,
+            ...(result.outcome === 'conflict' ? { reason: result.reason } : {}),
           },
         });
 
-        console.log(`💾 Booking ${bookingId} updated: payment status = paid`);
-
-        // Создаем audit log
-        try {
-          await prisma.auditLog.create({
-            data: {
-              userId: userId,
-              action: 'PAYMENT_SUCCESS',
-              entityType: 'Booking',
-              entityId: bookingId,
-              newData: {
-                transactionId: body.transactionId,
-                amount: body.amount,
-                paymentMethod: 'finik',
-              },
-            },
-          });
-        } catch (auditError) {
-          console.warn('⚠️ Failed to create audit log:', auditError);
+        // Оплата прошла, но бронь отменена или ПК занят — нужен ручной разбор (возврат/перенос)
+        if (result.outcome === 'conflict' && process.env.TELEGRAM_ADMIN_CHAT_ID) {
+          sendTelegramMessage(
+            process.env.TELEGRAM_ADMIN_CHAT_ID,
+            `⚠️ <b>Оплата требует проверки</b>\nБронь: ${result.booking.booking_number}\nТранзакция Finik: ${body.transactionId}\nПричина: ${
+              result.reason === 'booking_cancelled' ? 'бронь была отменена' : 'компьютер уже занят на это время'
+            }`
+          ).catch((e) => console.error('Failed to send Telegram conflict alert:', e));
         }
-
       } catch (dbError: any) {
         console.error('❌ Database error:', dbError);
         return NextResponse.json(
-          { error: 'Failed to update booking status', details: dbError.message },
+          { error: 'Failed to update booking status' },
           { status: 500 }
         );
       }
@@ -149,15 +162,10 @@ export async function POST(request: NextRequest) {
       const { userId, bookingId } = metadata;
       console.error(`❌ Payment failed for booking: ${bookingId}`);
       
-      // Обновляем статус на failed
+      // Обновляем статус на failed (если бронь ещё не оплачена)
       if (bookingId) {
         try {
-          await prisma.booking.update({
-            where: { id: bookingId },
-            data: {
-              paymentStatus: 'failed',
-            },
-          });
+          await markBookingPaymentFailed(bookingId);
           console.log(`💾 Booking ${bookingId} updated: payment status = failed`);
         } catch (dbError) {
           console.error('❌ Failed to update booking status:', dbError);

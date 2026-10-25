@@ -19,7 +19,7 @@ export const TWO_FACTOR_MAX_ATTEMPTS = 5;
  * Сколько минут неоплаченная (pending) бронь удерживает компьютер.
  * После этого компьютер снова доступен другим клиентам.
  */
-export const BOOKING_HOLD_MINUTES = 15;
+export const BOOKING_HOLD_MINUTES = 10;
 
 export function getAuthSecret(): Uint8Array {
   const secret = process.env.NEXTAUTH_SECRET;

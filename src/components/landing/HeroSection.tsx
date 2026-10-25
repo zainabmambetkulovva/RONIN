@@ -29,11 +29,13 @@ export function HeroSection() {
           sizes="100vw"
           className="scale-110 object-cover object-bottom opacity-[0.14] blur-[3px]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-rn-void/40 via-rn-void/70 to-rn-void" />
+        <div className="absolute inset-0 bg-gradient-to-b from-rn-void/40 via-rn-void/70 to-rn-night" />
         <div className="absolute -left-40 top-10 h-[520px] w-[520px] rounded-full bg-rn-violet/30 blur-[120px] motion-safe:animate-rn-drift" />
         <div className="absolute -right-32 top-1/3 h-[460px] w-[460px] rounded-full bg-rn-magenta/25 blur-[120px] motion-safe:animate-rn-drift [animation-delay:-6s]" />
         <div className="absolute bottom-0 left-1/3 h-[380px] w-[380px] rounded-full bg-rn-cyan/15 blur-[110px] motion-safe:animate-rn-drift [animation-delay:-12s]" />
         <div className="rn-grid-bg absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+        {/* Плавный переход к следующей секции */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-rn-night" />
       </div>
 
       <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8">
@@ -127,26 +129,34 @@ export function HeroSection() {
           </motion.dl>
         </div>
 
-        {/* Персонаж */}
+        {/* Персонаж: самурай (портрет 2:3) или логотип, вокруг — световые кольца */}
         <motion.div
           initial={{ opacity: 0, scale: reduce ? 1 : 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mx-auto aspect-square w-full max-w-[300px] sm:max-w-[420px] lg:max-w-[520px]"
+          className={`relative mx-auto w-full ${
+            club.heroCharacter
+              ? "aspect-[4/5] max-w-[320px] sm:max-w-[440px] lg:max-w-[540px]"
+              : "aspect-square max-w-[300px] sm:max-w-[420px] lg:max-w-[520px]"
+          }`}
         >
-          <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-rn-violet/40 via-rn-magenta/30 to-rn-cyan/20 blur-3xl motion-safe:animate-rn-pulse" aria-hidden />
-          <div className="absolute inset-[4%] rounded-full border border-rn-violet/30 motion-safe:animate-[spin_40s_linear_infinite]" aria-hidden>
-            <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-rn-cyan shadow-[0_0_14px_#22d3ee]" />
+          <div className="absolute left-1/2 top-[6%] aspect-square w-[92%] -translate-x-1/2" aria-hidden>
+            <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-rn-violet/45 via-rn-magenta/35 to-rn-cyan/20 blur-3xl motion-safe:animate-rn-pulse" />
+            <div className="absolute inset-[2%] rounded-full border border-rn-violet/30 motion-safe:animate-[spin_40s_linear_infinite]">
+              <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-rn-cyan shadow-[0_0_14px_#22d3ee]" />
+            </div>
+            <div className="absolute inset-[14%] rounded-full border border-dashed border-rn-magenta/25 motion-safe:animate-[spin_60s_linear_infinite_reverse]" />
           </div>
-          <div className="absolute inset-[14%] rounded-full border border-dashed border-rn-magenta/25 motion-safe:animate-[spin_60s_linear_infinite_reverse]" aria-hidden />
-          <div className="relative h-full w-full motion-safe:animate-rn-float">
+          {/* Свет «пола» под персонажем */}
+          <div className="absolute bottom-[2%] left-1/2 h-10 w-3/4 -translate-x-1/2 rounded-full bg-rn-magenta/30 blur-2xl" aria-hidden />
+          <div className="relative h-full w-full drop-shadow-[0_0_40px_rgba(168,85,247,0.45)] motion-safe:animate-rn-float">
             <Image
               src={character}
-              alt={club.heroCharacter ? "RONIN samurai" : "RONIN"}
+              alt={club.heroCharacter ? "Самурай RONIN" : "RONIN"}
               fill
               priority
-              sizes="(min-width: 1024px) 520px, (min-width: 640px) 420px, 300px"
-              className={`object-contain drop-shadow-[0_0_60px_rgba(168,85,247,0.55)] ${club.heroCharacter ? "" : "p-[16%]"}`}
+              sizes="(min-width: 1024px) 540px, (min-width: 640px) 440px, 320px"
+              className={`object-contain ${club.heroCharacter ? "object-bottom [mask-image:linear-gradient(to_bottom,black_72%,transparent_98%)]" : "p-[16%]"}`}
             />
           </div>
         </motion.div>

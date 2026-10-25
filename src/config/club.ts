@@ -35,8 +35,8 @@ export const club = {
   socials: {
     instagram: "https://www.instagram.com/ronin__kg",
     tiktok: "https://www.tiktok.com/@ronin_kg",
-    /** Существующая ссылка с прежнего сайта — номер нужно подтвердить. */
-    whatsapp: "https://wa.me/996501004700",
+    /** Тот же номер, что и телефон клуба (подтверждён владельцем). */
+    whatsapp: "https://wa.me/996771001167",
   },
 
   /** Карточка клуба в 2GIS (id организации из существующего виджета карты). */
@@ -52,16 +52,6 @@ export const club = {
   paymentMethods: ["card", "cash", "transfer", "qr"] as const,
 
   /**
-   * Залы клуба (по карточке 2GIS). Количество компьютеров на сайте берётся из БД;
-   * эти описания — только для текстов.
-   */
-  zones: [
-    { key: "comfort", seats: 60 },
-    { key: "premium", seats: 20 },
-    { key: "roninRoom", seats: 3 },
-  ] as const,
-
-  /**
    * Время действия ночного и утреннего пакетов. null — не показывать на сайте,
    * пока не подтверждено (в репозитории встречаются противоречивые значения).
    */
@@ -74,7 +64,7 @@ export const club = {
    * Фирменный персонаж для Hero. Положите PNG без фона в public/brand/samurai.png
    * и укажите путь здесь. Пока null — показывается логотип.
    */
-  heroCharacter: null as string | null,
+  heroCharacter: "/brand/samurai.png" as string | null,
 } as const;
 
 export type ClubLanguage = "ru" | "en" | "ky";

@@ -44,6 +44,15 @@ export default function BookingPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Загрузка данных
+  // Возврат с оплаты Finik: ведём на страницу чека, где статус проверяется на сервере
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get("bookingId");
+    if (params.get("payment") === "success" && bookingId) {
+      router.replace(`/booking-success?bookingId=${encodeURIComponent(bookingId)}`);
+    }
+  }, [router]);
+
   useEffect(() => {
     fetchData();
   }, []);
