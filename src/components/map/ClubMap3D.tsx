@@ -129,28 +129,80 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     floor.position.set(cx, 0, cz);
     scene.add(floor);
 
-    const edgeMat = track(new THREE.LineBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.8 }));
-    const wallMat = track(new THREE.MeshStandardMaterial({ color: 0x16123a, roughness: 0.7, transparent: true, opacity: 0.55 }));
+    // Помещения как в настоящем клубе: пол-ковёр с плиткой, высокие задняя и боковые стены
+    // с неоновой полосой, спереди — низкая стена с дверным проёмом (чтобы было видно, что внутри)
+    const WALL_H = 2.4;
+    const WALL_T = 0.14;
+    const FRONT_H = 0.9;
+    const DOOR = 1.3;
+    const carpetMat = track(new THREE.MeshStandardMaterial({ color: 0x141033, roughness: 0.95, metalness: 0 }));
+    const wallMat = track(new THREE.MeshStandardMaterial({ color: 0x1d1745, roughness: 0.8, metalness: 0.1 }));
+    const wallTopMat = track(new THREE.MeshStandardMaterial({ color: 0x2a2260, roughness: 0.6 }));
+    const zoneNeonMat = track(new THREE.MeshBasicMaterial({ color: 0x8b5cf6, toneMapped: false }));
+    const baseNeonMat = track(new THREE.MeshBasicMaterial({ color: 0xd946ef, toneMapped: false, transparent: true, opacity: 0.7 }));
+    const tileMat = track(new THREE.LineBasicMaterial({ color: 0x2a2260, transparent: true, opacity: 0.45 }));
+    const box = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
+      const mesh = new THREE.Mesh(track(new THREE.BoxGeometry(w, h, d)), mat);
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+      return mesh;
+    };
     for (const zone of CLUB_LAYOUT.zones) {
-      const wallGeo = track(new THREE.BoxGeometry(zone.width, 0.6, zone.depth));
-      const edges = new THREE.LineSegments(track(new THREE.EdgesGeometry(wallGeo)), edgeMat);
-      edges.position.set(zone.x + zone.width / 2, 0.3, zone.z + zone.depth / 2);
-      scene.add(edges);
-      // Низкие «бортики» по периметру зоны
-      for (const [w, d, x, z] of [
-        [zone.width, 0.08, zone.x + zone.width / 2, zone.z],
-        [0.08, zone.depth, zone.x, zone.z + zone.depth / 2],
-        [0.08, zone.depth, zone.x + zone.width, zone.z + zone.depth / 2],
-      ] as const) {
-        const wall = new THREE.Mesh(track(new THREE.BoxGeometry(w, 0.6, d)), wallMat);
-        wall.position.set(x, 0.3, z);
-        scene.add(wall);
-      }
+      const { x: zx, z: zz, width: zw, depth: zd } = zone;
+      const mx = zx + zw / 2;
+      const mz = zz + zd / 2;
+
+      // Пол помещения и плитка 1×1 м
+      const carpet = new THREE.Mesh(track(new THREE.PlaneGeometry(zw, zd)), carpetMat);
+      carpet.rotation.x = -Math.PI / 2;
+      carpet.position.set(mx, 0.005, mz);
+      scene.add(carpet);
+      const tilePts: number[] = [];
+      for (let tx = zx + 1; tx < zx + zw - 0.01; tx += 1) tilePts.push(tx, 0.008, zz, tx, 0.008, zz + zd);
+      for (let tz = zz + 1; tz < zz + zd - 0.01; tz += 1) tilePts.push(zx, 0.008, tz, zx + zw, 0.008, tz);
+      const tileGeo = track(new THREE.BufferGeometry());
+      tileGeo.setAttribute("position", new THREE.Float32BufferAttribute(tilePts, 3));
+      scene.add(new THREE.LineSegments(tileGeo, tileMat));
+
+      // Задняя и боковые стены во всю высоту
+      box(zw + WALL_T, WALL_H, WALL_T, wallMat, mx, WALL_H / 2, zz);
+      box(WALL_T, WALL_H, zd, wallMat, zx, WALL_H / 2, mz);
+      box(WALL_T, WALL_H, zd, wallMat, zx + zw, WALL_H / 2, mz);
+      // Верх стен и неоновая полоса по верху
+      box(zw + WALL_T, 0.03, WALL_T + 0.02, wallTopMat, mx, WALL_H + 0.015, zz);
+      box(WALL_T + 0.02, 0.03, zd, wallTopMat, zx, WALL_H + 0.015, mz);
+      box(WALL_T + 0.02, 0.03, zd, wallTopMat, zx + zw, WALL_H + 0.015, mz);
+      box(zw - 0.1, 0.05, 0.03, zoneNeonMat, mx, WALL_H - 0.25, zz + WALL_T / 2 + 0.02);
+      box(0.03, 0.05, zd - 0.1, zoneNeonMat, zx + WALL_T / 2 + 0.02, WALL_H - 0.25, mz);
+      box(0.03, 0.05, zd - 0.1, zoneNeonMat, zx + zw - WALL_T / 2 - 0.02, WALL_H - 0.25, mz);
+      // Подсветка плинтуса
+      box(zw - 0.1, 0.03, 0.02, baseNeonMat, mx, 0.05, zz + WALL_T / 2 + 0.015);
+
+      // Передняя стена: низкая, с дверным проёмом посередине; у проёма — дверная коробка
+      const door = Math.min(DOOR, zw - 0.6);
+      const seg = (zw - door) / 2;
+      const fz = zz + zd;
+      box(seg + WALL_T / 2, FRONT_H, WALL_T, wallMat, zx + seg / 2 - WALL_T / 4, FRONT_H / 2, fz);
+      box(seg + WALL_T / 2, FRONT_H, WALL_T, wallMat, zx + zw - seg / 2 + WALL_T / 4, FRONT_H / 2, fz);
+      box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + seg / 2, FRONT_H + 0.015, fz);
+      box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + zw - seg / 2, FRONT_H + 0.015, fz);
+      box(0.08, 2.1, WALL_T + 0.04, wallTopMat, mx - door / 2, 1.05, fz);
+      box(0.08, 2.1, WALL_T + 0.04, wallTopMat, mx + door / 2, 1.05, fz);
+      box(door + 0.16, 0.08, WALL_T + 0.04, wallTopMat, mx, 2.14, fz);
+      box(door - 0.1, 0.03, 0.03, zoneNeonMat, mx, 2.08, fz + WALL_T / 2 + 0.02);
+
       const label = makeFloorText(zone.label);
       track(label.geometry);
       track(label.material as THREE.Material);
-      label.position.set(zone.x + zone.width / 2, 0.02, zone.z + zone.depth - 0.5);
-      label.scale.setScalar(zone.width < 5 ? 0.6 : 1);
+      if (zw < 5) {
+        // Маленькая комната: табличка на задней стене (пол перед входом закрывает соседняя комната)
+        label.rotation.x = 0;
+        label.position.set(mx, 2.0, zz + WALL_T / 2 + 0.01);
+        label.scale.setScalar(0.55);
+      } else {
+        // Зал: название на полу перед входом (за низкой стеной его бы не было видно)
+        label.position.set(mx, 0.02, zz + zd + 0.55);
+      }
       scene.add(label);
     }
 
@@ -293,8 +345,8 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     const frameCamera = (aspect: number) => {
       const portrait = aspect < 0.9;
       const tilt = (52 * Math.PI) / 180; // угол над полом
-      const spanH = (portrait ? CLUB_LAYOUT.depth : CLUB_LAYOUT.width) + 2;
-      const spanV = (portrait ? CLUB_LAYOUT.width : CLUB_LAYOUT.depth) + 2;
+      const spanH = (portrait ? CLUB_LAYOUT.depth : CLUB_LAYOUT.width) + 4;
+      const spanV = (portrait ? CLUB_LAYOUT.width : CLUB_LAYOUT.depth) + 4;
       const vfov = (camera.fov * Math.PI) / 180;
       const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
       const dist = Math.max(spanH / 2 / Math.tan(hfov / 2), (spanV * Math.sin(tilt) * 0.62) / Math.tan(vfov / 2)) * (portrait ? 1.06 : 1.18);
