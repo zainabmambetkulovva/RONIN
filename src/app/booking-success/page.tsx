@@ -134,7 +134,23 @@ export default function BookingSuccessPage() {
     const node = receiptRef.current;
     if (!node || !booking) return null;
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
-    const canvas = await html2canvas(node, { backgroundColor: "#0b0818", scale: 2, useCORS: true });
+    const canvas = await html2canvas(node, {
+      backgroundColor: "#0b0818",
+      scale: 2,
+      useCORS: true,
+      // html2canvas рисует текст во flex-«таблетках» ниже, чем браузер, — выравниваем в копии для PDF
+      onclone: (doc) => {
+        doc.querySelectorAll<HTMLElement>("[data-receipt] span.rounded-full").forEach((el) => {
+          el.style.display = "inline-block";
+          el.style.lineHeight = "1";
+          el.style.paddingTop = "4px";
+          el.style.paddingBottom = "8px";
+        });
+        doc.querySelectorAll<HTMLElement>("[data-receipt] .font-display").forEach((el) => {
+          el.style.lineHeight = "1.15";
+        });
+      },
+    });
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
     const pageW = pdf.internal.pageSize.getWidth();
     const margin = 8;
@@ -287,7 +303,7 @@ export default function BookingSuccessPage() {
           </div>
 
           {/* Чек */}
-          <div ref={receiptRef}>
+          <div ref={receiptRef} data-receipt>
           <Panel className={`relative overflow-hidden ${paidAndValid ? "border-rn-violet/50" : ""}`}>
             {paidAndValid && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rn-violet via-rn-magenta to-rn-cyan" aria-hidden />}
             <div className="flex items-start justify-between gap-4">

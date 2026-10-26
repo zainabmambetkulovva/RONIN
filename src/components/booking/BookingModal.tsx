@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, Calendar, Clock, DollarSign, Cpu, Monitor, MemoryStick, Keyboard, Mouse } from "lucide-react";
+import { X, Calendar, Clock, Wallet, Cpu, Monitor, MemoryStick, Keyboard, Mouse } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Computer {

@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
       }
 
       // Сессия установлена сервером в httpOnly cookie
-      router.push(data.user?.role === "manager" ? "/manager" : "/admin");
+      router.push("/admin");
     } catch (err: any) {
       setError(err.message);
     } finally {

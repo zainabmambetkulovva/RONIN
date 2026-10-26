@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, DollarSign } from "lucide-react";
+import { Plus, Search, Tags } from "lucide-react";
 import { CreateTariffModal } from "@/components/admin/tariffs/CreateTariffModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { EditTariffModal } from "@/components/admin/tariffs/EditTariffModal";
@@ -329,7 +329,7 @@ export default function TariffsPage() {
               border: "1px solid rgba(16,185,129,0.3)",
             }}
           >
-            <DollarSign className="w-10 h-10" style={{ color: "#10b981" }} />
+            <Tags className="w-10 h-10" style={{ color: "#10b981" }} />
           </div>
           <p className="text-gray-400 text-lg mb-2">Тарифы не найдены</p>
           <p className="text-gray-500 text-sm">Попробуйте изменить фильтры или создайте новый тариф</p>

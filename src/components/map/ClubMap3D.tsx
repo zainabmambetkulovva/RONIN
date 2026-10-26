@@ -155,15 +155,15 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     }
 
     // Перегородки посередине залов (как в клубе: ряды разделены стенкой с неоновой полосой)
-    const glassMat = track(new THREE.MeshStandardMaterial({ color: 0x1c1640, roughness: 0.25, metalness: 0.4, transparent: true, opacity: 0.72 }));
+    const glassMat = track(new THREE.MeshStandardMaterial({ color: 0x1c1640, roughness: 0.25, metalness: 0.4, transparent: true, opacity: 0.85 }));
     const neonMat = track(new THREE.MeshBasicMaterial({ color: 0x8b5cf6, toneMapped: false }));
     for (const d of CLUB_LAYOUT.dividers) {
       const len = d.x2 - d.x1;
-      const wall = new THREE.Mesh(track(new THREE.BoxGeometry(len, 1.5, 0.08)), glassMat);
-      wall.position.set(d.x1 + len / 2, 0.75, d.z);
+      const wall = new THREE.Mesh(track(new THREE.BoxGeometry(len, 2.6, 0.12)), glassMat);
+      wall.position.set(d.x1 + len / 2, 1.3, d.z);
       scene.add(wall);
       const strip = new THREE.Mesh(track(new THREE.BoxGeometry(len, 0.04, 0.1)), neonMat);
-      strip.position.set(d.x1 + len / 2, 1.52, d.z);
+      strip.position.set(d.x1 + len / 2, 2.62, d.z);
       scene.add(strip);
     }
 
