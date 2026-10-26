@@ -47,13 +47,13 @@ export const GET = handle(async (req) => {
 
 const createSchema = z
   .object({
-    name: z.string({ required_error: "Name is required" }).trim().min(1, "Name is required").max(100),
+    name: z.string({ required_error: "Укажите имя" }).trim().min(1, "Укажите имя").max(100),
     email: z.string().trim().email("Некорректный email").optional().or(z.literal("")),
     phone: z.string().trim().max(20).optional().or(z.literal("")),
     role: z.enum(ROLES).default("client"),
     password: z.string().min(8, "Пароль должен быть не короче 8 символов").optional().or(z.literal("")),
   })
-  .refine((d) => d.email || d.phone, { message: "Email or phone is required" });
+  .refine((d) => d.email || d.phone, { message: "Укажите email или телефон" });
 
 // POST /api/admin/users - создать пользователя или сотрудника
 export const POST = handle(async (req) => {

@@ -4,6 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Trash2, Ban, CheckCircle, Mail, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ru, enUS } from "date-fns/locale";
+import { UserAvatar } from "@/components/cabinet/UserAvatar";
+import type { AvatarDTO } from "@/types/api";
 
 interface UserCardProps {
   user: {
@@ -14,13 +16,15 @@ interface UserCardProps {
     role: string;
     status: string;
     avatar: string | null;
+    image?: string | null;
     createdAt: string;
   };
+  avatars?: AvatarDTO[];
   onDelete: (userId: string) => void;
   onBlock: (userId: string, currentStatus: string) => void;
 }
 
-export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
+export function UserCard({ user, avatars, onDelete, onBlock }: UserCardProps) {
   const { t, language } = useLanguage();
   
   const roleColors: Record<string, string> = {
@@ -73,15 +77,20 @@ export function UserCard({ user, onDelete, onBlock }: UserCardProps) {
     >
       {/* Avatar and Name */}
       <div className="flex items-start gap-4 mb-4">
-        <div
-          className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-black flex-shrink-0"
-          style={{
-            background: getAvatarGradient(),
-            color: "#fff",
-          }}
-        >
-          {user.name.charAt(0).toUpperCase()}
-        </div>
+        {/* Персонаж, выбранный в профиле (или фото Google); без него — буква на градиенте */}
+        {avatars?.some((a) => a.code === user.avatar) || user.avatar?.startsWith("/avatars/") || user.image ? (
+          <UserAvatar name={user.name} avatarCode={user.avatar} image={user.image} avatars={avatars} size={64} />
+        ) : (
+          <div
+            className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-black flex-shrink-0"
+            style={{
+              background: getAvatarGradient(),
+              color: "#fff",
+            }}
+          >
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <h3 className="text-white font-bold text-lg mb-1 truncate">{user.name}</h3>
           <div className="flex items-center gap-2 flex-wrap">
