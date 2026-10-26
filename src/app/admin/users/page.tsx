@@ -7,6 +7,7 @@ import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { StyledSelect } from "@/components/ui/StyledSelect";
 import { UserCard } from "@/components/admin/users/UserCard";
+import type { AvatarDTO } from "@/types/api";
 
 interface User {
   id: string;
@@ -16,6 +17,7 @@ interface User {
   role: string;
   status: string;
   avatar: string | null;
+  image?: string | null;
   createdAt: string;
 }
 
@@ -28,9 +30,15 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [avatars, setAvatars] = useState<AvatarDTO[]>([]);
 
   useEffect(() => {
     fetchUsers();
+    // Персонажи, которые пользователи выбирают в профиле
+    fetch("/api/avatars")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.avatars && setAvatars(d.avatars))
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -45,14 +53,14 @@ export default function UsersPage() {
       if (!res.ok) {
         const errorData = await res.json();
         console.error("API Error:", errorData);
-        throw new Error(errorData.error || "Failed to fetch users");
+        throw new Error(errorData.error || "Не удалось загрузить пользователей");
       }
       
       const data = await res.json();
       setUsers(data.users || []);
     } catch (error: any) {
       console.error("Failed to fetch users:", error);
-      alert(`Load Error: ${error.message}`);
+      alert(`Ошибка загрузки: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -86,7 +94,7 @@ export default function UsersPage() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) {
+    if (!confirm("Удалить этого пользователя?")) {
       return;
     }
 
@@ -99,17 +107,17 @@ export default function UsersPage() {
         setUsers(users.filter((u) => u.id !== userId));
       } else {
         const data = await res.json();
-        alert(data.error || "Delete error");
+        alert(data.error || "Не удалось удалить");
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Network error");
+      alert("Ошибка сети");
     }
   };
 
   const handleBlockUser = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "active" ? "blocked" : "active";
-    const confirmMsg = newStatus === "blocked" ? "Block this user?" : "Unblock this user?";
+    const confirmMsg = newStatus === "blocked" ? "Заблокировать этого пользователя?" : "Разблокировать этого пользователя?";
 
     if (!confirm(confirmMsg)) {
       return;
@@ -130,11 +138,11 @@ export default function UsersPage() {
         );
       } else {
         const data = await res.json();
-        alert(data.error || "Status change error");
+        alert(data.error || "Не удалось изменить статус");
       }
     } catch (error) {
       console.error("Status change error:", error);
-      alert("Network error");
+      alert("Ошибка сети");
     }
   };
 
@@ -143,7 +151,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <RollingLoader />
-          <p className="text-gray-400 mt-4">Loading users...</p>
+          <p className="text-gray-400 mt-4">Загрузка пользователей…</p>
         </div>
       </div>
     );
@@ -152,13 +160,13 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">
-            USERS
+            Аккаунты
           </h1>
           <p className="text-gray-400 text-sm">
-            User Management • Total: {users.length}
+            Пользователи и сотрудники • Всего: {users.length}
           </p>
         </div>
         <button
@@ -170,7 +178,7 @@ export default function UsersPage() {
           }}
         >
           <Plus className="w-5 h-5" />
-          Add User
+          Добавить пользователя
         </button>
       </div>
 
@@ -193,7 +201,7 @@ export default function UsersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users by name, email or phone..."
+              placeholder="Поиск по имени, email или телефону…"
               className="w-full pl-12 pr-4 py-3 rounded-xl text-sm transition-all"
               style={{
                 background: "rgba(15,15,30,0.8)",
@@ -214,10 +222,10 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">All Roles</option>
-            <option value="client">Clients</option>
-            <option value="manager">Managers</option>
-            <option value="admin">Admins</option>
+            <option value="all">Все роли</option>
+            <option value="client">Клиенты</option>
+            <option value="manager">Менеджеры</option>
+            <option value="admin">Администраторы</option>
           </StyledSelect>
 
           {/* Status filter */}
@@ -231,15 +239,15 @@ export default function UsersPage() {
               color: "#fff",
             }}
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="blocked">Blocked</option>
+            <option value="all">Все статусы</option>
+            <option value="active">Активные</option>
+            <option value="blocked">Заблокированные</option>
           </StyledSelect>
         </div>
 
         {/* Results count */}
         <div className="mt-4 text-sm text-gray-400">
-          Found: {filteredUsers.length} of {users.length}
+          Найдено: {filteredUsers.length} из {users.length}
         </div>
       </div>
 
@@ -255,8 +263,8 @@ export default function UsersPage() {
           >
             <Search className="w-10 h-10" style={{ color: "#9ca3af" }} />
           </div>
-          <p className="text-gray-400 text-lg mb-2">No users found</p>
-          <p className="text-gray-500 text-sm">Try changing your search filters</p>
+          <p className="text-gray-400 text-lg mb-2">Пользователи не найдены</p>
+          <p className="text-gray-500 text-sm">Попробуйте изменить фильтры</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -264,6 +272,7 @@ export default function UsersPage() {
             <UserCard
               key={user.id}
               user={user}
+              avatars={avatars}
               onDelete={handleDeleteUser}
               onBlock={handleBlockUser}
             />

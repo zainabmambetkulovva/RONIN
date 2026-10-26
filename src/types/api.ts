@@ -43,6 +43,8 @@ export interface UserListItemDTO {
   email: string | null;
   phone: string | null;
   avatar: string | null;
+  /** Фото из Google, если вход через Google. */
+  image?: string | null;
   role: UserRole;
   status: UserStatus;
   createdAt: string;

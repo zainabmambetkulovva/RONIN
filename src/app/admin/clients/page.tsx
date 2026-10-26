@@ -66,8 +66,8 @@ function ClientModal({ client, onClose }: { client: ClientDTO; onClose: () => vo
       {loading && <Loading />}
       {data && (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatTile label="Телефон" value={<span className="text-base">{data.client.phone ?? "—"}</span>} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <StatTile label="Телефон" value={<span className="break-all text-base">{data.client.phone ?? "—"}</span>} />
             <StatTile label="Email" value={<span className="break-all text-base">{data.client.email ?? "—"}</span>} />
             <StatTile label="Броней" value={data.totals.bookings} accent="cyan" />
             {data.totals.paidAmount !== null && <StatTile label="Оплачено" value={fmtMoney(data.totals.paidAmount)} accent="green" />}
