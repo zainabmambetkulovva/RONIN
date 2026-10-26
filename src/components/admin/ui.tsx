@@ -65,7 +65,7 @@ export function Button({
     <button
       {...rest}
       disabled={rest.disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
+      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition hover:-translate-y-0.5 active:scale-[0.97] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin" />}
       {children}
@@ -182,8 +182,8 @@ export function Empty({ children }: { children: ReactNode }) {
 /** Карточка показателя с цветной круглой иконкой (стиль обзора). */
 export function IconStat({ icon, color, value, label }: { icon: ReactNode; color: string; value: ReactNode; label: string }) {
   return (
-    <div className="rounded-xl border border-rn-line/70 bg-rn-surface/70 p-4 transition hover:border-rn-violet/50">
-      <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg ${color}`}>{icon}</span>
+    <div className="rounded-2xl border border-rn-line/70 bg-rn-surface/70 p-5 transition duration-300 hover:-translate-y-0.5 hover:border-rn-violet/50">
+      <span className={`flex h-11 w-11 items-center justify-center rounded-full text-white shadow-lg ${color}`}>{icon}</span>
       <div className="mt-3 font-display text-2xl font-bold text-white">{value}</div>
       <div className="text-xs text-rn-muted">{label}</div>
     </div>

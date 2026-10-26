@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, DollarSign } from "lucide-react";
+import { Plus, Search, Tags } from "lucide-react";
 import { CreateTariffModal } from "@/components/admin/tariffs/CreateTariffModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { EditTariffModal } from "@/components/admin/tariffs/EditTariffModal";
 import { TariffCard } from "@/components/admin/tariffs/TariffCard";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { PriceListImport } from "@/components/admin/tariffs/PriceListImport";
 
 interface Tariff {
@@ -167,7 +168,7 @@ export default function TariffsPage() {
         <PriceListImport onApplied={() => { fetchTariffs(); fetchCategories(); }} />
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center gap-2"
+          className="min-h-[52px] px-7 py-3.5 rounded-2xl font-bold text-sm sm:text-base uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(217,70,239,0.45)] active:scale-[0.97] flex items-center gap-2"
           style={{
             background: "linear-gradient(135deg, #10b981, #059669)",
             color: "#fff",
@@ -259,7 +260,7 @@ export default function TariffsPage() {
           </div>
 
           {/* Category filter */}
-          <select
+          <StyledSelect
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -275,10 +276,10 @@ export default function TariffsPage() {
                 {cat.name}
               </option>
             ))}
-          </select>
+          </StyledSelect>
 
           {/* Type filter */}
-          <select
+          <StyledSelect
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -293,10 +294,10 @@ export default function TariffsPage() {
             <option value="package">Пакетный</option>
             <option value="night">Ночной</option>
             <option value="morning">Утренний</option>
-          </select>
+          </StyledSelect>
 
           {/* Status filter */}
-          <select
+          <StyledSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -309,7 +310,7 @@ export default function TariffsPage() {
             <option value="all">Все статусы</option>
             <option value="active">Активные</option>
             <option value="inactive">Неактивные</option>
-          </select>
+          </StyledSelect>
         </div>
 
         {/* Results count */}
@@ -328,7 +329,7 @@ export default function TariffsPage() {
               border: "1px solid rgba(16,185,129,0.3)",
             }}
           >
-            <DollarSign className="w-10 h-10" style={{ color: "#10b981" }} />
+            <Tags className="w-10 h-10" style={{ color: "#10b981" }} />
           </div>
           <p className="text-gray-400 text-lg mb-2">Тарифы не найдены</p>
           <p className="text-gray-500 text-sm">Попробуйте изменить фильтры или создайте новый тариф</p>

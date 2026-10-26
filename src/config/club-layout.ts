@@ -25,6 +25,8 @@ export interface LayoutZone {
 export interface ClubLayout {
   slots: LayoutSlot[];
   zones: LayoutZone[];
+  /** Перегородки посередине залов: отрезок по x на глубине z. */
+  dividers: Array<{ x1: number; x2: number; z: number }>;
   width: number;
   depth: number;
 }
@@ -68,6 +70,7 @@ export function buildLayout(zones: ZoneConfig[]): ClubLayout {
 
   const slots: LayoutSlot[] = [];
   const out: LayoutZone[] = [];
+  const dividers: ClubLayout["dividers"] = [];
   let x = 0;
   let number = 1;
   valid.forEach((zone, i) => {
@@ -80,10 +83,15 @@ export function buildLayout(zones: ZoneConfig[]): ClubLayout {
       slots.push({ number: number++, x: x + PADDING + col * DESK_PITCH, z: z0 + PADDING + row * ROW_PITCH, rotation: 0 });
     }
     out.push({ label: zone.label, x, z: z0, width: size.width, depth: size.depth });
+    // Зал из 4+ рядов делится стенкой пополам (между креслами одного ряда и столами следующего)
+    if (size.rows >= 4) {
+      const r = Math.floor(size.rows / 2) - 1;
+      dividers.push({ x1: x + 0.3, x2: x + size.width - 0.3, z: z0 + PADDING + r * ROW_PITCH + 1.65 });
+    }
     x += size.width + AISLE;
   });
 
-  return { slots, zones: out, width: Math.max(4, x - AISLE), depth: maxDepth };
+  return { slots, zones: out, dividers, width: Math.max(4, x - AISLE), depth: maxDepth };
 }
 
 /** Схема по умолчанию (пока администратор не менял настройки). */

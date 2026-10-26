@@ -19,7 +19,6 @@ import {
   Menu,
   X,
   Loader2,
-  Gauge,
   Lock,
   Search,
   Bell,
@@ -53,8 +52,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: "/admin", label: "Обзор", icon: LayoutDashboard, roles: ["admin"], group: "main" },
-  { href: "/manager", label: "Панель менеджера", icon: Gauge, roles: ["admin", "manager"], group: "main" },
+  { href: "/admin", label: "Обзор", icon: LayoutDashboard, roles: ["admin", "manager"], group: "main" },
   { href: "/admin/bookings", label: "Бронирования", icon: CalendarDays, roles: ["admin", "manager"], group: "work" },
   { href: "/admin/computers", label: "Компьютеры", icon: Monitor, roles: ["admin", "manager"], group: "work" },
   { href: "/admin/sessions", label: "Игровые сессии", icon: Timer, roles: ["admin", "manager"], group: "work" },
@@ -117,7 +115,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <nav className="flex h-full flex-col" aria-label="Панель управления">
-      <Link href={staff.role === "admin" ? "/admin" : "/manager"} className="flex items-center gap-3 px-5 py-5">
+      <Link href="/admin" className="flex items-center gap-3 px-5 py-5">
         <span className="relative h-9 w-9">
           <Image src={brand.logoUrl} unoptimized={brand.logoUrl.startsWith("/api/")} alt="" fill sizes="36px" className="object-contain" />
         </span>
@@ -231,8 +229,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
                 <Lock className="mx-auto h-10 w-10 text-rn-pink" />
                 <h1 className="mt-4 font-display text-xl font-bold uppercase">Нет доступа</h1>
                 <p className="mt-2 text-sm text-rn-muted">Этот раздел доступен только администратору.</p>
-                <Link href="/manager" className="mt-6 inline-block text-rn-cyan hover:text-white">
-                  Панель менеджера
+                <Link href="/admin" className="mt-6 inline-block text-rn-cyan hover:text-white">
+                  На главную панели
                 </Link>
               </div>
             )}

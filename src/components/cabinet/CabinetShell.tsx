@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 import { MotionConfig } from "framer-motion";
 import { CyberNavbar } from "@/components/layout/CyberNavbar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AIChatWidget } from "@/components/ai/AIChatWidget";
 
 /** Общая оболочка страниц личного кабинета: шапка, фон, нижняя навигация на телефоне. */
@@ -18,6 +21,7 @@ export function CabinetShell({ children, wide = false }: { children: ReactNode; 
         </div>
         <CyberNavbar />
         <main className={`relative mx-auto px-4 pb-28 pt-24 sm:px-6 md:pb-16 lg:px-8 lg:pt-28 ${wide ? "max-w-7xl" : "max-w-5xl"}`}>
+          <BackButton />
           {children}
         </main>
         <BottomNav />
@@ -49,4 +53,22 @@ export function PageTitle({ eyebrow, title, subtitle, action }: { eyebrow?: stri
 /** Карточка-поверхность кабинета. */
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-3xl border border-rn-line bg-rn-surface/80 p-5 backdrop-blur sm:p-6 ${className}`}>{children}</div>;
+}
+
+/** «Назад» на внутренних страницах кабинета: на предыдущую страницу или в кабинет. */
+function BackButton() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { t } = useLanguage();
+  if (pathname === "/dashboard") return null;
+  return (
+    <button
+      type="button"
+      onClick={() => (window.history.length > 1 ? router.back() : router.push("/dashboard"))}
+      className="group mb-4 inline-flex items-center gap-1.5 rounded-full border border-rn-line bg-rn-surface/60 px-3.5 py-1.5 text-sm text-rn-muted hover:border-rn-violet hover:text-white"
+    >
+      <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+      {t("cab.back")}
+    </button>
+  );
 }

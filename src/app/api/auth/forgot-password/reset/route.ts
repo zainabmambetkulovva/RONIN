@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { RESET_ERRORS, checkResetCode, consumeResetCode } from "@/server/services/password-reset";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -20,26 +21,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Проверить код еще раз
-    const resetCode = await prisma.password_reset_codes.findFirst({
-      where: { email, code },
-    });
-
-    if (!resetCode) {
-      return NextResponse.json(
-        { error: "Неверный код" },
-        { status: 401 }
-      );
-    }
-
-    if (new Date() > resetCode.expires_at) {
-      await prisma.password_reset_codes.delete({
-        where: { id: resetCode.id },
-      });
-      return NextResponse.json(
-        { error: "Код истек" },
-        { status: 401 }
-      );
+    // Проверить код ещё раз (хэш, срок, попытки)
+    const check = await checkResetCode(String(email), String(code));
+    if (!check.ok) {
+      return NextResponse.json({ error: RESET_ERRORS[check.reason] }, { status: 401 });
     }
 
     // Найти пользователя
@@ -67,9 +52,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Удалить использованный код
-    await prisma.password_reset_codes.delete({
-      where: { id: resetCode.id },
-    });
+    await consumeResetCode(check.id);
 
     return NextResponse.json({
       success: true,

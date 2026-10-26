@@ -198,8 +198,9 @@ export default function SetupProfilePage() {
                       src={avatar}
                       alt={`Avatar ${idx + 1}`}
                       fill
-                      className="object-cover"
-                      sizes="120px"
+                      className="object-cover object-top"
+                      sizes="360px"
+                      quality={92}
                     />
                   </button>
                 ))}

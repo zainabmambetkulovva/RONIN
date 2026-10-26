@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, DollarSign, User } from "lucide-react";
+import { Calendar, Clock, MapPin, Wallet, User } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -59,7 +59,7 @@ export function AnimatedReceipt({ booking, onView }: AnimatedReceiptProps) {
           </div>
         )}
         <div className="flex items-center gap-3 text-gray-300">
-          <DollarSign className="w-4 h-4 text-purple-400" />
+          <Wallet className="w-4 h-4 text-purple-400" />
           <span className="text-sm font-bold">{booking.total_price} сом</span>
         </div>
       </div>

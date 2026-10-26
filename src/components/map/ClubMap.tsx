@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { Box, CalendarClock, Clock, Loader2, Monitor, RefreshCw, User, X } from "lucide-react";
 import { useClubLayout } from "./useClubLayout";
@@ -82,10 +83,12 @@ interface ClubMapProps {
   /** Для персонала: что делать по нажатию на бронь в панели. */
   onOpenBooking?: (bookingCode: string) => void;
   className?: string;
+  /** Компактно: сцена ниже, панель ПК — поверх сцены (для главной и админки). */
+  compact?: boolean;
 }
 
 /** 3D-карта клуба: цвет ПК — занят/свободен в выбранный момент, панель — расписание выбранного ПК на день. */
-export function ClubMap({ mode = "public", onOpenBooking, className = "" }: ClubMapProps) {
+export function ClubMap({ mode = "public", onOpenBooking, className = "", compact = false }: ClubMapProps) {
   const { t, language } = useLanguage();
   const CLUB_LAYOUT = useClubLayout();
   const DAY = useMemo(() => new Intl.DateTimeFormat(LOCALES[language] ?? "ru-RU", { day: "numeric", month: "long" }), [language]);
@@ -192,9 +195,14 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className={compact ? "relative" : "grid lg:grid-cols-[minmax(0,1fr)_320px]"}>
         {/* Сцена */}
-        <div ref={hostRef} className="relative h-[72vh] max-h-[640px] min-h-[380px] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_60%)] lg:h-[560px]">
+        <div
+          ref={hostRef}
+          className={`relative bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_60%)] ${
+            compact ? "h-[60vh] max-h-[460px] min-h-[340px]" : "h-[72vh] max-h-[640px] min-h-[380px] lg:h-[560px]"
+          }`}
+        >
           {error && <p className="absolute left-4 top-4 z-10 rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-rose-200">{t("map.loadError")}</p>}
           {inView && webgl === true && <ClubMap3D layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
           {inView && webgl === false && <FlatMap layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
@@ -204,6 +212,21 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
         </div>
 
         {/* Выбранный ПК */}
+        {compact ? (
+          <AnimatePresence>
+            {info && (
+              <motion.aside
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-x-3 bottom-3 z-10 max-h-[80%] overflow-y-auto rounded-2xl border border-rn-line bg-rn-surface/95 p-4 shadow-2xl backdrop-blur sm:left-auto sm:w-80"
+              >
+                <SeatPanel number={selected!} info={info} moment={moment} dayStart={dayStart} mode={mode} onClose={() => setSelected(null)} onOpenBooking={onOpenBooking} />
+              </motion.aside>
+            )}
+          </AnimatePresence>
+        ) : (
         <aside className="border-t border-rn-line/70 p-4 lg:border-l lg:border-t-0">
           {!info ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 py-8 text-center text-sm text-rn-muted">
@@ -214,6 +237,7 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "" }: Club
             <SeatPanel number={selected!} info={info} moment={moment} dayStart={dayStart} mode={mode} onClose={() => setSelected(null)} onOpenBooking={onOpenBooking} />
           )}
         </aside>
+        )}
       </div>
     </div>
   );
@@ -290,13 +314,12 @@ function SeatPanel({
         </div>
       )}
 
+      {/* Список броней — только если они есть (иначе статус выше уже говорит «свободен весь день») */}
+      {today.length > 0 && (
       <div>
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-rn-muted">
           <CalendarClock className="h-3.5 w-3.5" /> {t("map.busyThatDay")}
         </p>
-        {today.length === 0 ? (
-          <p className="text-sm text-emerald-300">{t("map.noBookings")}</p>
-        ) : (
           <ul className="space-y-1.5">
             {today.map((i, k) => (
               <li key={k} className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.03] px-3 py-2 text-sm">
@@ -317,8 +340,8 @@ function SeatPanel({
               </li>
             ))}
           </ul>
-        )}
       </div>
+      )}
 
       {info.computer && info.computer.specs.length > 0 && <p className="text-xs text-rn-muted">{info.computer.specs.join(" · ")}</p>}
 

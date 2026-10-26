@@ -32,6 +32,7 @@ function gradientFor(name: string) {
 export function GamesSection() {
   const { t } = useLanguage();
   const [games, setGames] = useState<GameDTO[]>(FALLBACK);
+  const [failed, setFailed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch("/api/games")
@@ -51,7 +52,20 @@ export function GamesSection() {
             key={game.id}
             className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-rn-line bg-rn-surface shadow-[0_10px_30px_-15px_rgba(217,70,239,0)] transition-all duration-700 ease-out hover:border-rn-magenta/60 hover:shadow-[0_10px_30px_-10px_rgba(217,70,239,0.45)]"
           >
-            {game.imageUrl ? (
+            {game.imageUrl && !failed.has(game.id) ? (
+              game.imageUrl.startsWith("http") ? (
+                // Внешняя обложка (Steam): если не загрузится — оформленная карточка
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={game.imageUrl}
+                  alt={game.name}
+                  loading="eager"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  onError={() => setFailed((f) => new Set(f).add(game.id))}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              ) : (
               <Image
                 src={game.imageUrl}
                 alt={game.name}
@@ -63,6 +77,7 @@ export function GamesSection() {
                 unoptimized={game.imageUrl.startsWith("/api/")}
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
+              )
             ) : (
               // Обложки нет — оформленная карточка с названием (обложку можно загрузить в «Настройки → Игры»)
               <div className={`absolute inset-0 bg-gradient-to-br ${gradientFor(game.name)}`} aria-hidden>

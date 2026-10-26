@@ -1,5 +1,6 @@
 "use client";
 
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { useState } from "react";
 
 interface User {
@@ -106,7 +107,7 @@ export function UsersTable({ users }: UsersTableProps) {
           </div>
 
           {/* Role filter */}
-          <select
+          <StyledSelect
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="px-4 py-2.5 rounded-lg text-sm text-white outline-none"
@@ -119,10 +120,10 @@ export function UsersTable({ users }: UsersTableProps) {
             <option value="admin">Admin</option>
             <option value="manager">Manager</option>
             <option value="client">Client</option>
-          </select>
+          </StyledSelect>
 
           {/* Status filter */}
-          <select
+          <StyledSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2.5 rounded-lg text-sm text-white outline-none"
@@ -135,7 +136,7 @@ export function UsersTable({ users }: UsersTableProps) {
             <option value="active">Активные</option>
             <option value="blocked">Заблокированные</option>
             <option value="deleted">Удалённые</option>
-          </select>
+          </StyledSelect>
         </div>
       </div>
 

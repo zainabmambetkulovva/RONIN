@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit2, Trash2, ToggleLeft, ToggleRight, DollarSign, Clock, Tag } from "lucide-react";
+import { Edit2, Trash2, ToggleLeft, ToggleRight, Wallet, Clock, Tag } from "lucide-react";
 
 interface TariffCardProps {
   tariff: {
@@ -73,11 +73,11 @@ export function TariffCard({ tariff, onEdit, onToggle, onDelete }: TariffCardPro
           }}
         >
           <div className="flex items-center gap-2 mb-1">
-            <DollarSign className="w-4 h-4" style={{ color: "#10b981" }} />
+            <Wallet className="w-4 h-4" style={{ color: "#10b981" }} />
             <span className="text-xs text-gray-400 uppercase">Цена</span>
           </div>
           <div className="text-xl font-black" style={{ color: "#10b981" }}>
-            {tariff.price} с
+            {tariff.price} сом
           </div>
         </div>
         <div

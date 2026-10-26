@@ -2,9 +2,11 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, CircleDollarSign, MonitorCheck, MonitorX, RefreshCw, Timer, UserPlus, Users, Wrench } from "lucide-react";
+import { CalendarClock, CheckCircle2, Wallet, MonitorCheck, MonitorX, RefreshCw, Timer, UserPlus, Users, Wrench } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
 import { useStaff } from "@/components/admin/StaffShell";
+import { QuickDesk } from "@/components/admin/QuickDesk";
+import { ClubMap } from "@/components/map/ClubMap";
 import { AreaChart, Donut, Gauge } from "@/components/admin/charts";
 import { BookingBadges, Empty, ErrorNote, IconStat, Loading, Select, fmtDateTime, fmtMoney, fmtTime, useLoader } from "@/components/admin/ui";
 
@@ -45,6 +47,9 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
+      {/* Смена: бронь по коду, оплата в клубе, старт сессии, бронь для гостя — и админу, и менеджеру */}
+      <QuickDesk onChanged={reloadAll} />
+
       {stats.error && <ErrorNote>{stats.error}</ErrorNote>}
       {stats.loading && !data && <Loading />}
 
@@ -68,26 +73,29 @@ export default function AdminDashboardPage() {
 
           {/* Ряд 2: выручка + компьютеры */}
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            {data.payments ? (
             <Panel
               title="Выручка"
               action={
                 <Select label="Период" value={period} onChange={(v) => setPeriod(v as Period)} options={PERIODS.map((p) => ({ value: p.key, label: p.label }))} />
               }
             >
-              {data.payments ? (
                 <>
                   <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <Kpi icon={<CircleDollarSign className="h-4 w-4" />} label="За период" value={fmtMoney(data.payments.amount)} />
+                    <Kpi icon={<Wallet className="h-4 w-4" />} label="За период" value={fmtMoney(data.payments.amount)} />
                     <Kpi icon={<CheckCircle2 className="h-4 w-4" />} label="Платежей" value={String(data.payments.count)} />
                     <Kpi label="Онлайн" value={fmtMoney(data.payments.online)} />
                     <Kpi label="В клубе" value={fmtMoney(data.payments.offline)} />
                   </div>
                   <AreaChart data={data.revenueByDay.map((d) => ({ label: d.day.slice(5).split("-").reverse().join("."), value: d.amount }))} format={fmtMoney} />
                 </>
-              ) : (
-                <Empty>Выручка доступна только администратору</Empty>
-              )}
             </Panel>
+            ) : (
+              // Менеджеру выручка не показывается — вместо неё карта зала
+              <div className="min-w-0">
+                <ClubMap mode="staff" compact />
+              </div>
+            )}
             <Panel title="Компьютеры">
               <Donut
                 centerLabel="Всего"

@@ -22,6 +22,7 @@ import {
   useLoader,
 } from "@/components/admin/ui";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { ClubMap } from "@/components/map/ClubMap";
 import type { AdminComputerDTO, CategoryDTO } from "@/types/api";
 
 export default function ComputersPage() {
@@ -61,12 +62,17 @@ export default function ComputersPage() {
         subtitle={data ? `Всего ${data.length} · 🟢 ${counts.available} · 🔴 ${counts.occupied} · ⚫ ${counts.maintenance}` : undefined}
         actions={
           staff.role === "admin" && (
-            <Button variant="primary" onClick={() => setCreating(true)}>
+            <Button variant="primary" className="min-h-[52px] px-7 text-base" onClick={() => setCreating(true)}>
               <Plus className="h-4 w-4" /> Добавить ПК
             </Button>
           )
         }
       />
+
+      {/* 3D-карта зала: занятость сейчас или в выбранное время, у кого бронь */}
+      <section className="mb-6">
+        <ClubMap mode="staff" compact />
+      </section>
 
       <div className="mb-5 flex flex-wrap gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Номер компьютера" />

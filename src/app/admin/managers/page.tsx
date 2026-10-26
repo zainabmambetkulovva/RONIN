@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { CreateManagerModal } from "@/components/admin/managers/CreateManagerModal";
 import { ManagerCard } from "@/components/admin/managers/ManagerCard";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 
 interface Manager {
@@ -148,7 +149,7 @@ export default function ManagersPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center gap-2"
+          className="min-h-[52px] px-7 py-3.5 rounded-2xl font-bold text-sm sm:text-base uppercase tracking-wider transition-all hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(217,70,239,0.45)] active:scale-[0.97] flex items-center gap-2"
           style={{
             background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
             color: "#fff",
@@ -236,7 +237,7 @@ export default function ManagersPage() {
           </div>
 
           {/* Status filter */}
-          <select
+          <StyledSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2"
@@ -246,19 +247,11 @@ export default function ManagersPage() {
               color: "#fff",
               boxShadow: "0 0 20px rgba(139,92,246,0.1)",
             }}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#8b5cf6";
-              e.target.style.boxShadow = "0 0 30px rgba(139,92,246,0.3)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "rgba(139,92,246,0.3)";
-              e.target.style.boxShadow = "0 0 20px rgba(139,92,246,0.1)";
-            }}
           >
             <option value="all">Все статусы</option>
             <option value="active">Активные</option>
             <option value="blocked">Неактивные</option>
-          </select>
+          </StyledSelect>
         </div>
 
         {/* Results count */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 import { X } from "lucide-react";
 
 interface CreateUserModalProps {
@@ -150,7 +151,7 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
             <label className="block text-white font-bold text-sm mb-2">
               Роль <span className="text-red-400">*</span>
             </label>
-            <select
+            <StyledSelect
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               className="w-full px-4 py-3 rounded-xl text-sm font-medium transition-all"
@@ -163,7 +164,7 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
               <option value="client">Клиент</option>
               <option value="manager">Менеджер</option>
               <option value="admin">Администратор</option>
-            </select>
+            </StyledSelect>
           </div>
 
           {/* Error */}
