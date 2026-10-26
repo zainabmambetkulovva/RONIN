@@ -314,13 +314,12 @@ function SeatPanel({
         </div>
       )}
 
+      {/* Список броней — только если они есть (иначе статус выше уже говорит «свободен весь день») */}
+      {today.length > 0 && (
       <div>
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-rn-muted">
           <CalendarClock className="h-3.5 w-3.5" /> {t("map.busyThatDay")}
         </p>
-        {today.length === 0 ? (
-          <p className="text-sm text-emerald-300">{t("map.noBookings")}</p>
-        ) : (
           <ul className="space-y-1.5">
             {today.map((i, k) => (
               <li key={k} className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.03] px-3 py-2 text-sm">
@@ -341,8 +340,8 @@ function SeatPanel({
               </li>
             ))}
           </ul>
-        )}
       </div>
+      )}
 
       {info.computer && info.computer.specs.length > 0 && <p className="text-xs text-rn-muted">{info.computer.specs.join(" · ")}</p>}
 
