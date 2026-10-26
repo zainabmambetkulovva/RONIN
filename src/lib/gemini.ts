@@ -34,7 +34,8 @@ class GeminiService {
   private maxTokens: number;
 
   constructor(config: GeminiConfig) {
-    this.apiKey = config.apiKey || process.env.GEMINI_API_KEY || '';
+    // Ключ, вставленный в Vercel, мог прийти с пробелами или кавычками — убираем их
+    this.apiKey = (config.apiKey || process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
     this.model = config.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     this.baseURL = 'https://generativelanguage.googleapis.com/v1beta';
     this.temperature = config.temperature || 0.7;
@@ -47,9 +48,18 @@ class GeminiService {
   async generateContent(prompt: string): Promise<GeminiResponse> {
     // gemini-1.5-* сняты Google с поддержки; если модель недоступна (404), пробуем следующую
     const models = Array.from(new Set([this.model, 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash']));
+    // Ключ в заголовке x-goog-api-key (так в документации Google). Новые ключи AI Studio «AQ.…»
+    // на части аккаунтов принимаются только как токен — для них при 401/403 пробуем Authorization: Bearer.
+    const authModes: Array<'header' | 'bearer'> = this.apiKey.startsWith('AQ.') ? ['header', 'bearer'] : ['header'];
     let result: GeminiResponse = { text: 'Произошла ошибка при обращении к AI.', error: 'No model available' };
     for (const model of models) {
-      result = await this.generateWithModel(model, prompt);
+      for (const mode of authModes) {
+        result = await this.generateWithModel(model, prompt, mode);
+        if (result.error !== 'auth_rejected') break;
+      }
+      if (result.error === 'auth_rejected') {
+        return { text: 'AI недоступен: Google не принял ключ. Проверьте GEMINI_API_KEY.', error: `Ключ отклонён Google: ${result.text}`.slice(0, 300) };
+      }
       if (result.error !== 'model_not_found') {
         if (!result.error) this.model = model;
         return result;
@@ -58,7 +68,7 @@ class GeminiService {
     return { ...result, text: 'AI временно недоступен. Попробуйте позже.' };
   }
 
-  private async generateWithModel(model: string, prompt: string): Promise<GeminiResponse> {
+  private async generateWithModel(model: string, prompt: string, auth: 'header' | 'bearer' = 'header'): Promise<GeminiResponse> {
     if (!this.apiKey || this.apiKey === 'your_gemini_api_key_here') {
       console.error('Gemini API key not configured');
       return {
@@ -68,10 +78,10 @@ class GeminiService {
     }
 
     try {
-      // Gemini API accepts API keys via query parameter (not Authorization header)
-      const url = `${this.baseURL}/models/${model}:generateContent?key=${this.apiKey}`;
-      const headers = {
+      const url = `${this.baseURL}/models/${model}:generateContent`;
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        ...(auth === 'bearer' ? { Authorization: `Bearer ${this.apiKey}` } : { 'x-goog-api-key': this.apiKey }),
       };
       
       console.log('Calling Gemini API:', { model });
@@ -87,7 +97,8 @@ class GeminiService {
           }],
           generationConfig: {
             temperature: this.temperature,
-            maxOutputTokens: this.maxTokens,
+            // Модели без отключаемых «размышлений» тратят на них часть лимита — даём запас
+            maxOutputTokens: model.startsWith('gemini-2.5') || model.startsWith('gemini-2.0') ? this.maxTokens : Math.max(this.maxTokens, 4096),
             // У 2.5 «размышления» съедают лимит токенов ответа; для чата они не нужны
             ...(model.startsWith('gemini-2.5') && { thinkingConfig: { thinkingBudget: 0 } }),
           }
@@ -101,6 +112,10 @@ class GeminiService {
         const errorMessage = data.error?.message || 'Gemini API error';
 
         if (response.status === 404) return { text: '', error: 'model_not_found' };
+        // Ключ не принят (401/403, кроме лимитов) — текст ошибки Google без самого ключа
+        if (((response.status === 401 || response.status === 403) && !/quota/i.test(errorMessage)) || errorMessage.includes('API key not valid')) {
+          return { text: `${response.status} ${data.error?.status ?? ''} ${errorMessage}`.trim(), error: 'auth_rejected' };
+        }
         
         // Provide user-friendly error messages
         if (errorMessage.includes('API key not valid')) {
