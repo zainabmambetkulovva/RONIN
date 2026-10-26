@@ -4,6 +4,12 @@
   "regions": [
     "iad1"
   ],
+  "crons": [
+    {
+      "path": "/api/cron/expire-bookings",
+      "schedule": "0 21 * * *"
+    }
+  ],
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
