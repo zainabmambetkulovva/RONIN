@@ -85,21 +85,42 @@ export async function setComputerStatus(id: string, status: "available" | "maint
   return { computer: updated, upcomingBookings };
 }
 
-export const computerCreateSchema = z.object({
+const computerBaseSchema = z.object({
   number: z.coerce.number().int("Номер — целое число").positive("Номер должен быть больше нуля").max(9999),
   categoryId: z.string().min(1, "Выберите зал"),
   specifications: z.record(z.unknown()).optional(),
 });
-export const computerUpdateSchema = computerCreateSchema.partial();
+export const computerCreateSchema = computerBaseSchema
+  .extend({
+    categoryId: z.string().optional(),
+    /** Новый зал (например «RONIN ROOMS») — создаётся, если зала с таким названием ещё нет. */
+    newCategoryName: z.string().trim().min(2, "Название зала — от 2 символов").max(100).optional(),
+  })
+  .refine((d) => d.categoryId || d.newCategoryName, { message: "Выберите зал или введите название нового" });
+export const computerUpdateSchema = computerBaseSchema.partial();
+
+/** Зал по названию (без учёта регистра) или новый зал. */
+async function resolveCategory(input: { categoryId?: string; newCategoryName?: string }): Promise<string> {
+  if (!input.newCategoryName) return input.categoryId!;
+  const name = input.newCategoryName.trim();
+  const existing = await prisma.computer_categories.findFirst({ where: { name: { equals: name, mode: "insensitive" } }, select: { id: true } });
+  if (existing) return existing.id;
+  const created = await prisma.computer_categories.create({
+    data: { id: crypto.randomUUID(), name: name.toUpperCase(), description: "", is_active: true, updated_at: new Date() },
+    select: { id: true },
+  });
+  return created.id;
+}
 
 export async function createComputer(input: z.infer<typeof computerCreateSchema>) {
   const now = new Date();
+  const categoryId = await resolveCategory(input);
   try {
     return await prisma.computers.create({
       data: {
         id: crypto.randomUUID(),
         number: input.number,
-        category_id: input.categoryId,
+        category_id: categoryId,
         specifications: (input.specifications ?? {}) as Prisma.InputJsonValue,
         status: "available",
         created_at: now,
