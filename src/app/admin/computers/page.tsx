@@ -24,6 +24,7 @@ import {
 import { Dropdown } from "@/components/ui/Dropdown";
 import { ClubMap } from "@/components/map/ClubMap";
 import type { AdminComputerDTO, CategoryDTO } from "@/types/api";
+import { ROOM_MAX_PCS } from "@/config/club-layout";
 
 export default function ComputersPage() {
   const staff = useStaff();
@@ -123,7 +124,17 @@ export default function ComputersPage() {
           }}
         />
       )}
-      {creating && <CreateComputerModal categories={categories} onClose={() => setCreating(false)} onCreated={reload} />}
+      {creating && (
+        <CreateComputerModal
+          categories={categories}
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            reload();
+            // Новый зал должен появиться в списке
+            adminApi.categories().then((r) => setCategories(r.categories)).catch(() => undefined);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -259,17 +270,21 @@ function ComputerModal({
   );
 }
 
+const NEW_HALL = "__new__";
+
 function CreateComputerModal({ categories, onClose, onCreated }: { categories: CategoryDTO[]; onClose: () => void; onCreated: () => void }) {
   const [number, setNumber] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? NEW_HALL);
+  const [newHall, setNewHall] = useState("");
   const [busy, setBusy] = useState(false);
+  const isNewHall = categoryId === NEW_HALL;
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
     setBusy(true);
     setError(null);
     try {
-      await adminApi.createComputer({ number: Number(number), categoryId });
+      await adminApi.createComputer(isNewHall ? { number: Number(number), newCategoryName: newHall.trim() } : { number: Number(number), categoryId });
       onCreated();
       onClose();
     } catch (e) {
@@ -288,12 +303,24 @@ function CreateComputerModal({ categories, onClose, onCreated }: { categories: C
         </label>
         <label className="block text-sm">
           <span className="mb-1 block text-rn-muted">Зал</span>
-          <Dropdown label="Зал" value={categoryId} onChange={setCategoryId} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
+          <Dropdown
+            label="Зал"
+            value={categoryId}
+            onChange={setCategoryId}
+            options={[...categories.map((c) => ({ value: c.id, label: c.name })), { value: NEW_HALL, label: "+ Новый зал" }]}
+          />
         </label>
+        {isNewHall && (
+          <label className="block text-sm">
+            <span className="mb-1 block text-rn-muted">Название нового зала</span>
+            <input className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2" placeholder="Например RONIN ROOMS" value={newHall} onChange={(e) => setNewHall(e.target.value)} />
+          </label>
+        )}
+        <p className="text-xs text-rn-muted">Зал, в котором {ROOM_MAX_PCS} ПК или меньше, на 3D-карте показывается отдельными комнатами — по комнате на каждый ПК.</p>
         {error && <ErrorNote>{error}</ErrorNote>}
         <div className="flex justify-end gap-2">
           <Button onClick={onClose}>Отмена</Button>
-          <Button variant="primary" loading={busy} disabled={!number || !categoryId} onClick={submit}>
+          <Button variant="primary" loading={busy} disabled={!number || (isNewHall ? newHall.trim().length < 2 : !categoryId)} onClick={submit}>
             Добавить
           </Button>
         </div>
