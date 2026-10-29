@@ -1,13 +1,13 @@
-"use client";
-
 import { Inter, Unbounded } from "next/font/google";
 import "./globals.css";
 import "../styles/typography.css";
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { useEffect } from "react";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import type { Metadata } from "next";
+import { getBranding } from "@/server/services/branding";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -20,57 +20,64 @@ const display = Unbounded({
   variable: "--font-display",
 });
 
+// Название клуба в превью обновляется не реже раза в 5 минут
+export const revalidate = 300;
+
+const DESCRIPTION = "Круглосуточный компьютерный клуб в Бишкеке: мощные игровые ПК, 3D-карта зала и онлайн-бронирование.";
+
+/**
+ * Open Graph и Twitter Card: превью ссылки в Telegram, WhatsApp, Instagram, Facebook.
+ * Название — из настроек бренда, картинка — /api/og (собирается из названия, цветов и логотипа клуба).
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  // Адрес сайта для абсолютных ссылок в превью: NEXT_PUBLIC_APP_URL, иначе основной адрес проекта на Vercel (с доменом клуба, если он подключён)
+  const site =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
+    "http://localhost:3000";
+  // Название — из настроек бренда; если база недоступна (например, при сборке) — стандартное
+  const name = await Promise.race([
+    getBranding()
+      .then((b) => b.clubName)
+      .catch(() => "RONIN"),
+    new Promise<string>((resolve) => setTimeout(() => resolve("RONIN"), 1500)),
+  ]).catch(() => "RONIN");
+  const title = `${name} — компьютерный клуб в Бишкеке`;
+  return {
+    metadataBase: new URL(site),
+    title,
+    description: DESCRIPTION,
+    applicationName: `${name} Gaming Club`,
+    openGraph: {
+      type: "website",
+      url: "/",
+      siteName: name,
+      title,
+      description: DESCRIPTION,
+      locale: "ru_RU",
+      alternateLocale: ["ky_KG", "en_US"],
+      images: [{ url: "/api/og", width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: DESCRIPTION,
+      images: ["/api/og"],
+    },
+  };
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Регистрация Service Worker для PWA
-  useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker зарегистрирован:', registration);
-          
-          // Проверка обновлений каждые 5 минут
-          setInterval(() => {
-            registration.update().then(() => {
-              console.log('🔄 Проверка обновлений Service Worker...');
-            }).catch(err => {
-              console.error('Ошибка проверки обновлений:', err);
-            });
-          }, 5 * 60 * 1000);
-          
-          // Обновление Service Worker
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // Новая версия доступна
-                  console.log('🔄 Новая версия приложения доступна');
-                  // Автоматически обновляем без подтверждения
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 1000);
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          console.error('❌ Ошибка регистрации Service Worker:', error);
-        });
-    }
-  }, []);
-
   return (
     <html lang="ru" className="dark">
       <head>
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="RONIN Gaming Club" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="RONIN" />
@@ -88,10 +95,10 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
         
         {/* SEO */}
-        <meta name="description" content="Компьютерный клуб в Бишкеке - Мощные игровые ПК, комфортная атмосфера, онлайн бронирование" />
         <meta name="keywords" content="компьютерный клуб, gaming, киберспорт, Бишкек, игровые компьютеры" />
       </head>
       <body className={`${inter.variable} ${display.variable} font-sans antialiased bg-ronin-black`}>
+        <ServiceWorkerRegister />
         <BrandingProvider>
         <LoadingScreen />
         <LanguageProvider>
