@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Wrench, CheckCircle2, Pencil } from "lucide-react";
+import { Trash2, Plus, Wrench, CheckCircle2, Pencil } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
 import { ApiClientError } from "@/lib/api-client";
 import { useStaff } from "@/components/admin/StaffShell";
@@ -182,6 +182,22 @@ function ComputerModal({
     }
   };
 
+  // Убрать ПК: без истории — удаляется, с историей броней — уходит в архив (с карты и брони пропадает)
+  const remove = async () => {
+    if (!window.confirm(`Убрать ПК № ${computer.number} из клуба? Он пропадёт с карты и из брони.`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await adminApi.removeComputer(computer.id);
+      await onChanged();
+      onClose();
+    } catch (e) {
+      setError(e instanceof ApiClientError ? e.message : "Не удалось убрать ПК");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const save = async () => {
     setBusy(true);
     setError(null);
@@ -218,6 +234,11 @@ function ComputerModal({
           {isAdmin && !editing && (
             <Button onClick={() => setEditing(true)}>
               <Pencil className="h-4 w-4" /> Изменить
+            </Button>
+          )}
+          {isAdmin && (
+            <Button variant="ghost" loading={busy} onClick={remove}>
+              <Trash2 className="h-4 w-4" /> Удалить ПК
             </Button>
           )}
         </div>

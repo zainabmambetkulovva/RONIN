@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { ComputerScheduleDTO } from "@/types/api";
 import { blockingBookingWhere, overlapsWhere } from "./availability";
+import { activeComputerWhere } from "@/server/services/computers";
 
 /**
  * Расписание занятости компьютеров в окне [from, to) для 3D-карты.
@@ -11,6 +12,7 @@ export async function getComputerSchedule(from: Date, to: Date, withClients: boo
   const now = new Date();
   const [computers, bookings, sessions] = await Promise.all([
     prisma.computers.findMany({
+      where: activeComputerWhere,
       select: { id: true, number: true, status: true, specifications: true, computer_categories: { select: { id: true, name: true } } },
       orderBy: { number: "asc" },
     }),

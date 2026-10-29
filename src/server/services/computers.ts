@@ -14,11 +14,50 @@ import { conflict, notFound } from "@/server/http";
 import { blockingBookingWhere } from "@/server/services/availability";
 import type { AdminComputerDTO, ComputerState } from "@/types/api";
 
+/** ПК в работе: не в архиве (архив — скрытый зал, куда убираются удалённые ПК с историей броней). */
+export const activeComputerWhere = { computer_categories: { is_active: true } } satisfies Prisma.computersWhereInput;
+const ARCHIVE_NAME = "АРХИВ";
+
+/**
+ * Убрать ПК из клуба. Без истории — удаляется полностью; с историей броней/сессий — уходит в скрытый архив
+ * (пропадает с карты, из брони и со страниц сайта, история сохраняется).
+ */
+export async function removeComputer(id: string): Promise<"deleted" | "archived"> {
+  const now = new Date();
+  const computer = await prisma.computers.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      number: true,
+      _count: { select: { bookings: true, gaming_sessions: true } },
+      gaming_sessions: { where: { status: "active" }, select: { id: true }, take: 1 },
+      bookings: { where: { AND: [blockingBookingWhere(now), { end_at: { gt: now } }] }, select: { id: true }, take: 1 },
+    },
+  });
+  if (!computer) throw notFound("Компьютер не найден");
+  if (computer.gaming_sessions.length) throw conflict(`На ПК № ${computer.number} идёт игровая сессия — сначала завершите её`, "computer_busy");
+  if (computer.bookings.length) throw conflict(`У ПК № ${computer.number} есть предстоящие брони — сначала отмените или перенесите их`, "computer_busy");
+
+  if (computer._count.bookings === 0 && computer._count.gaming_sessions === 0) {
+    await prisma.computers.delete({ where: { id } });
+    return "deleted";
+  }
+  const archive =
+    (await prisma.computer_categories.findFirst({ where: { name: ARCHIVE_NAME, is_active: false }, select: { id: true } })) ??
+    (await prisma.computer_categories.create({
+      data: { id: crypto.randomUUID(), name: ARCHIVE_NAME, description: "Удалённые ПК с историей броней", is_active: false, updated_at: now },
+      select: { id: true },
+    }));
+  await prisma.computers.update({ where: { id }, data: { category_id: archive.id, status: "maintenance", updated_at: now } });
+  return "archived";
+}
+
 export async function listComputersWithState(): Promise<AdminComputerDTO[]> {
   const now = new Date();
   const dayAhead = new Date(now.getTime() + 24 * 60 * 60_000);
 
   const computers = await prisma.computers.findMany({
+    where: activeComputerWhere,
     include: {
       computer_categories: { select: { id: true, name: true } },
       gaming_sessions: {
@@ -103,7 +142,7 @@ export const computerUpdateSchema = computerBaseSchema.partial();
 async function resolveCategory(input: { categoryId?: string; newCategoryName?: string }): Promise<string> {
   if (!input.newCategoryName) return input.categoryId!;
   const name = input.newCategoryName.trim();
-  const existing = await prisma.computer_categories.findFirst({ where: { name: { equals: name, mode: "insensitive" } }, select: { id: true } });
+  const existing = await prisma.computer_categories.findFirst({ where: { name: { equals: name, mode: "insensitive" }, is_active: true }, select: { id: true } });
   if (existing) return existing.id;
   const created = await prisma.computer_categories.create({
     data: { id: crypto.randomUUID(), name: name.toUpperCase(), description: "", is_active: true, updated_at: new Date() },
