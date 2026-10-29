@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { badRequest, handle } from "@/server/http";
 import { computerInclude, toComputerDTO } from "@/server/mappers";
 import { findBusyComputerIds } from "@/server/services/availability";
+import { activeComputerWhere } from "@/server/services/computers";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export const GET = handle(async (req) => {
   const durationParam = searchParams.get("durationMinutes");
 
   const computers = await prisma.computers.findMany({
-    where: categoryId ? { category_id: categoryId } : undefined,
+    where: { ...activeComputerWhere, ...(categoryId ? { category_id: categoryId } : {}) },
     include: computerInclude,
     orderBy: { number: "asc" },
   });

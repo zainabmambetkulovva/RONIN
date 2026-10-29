@@ -47,6 +47,7 @@ export const adminApi = {
   setComputerStatus: (id: string, status: "available" | "maintenance") =>
     request<{ success: true; upcomingBookings: number }>(`/api/admin/computers/${id}`, send("PATCH", { status })),
   createComputer: (data: { number: number; categoryId?: string; newCategoryName?: string }) => request<{ success: true }>("/api/admin/computers", send("POST", data)),
+  removeComputer: (id: string) => request<{ success: true; result: "deleted" | "archived" }>(`/api/admin/computers/${id}`, send("DELETE")),
   updateComputer: (id: string, data: { number?: number; categoryId?: string }) => request<{ success: true }>(`/api/admin/computers/${id}`, send("PATCH", data)),
   categories: () => request<{ categories: CategoryDTO[] }>("/api/categories"),
 

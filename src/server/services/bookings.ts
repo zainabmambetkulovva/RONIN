@@ -47,11 +47,11 @@ export async function createBooking(input: CreateBookingInput) {
       async (tx) => {
         const [tariff, computer] = await Promise.all([
           tx.tariffs.findUnique({ where: { id: tariffId } }),
-          tx.computers.findUnique({ where: { id: computerId } }),
+          tx.computers.findUnique({ where: { id: computerId }, include: { computer_categories: { select: { is_active: true } } } }),
         ]);
 
         if (!tariff || !tariff.is_active) throw notFound("Тариф не найден или отключён");
-        if (!computer) throw notFound("Компьютер не найден");
+        if (!computer || !computer.computer_categories.is_active) throw notFound("Компьютер не найден");
         if (computer.status === "maintenance") throw conflict("Компьютер на обслуживании", "computer_maintenance");
         if (tariff.category_id && tariff.category_id !== computer.category_id) {
           throw badRequest("Тариф не подходит для этого компьютера");

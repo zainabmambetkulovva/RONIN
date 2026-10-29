@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { forbidden, handle, notFound, parseJson } from "@/server/http";
+import { requireAdmin } from "@/server/auth/staff";
 import { requireStaff } from "@/server/auth/staff";
 import { bookingInclude, toBookingDTO } from "@/server/mappers";
-import { computerUpdateSchema, setComputerStatus, updateComputer } from "@/server/services/computers";
+import { computerUpdateSchema, removeComputer, setComputerStatus, updateComputer } from "@/server/services/computers";
 import { sessionInclude, toSessionDTO } from "@/server/services/sessions";
 import { writeAuditLog } from "@/server/services/audit";
 
@@ -75,4 +76,14 @@ export const PATCH = handle<{ id: string }>(async (req, { params }) => {
 
   const computer = await prisma.computers.findUniqueOrThrow({ where: { id: params.id } });
   return NextResponse.json({ success: true, computer: { id: computer.id, number: computer.number, status: computer.status }, upcomingBookings });
+});
+
+// DELETE /api/admin/computers/[id] — убрать ПК (только admin): без истории — удаляется, с историей — в скрытый архив
+export const DELETE = handle<{ id: string }>(async (req, { params }) => {
+  const admin = await requireAdmin(req);
+  const before = await prisma.computers.findUnique({ where: { id: params.id }, select: { number: true, category_id: true } });
+  if (!before) throw notFound("Компьютер не найден");
+  const result = await removeComputer(params.id);
+  await writeAuditLog({ userId: admin.id, action: result === "deleted" ? "DELETE_COMPUTER" : "ARCHIVE_COMPUTER", entityType: "Computer", entityId: params.id, oldData: before });
+  return NextResponse.json({ success: true, result });
 });
