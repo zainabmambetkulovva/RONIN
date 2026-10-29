@@ -1,6 +1,5 @@
 "use client";
 
-import { ROOM_MAX_PCS } from "@/config/club-layout";
 import { useEffect, useState } from "react";
 import { Instagram, Monitor, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { Button, ErrorNote, Loading } from "@/components/admin/ui";
@@ -157,7 +156,7 @@ export function ClubConfigManager() {
           </button>
         </div>
         <p className="mb-3 text-xs text-rn-muted">
-          3D-карта строится по компьютерам из раздела «Компьютеры»: залы — это категории ПК, залы со словом ROOM / «комнаты» в названии (или до {ROOM_MAX_PCS} ПК)
+          3D-карта строится по компьютерам из раздела «Компьютеры»: залы — это категории ПК, залы со словом ROOM / «комнаты» в названии
           показываются отдельными комнатами. Зоны ниже нужны, чтобы создать недостающие ПК для нового клуба.
         </p>
         <ul className="space-y-2">

@@ -81,8 +81,6 @@ const ROOM_DEPTH = 3.6; // отдельная комната на 1 ПК
 const ROOM_WIDTH = 4.2; // ширина отдельной комнаты
 const ROOMS_GAP = 0.4; // стена между залом и столбиком комнат
 const MAX_STRETCH = 2.5; // насколько можно удлинить помещение, чтобы не оставлять пустого места
-/** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
-export const ROOM_MAX_PCS = 3;
 /** Зал с «ROOM» / «КОМНАТ» в названии — всегда отдельные комнаты по одному ПК, сколько бы их ни было. */
 export const isRoomsHall = (name: string) => /room|комнат|бөлмө/i.test(name);
 
@@ -96,13 +94,15 @@ const RU_PC = (n: number) => {
 
 /** Залы из компьютеров базы: категория = зал, ПК по номерам; залы — по наименьшему номеру. */
 export function hallsFromComputers(computers: Array<{ number: number; category: { name: string } }>): HallInput[] {
+  // Залы с одинаковым названием (в любом регистре, с лишними пробелами) — один зал
   const map = new Map<string, number[]>();
   for (const c of computers) {
-    const list = map.get(c.category.name) ?? [];
+    const key = c.category.name.trim().replace(/\s+/g, " ").toUpperCase();
+    const list = map.get(key) ?? [];
     list.push(c.number);
-    map.set(c.category.name, list);
+    map.set(key, list);
   }
-  return Array.from(map, ([label, numbers]) => ({ label: label.toUpperCase(), numbers: numbers.sort((a, b) => a - b) })).sort(
+  return Array.from(map, ([label, numbers]) => ({ label, numbers: numbers.sort((a, b) => a - b) })).sort(
     (a, b) => a.numbers[0] - b.numbers[0]
   );
 }
@@ -148,7 +148,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
   const rooms: Part[] = [];
   let roomNo = 1;
   for (const hall of halls.filter((h) => h.numbers.length > 0)) {
-    if (isRoomsHall(hall.label) || (hall.numbers.length <= ROOM_MAX_PCS && halls.length > 1)) {
+    if (isRoomsHall(hall.label)) {
       for (const num of hall.numbers) {
         rooms.push({ label: `КОМНАТА ${roomNo++}`, sublabel: sublabel(1), numbers: [num], blocks: [1], rows: 1, width: 0, depth: ROOM_DEPTH, dz: 0 });
       }
