@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { KG_PHONE_ERROR, PERSON_NAME_ERROR, isValidPersonName, normalizeKgPhone } from "@/lib/phone";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { conflict, handle, parseJson } from "@/server/http";
@@ -54,13 +55,11 @@ export const GET = handle(async (req) => {
 });
 
 const createSchema = z.object({
-  name: z.string({ required_error: "Укажите имя" }).trim().min(1, "Укажите имя").max(100),
+  name: z.string({ required_error: "Укажите имя" }).trim().min(1, "Укажите имя").max(100).refine(isValidPersonName, PERSON_NAME_ERROR),
   phone: z
     .string({ required_error: "Укажите телефон" })
     .trim()
-    .min(5, "Укажите телефон")
-    .max(20)
-    .regex(/^\+?[0-9\s()-]+$/, "Некорректный номер телефона"),
+    .refine((v) => normalizeKgPhone(v) !== null, KG_PHONE_ERROR),
   email: z.string().trim().email("Некорректный email").optional().or(z.literal("")),
 });
 
@@ -71,7 +70,7 @@ const createSchema = z.object({
 export const POST = handle(async (req) => {
   const staff = await requireStaff(req);
   const input = await parseJson(req, createSchema);
-  const phone = input.phone.replace(/[\s()-]/g, "");
+  const phone = normalizeKgPhone(input.phone)!;
   const email = input.email || null;
 
   const existing = await prisma.users.findFirst({

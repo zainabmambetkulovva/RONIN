@@ -90,13 +90,14 @@ interface ClubMapProps {
 /** 3D-карта клуба: цвет ПК — занят/свободен в выбранный момент, панель — расписание выбранного ПК на день. */
 export function ClubMap({ mode = "public", onOpenBooking, className = "", compact = false }: ClubMapProps) {
   const { t, language } = useLanguage();
-  const CLUB_LAYOUT = useClubLayout();
   const DAY = useMemo(() => new Intl.DateTimeFormat(LOCALES[language] ?? "ru-RU", { day: "numeric", month: "long" }), [language]);
   const [isNow, setIsNow] = useState(true);
   const [day, setDay] = useState(toDayKey(new Date()));
   const [hour, setHour] = useState(String(new Date().getHours()));
   const [now, setNow] = useState(() => new Date());
   const [data, setData] = useState<ComputerScheduleDTO[] | null>(null);
+  // Схема — по компьютерам из базы: на карте ровно те ПК и залы, что в админке
+  const CLUB_LAYOUT = useClubLayout(data);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [webgl, setWebgl] = useState<boolean | null>(null);
@@ -204,8 +205,8 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "", compac
           }`}
         >
           {error && <p className="absolute left-4 top-4 z-10 rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-rose-200">{t("map.loadError")}</p>}
-          {inView && webgl === true && <ClubMap3D layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
-          {inView && webgl === false && <FlatMap layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
+          {inView && webgl === true && (data || error) && <ClubMap3D layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
+          {inView && webgl === false && (data || error) && <FlatMap layout={CLUB_LAYOUT} seats={seats} selected={selected} onSelect={setSelected} />}
           <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/70 backdrop-blur">
             {isNow ? `${t("map.now")}, ${fmt(moment)}` : `${DAY.format(moment)}, ${fmt(moment)}`} · {t("map.rotate")}
           </p>

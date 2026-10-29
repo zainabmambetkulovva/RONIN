@@ -15,11 +15,15 @@ export interface LayoutSlot {
 
 export interface LayoutZone {
   label: string;
+  /** Вторая строка таблички, например «31 компьютер». */
+  sublabel?: string;
   /** Прямоугольник зоны: левый-дальний угол и размеры. */
   x: number;
   z: number;
   width: number;
   depth: number;
+  /** Где дверь: в боковой стене со стороны коридора или в передней стене. */
+  door?: "left" | "right" | "front";
 }
 
 export interface ClubLayout {
@@ -29,6 +33,17 @@ export interface ClubLayout {
   dividers: Array<{ x1: number; x2: number; z: number }>;
   width: number;
   depth: number;
+  /** Здание целиком (внешние стены) и коридор между залами со входом снизу. */
+  building?: { x: number; z: number; width: number; depth: number };
+  corridor?: { x: number; width: number };
+}
+
+/** Зал для схемы: название и реальные номера ПК (из базы или из настроек зон). */
+export interface HallInput {
+  label: string;
+  numbers: number[];
+  /** Сколько ПК в ряду (если не задано — подбирается само). */
+  columns?: number;
 }
 
 /** Зона так, как её задаёт администратор. */
@@ -54,71 +69,145 @@ export const DEFAULT_ZONES: ZoneConfig[] = [
 const DESK_PITCH = 1.3; // шаг столов в ряду
 const ROW_PITCH = 2.3; // шаг рядов (стол + кресло + проход)
 const PADDING = 1.2;
-const AISLE = 3.2; // проход между зонами
-const ROOM_MIN_WIDTH = 3; // отдельная комната не уже 3 м
-const ROOM_GAP = 1.2; // проход между соседними комнатами в столбике (там же подпись комнаты)
+const CORRIDOR = 3.4; // коридор между левым и правым крылом
+const STACK_GAP = 0.5; // стена между помещениями одно под другим
+const ROOM_SIZE = 3.4; // отдельная комната на 1 ПК
+/** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
+export const ROOM_MAX_PCS = 3;
 
-export function buildLayout(zones: ZoneConfig[]): ClubLayout {
-  const valid = zones.filter((z) => z.count > 0 && z.columns > 0);
-  const sizes = valid.map((z) => {
-    const cols = Math.min(z.columns, z.count);
-    const rows = Math.ceil(z.count / cols);
-    return {
-      cols,
-      rows,
-      width: Math.max((cols - 1) * DESK_PITCH + PADDING * 2, rows === 1 ? ROOM_MIN_WIDTH : 0),
-      depth: (rows - 1) * ROW_PITCH + PADDING * 2 + 1,
-      /** Комната в один ряд — такие ставятся столбиком друг за другом, а не в ширину. */
-      small: rows === 1,
-    };
+const RU_PC = (n: number) => {
+  const d = n % 10;
+  const dd = n % 100;
+  if (d === 1 && dd !== 11) return `${n} компьютер`;
+  if (d >= 2 && d <= 4 && (dd < 12 || dd > 14)) return `${n} компьютера`;
+  return `${n} компьютеров`;
+};
+
+/** Залы из компьютеров базы: категория = зал, ПК по номерам; залы — по наименьшему номеру. */
+export function hallsFromComputers(computers: Array<{ number: number; category: { name: string } }>): HallInput[] {
+  const map = new Map<string, number[]>();
+  for (const c of computers) {
+    const list = map.get(c.category.name) ?? [];
+    list.push(c.number);
+    map.set(c.category.name, list);
+  }
+  return Array.from(map, ([label, numbers]) => ({ label: label.toUpperCase(), numbers: numbers.sort((a, b) => a - b) })).sort(
+    (a, b) => a.numbers[0] - b.numbers[0]
+  );
+}
+
+/** Зоны из настроек → залы с номерами подряд (схема, пока в базе нет компьютеров). */
+export function hallsFromZones(zones: ZoneConfig[]): HallInput[] {
+  let n = 1;
+  return zones
+    .filter((z) => z.count > 0 && z.columns > 0)
+    .map((z) => ({ label: z.label, columns: z.columns, numbers: Array.from({ length: z.count }, () => n++) }));
+}
+
+interface Unit {
+  /** Столбик отдельных комнат — растягивается на ширину крыла. */
+  rooms?: boolean;
+  width: number;
+  depth: number;
+  /** Помещения внутри блока (у комнат — несколько, одна под другой). */
+  parts: Array<{ label: string; sublabel: string; numbers: number[]; cols: number; rows: number; width: number; depth: number; dz: number }>;
+}
+
+/**
+ * Схема как в настоящем клубе: левое и правое крыло, между ними коридор со входом снизу;
+ * большие залы стоят друг под другом, маленькие залы — отдельные комнаты по одному ПК, столбиком у входа.
+ */
+export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: number) => string = RU_PC): ClubLayout {
+  const units: Unit[] = [];
+  const rooms: Unit["parts"] = [];
+  let roomNo = 1;
+  for (const hall of halls.filter((h) => h.numbers.length > 0)) {
+    if (hall.numbers.length <= ROOM_MAX_PCS && halls.length > 1) {
+      for (const num of hall.numbers) {
+        rooms.push({ label: `КОМНАТА ${roomNo++}`, sublabel: sublabel(1), numbers: [num], cols: 1, rows: 1, width: ROOM_SIZE, depth: ROOM_SIZE, dz: 0 });
+      }
+      continue;
+    }
+    const count = hall.numbers.length;
+    const cols = Math.min(count, hall.columns ?? Math.max(4, Math.min(10, Math.ceil(Math.sqrt(count * 2)))));
+    const rows = Math.ceil(count / cols);
+    const width = (cols - 1) * DESK_PITCH + PADDING * 2;
+    const depth = (rows - 1) * ROW_PITCH + PADDING * 2 + 1;
+    units.push({ width, depth, parts: [{ label: hall.label, sublabel: sublabel(count), numbers: hall.numbers, cols, rows, width, depth, dz: 0 }] });
+  }
+  if (rooms.length) {
+    let dz = 0;
+    for (const r of rooms) {
+      r.dz = dz;
+      dz += r.depth + STACK_GAP;
+    }
+    units.push({ rooms: true, width: ROOM_SIZE, depth: dz - STACK_GAP, parts: rooms });
+  }
+
+  // Крылья: каждый блок — в крыло, где сейчас меньше глубина (комнаты идут последними — у входа)
+  const wings: Unit[][] = [[], []];
+  const wingDepth = [0, 0];
+  for (const u of units) {
+    const w = wingDepth[0] <= wingDepth[1] ? 0 : 1;
+    wings[w].push(u);
+    wingDepth[w] += u.depth + (wings[w].length > 1 ? STACK_GAP : 0);
+  }
+  const leftW = Math.max(0, ...wings[0].map((u) => u.width));
+  const rightW = Math.max(0, ...wings[1].map((u) => u.width));
+  // Комнаты занимают всю ширину крыла (как на плане клуба)
+  wings.forEach((wing, side) => {
+    for (const u of wing) {
+      if (!u.rooms) continue;
+      u.width = Math.max(u.width, side === 0 ? leftW : rightW);
+      for (const part of u.parts) part.width = u.width;
+    }
   });
-  const maxDepth = Math.max(4, ...sizes.map((s) => s.depth));
+  const depth = Math.max(4, ...wingDepth);
+  const corridorX = leftW;
+  const width = leftW + CORRIDOR + rightW;
 
   const slots: LayoutSlot[] = [];
-  const out: LayoutZone[] = [];
+  const zones: LayoutZone[] = [];
   const dividers: ClubLayout["dividers"] = [];
-  let x = 0;
-  let number = 1;
-  // Столбик маленьких комнат: левый край, ширина и где начинается следующая комната (от входа вглубь)
-  let column: { x: number; width: number; front: number } | null = null;
-  valid.forEach((zone, i) => {
-    const size = sizes[i];
-    let x0 = x;
-    // Небольшие комнаты прижаты к входу (ближняя сторона), большие залы — во всю глубину
-    let z0 = maxDepth - size.depth;
-    if (size.small) {
-      if (column && column.front - size.depth >= 0) {
-        // Следующая комната — за предыдущей в том же столбике
-        x0 = column.x;
-        z0 = column.front - size.depth;
-        if (size.width > column.width) x += size.width - column.width;
-        column.width = Math.max(column.width, size.width);
-      } else {
-        column = { x, width: size.width, front: maxDepth };
-        z0 = maxDepth - size.depth;
-        x += size.width + AISLE;
+  wings.forEach((wing, side) => {
+    let z = 0;
+    wing.forEach((u, i) => {
+      // Последний блок крыла прижат ко входу (низ схемы)
+      const z0 = i === wing.length - 1 && wing.length > 1 ? depth - u.depth : z;
+      const x0 = side === 0 ? leftW - u.width : leftW + CORRIDOR;
+      for (const part of u.parts) {
+        const pz = z0 + part.dz;
+        zones.push({ label: part.label, sublabel: part.sublabel, x: x0, z: pz, width: part.width, depth: part.depth, door: side === 0 ? "right" : "left" });
+        const inset = (part.width - ((part.cols - 1) * DESK_PITCH + PADDING * 2)) / 2;
+        part.numbers.forEach((num, k) => {
+          const row = Math.floor(k / part.cols);
+          const col = k % part.cols;
+          slots.push({ number: num, x: x0 + inset + PADDING + col * DESK_PITCH, z: pz + PADDING + row * ROW_PITCH, rotation: 0 });
+        });
+        // Большой зал (6+ рядов) делится стенкой пополам, как в клубе
+        if (part.rows >= 6) {
+          const r = Math.floor(part.rows / 2) - 1;
+          dividers.push({ x1: x0 + 0.3, x2: x0 + part.width - 0.3, z: pz + PADDING + r * ROW_PITCH + 1.65 });
+        }
       }
-      column.front = z0 - ROOM_GAP;
-    } else {
-      column = null;
-      x += size.width + AISLE;
-    }
-    for (let k = 0; k < zone.count; k++) {
-      const row = Math.floor(k / size.cols);
-      const col = k % size.cols;
-      // В комнате шире ряда столы стоят по центру
-      const inset = (size.width - ((size.cols - 1) * DESK_PITCH + PADDING * 2)) / 2;
-      slots.push({ number: number++, x: x0 + inset + PADDING + col * DESK_PITCH, z: z0 + PADDING + row * ROW_PITCH, rotation: 0 });
-    }
-    out.push({ label: zone.label, x: x0, z: z0, width: size.width, depth: size.depth });
-    // Зал из 4+ рядов делится стенкой пополам (между креслами одного ряда и столами следующего)
-    if (size.rows >= 4) {
-      const r = Math.floor(size.rows / 2) - 1;
-      dividers.push({ x1: x0 + 0.3, x2: x0 + size.width - 0.3, z: z0 + PADDING + r * ROW_PITCH + 1.65 });
-    }
+      z = z0 + u.depth + STACK_GAP;
+    });
   });
 
-  return { slots, zones: out, dividers, width: Math.max(4, x - AISLE), depth: maxDepth };
+  return {
+    slots,
+    zones,
+    dividers,
+    width,
+    depth,
+    building: { x: -0.6, z: -0.6, width: width + 1.2, depth: depth + 1.2 },
+    corridor: { x: corridorX, width: CORRIDOR },
+  };
+}
+
+/** Схема из зон настроек (номера ПК подряд). */
+export function buildLayout(zones: ZoneConfig[]): ClubLayout {
+  return buildLayoutFromHalls(hallsFromZones(zones));
 }
 
 /** Схема по умолчанию (пока администратор не менял настройки). */

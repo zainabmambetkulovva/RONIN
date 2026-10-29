@@ -7,6 +7,7 @@ import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
 import { RollingLoader } from "@/components/ui/RollingLoader";
 import { StyledSelect } from "@/components/ui/StyledSelect";
 import { UserCard } from "@/components/admin/users/UserCard";
+import { EditUserModal } from "@/components/admin/users/EditUserModal";
 import type { AvatarDTO } from "@/types/api";
 
 interface User {
@@ -18,6 +19,7 @@ interface User {
   status: string;
   avatar: string | null;
   image?: string | null;
+  telegramChatId?: string | null;
   createdAt: string;
 }
 
@@ -31,6 +33,7 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [avatars, setAvatars] = useState<AvatarDTO[]>([]);
+  const [editing, setEditing] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -273,11 +276,23 @@ export default function UsersPage() {
               key={user.id}
               user={user}
               avatars={avatars}
+              onEdit={(id) => setEditing(users.find((u) => u.id === id) ?? null)}
               onDelete={handleDeleteUser}
               onBlock={handleBlockUser}
             />
           ))}
         </div>
+      )}
+
+      {editing && (
+        <EditUserModal
+          user={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            fetchUsers();
+          }}
+        />
       )}
 
       {/* Create User Modal */}

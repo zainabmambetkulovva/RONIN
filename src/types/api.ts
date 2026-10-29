@@ -45,6 +45,8 @@ export interface UserListItemDTO {
   avatar: string | null;
   /** Фото из Google, если вход через Google. */
   image?: string | null;
+  /** Telegram chat ID сотрудника (код входа в панель). Только в ответах для администратора. */
+  telegramChatId?: string | null;
   role: UserRole;
   status: UserStatus;
   createdAt: string;
