@@ -182,7 +182,6 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
               }}
             >
               <option value="client">Клиент</option>
-              <option value="manager">Менеджер</option>
               <option value="admin">Администратор</option>
             </StyledSelect>
           </div>

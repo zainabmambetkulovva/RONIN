@@ -78,7 +78,9 @@ const CENTER_AISLE = 1.4; // центральный проход между бл
 const CORRIDOR = 3.4; // коридор между левым и правым крылом
 const STACK_GAP = 0.5; // стена между помещениями одно под другим
 const ROOM_DEPTH = 3.6; // отдельная комната на 1 ПК
-const ROOM_WING_SHARE = 0.38; // ширина комнаты — доля ширины крыла
+const ROOM_WIDTH = 4.2; // ширина отдельной комнаты
+const ROOMS_GAP = 0.4; // стена между залом и столбиком комнат
+const MAX_STRETCH = 2.5; // насколько можно удлинить помещение, чтобы не оставлять пустого места
 /** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
 export const ROOM_MAX_PCS = 3;
 /** Зал с «ROOM» / «КОМНАТ» в названии — всегда отдельные комнаты по одному ПК, сколько бы их ни было. */
@@ -160,17 +162,18 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
     const depth = BACK_GAP + (rows - 1) * ROW_PITCH + 1.2 + FRONT_AISLE;
     units.push({ width, depth, parts: [{ label: hall.label, sublabel: sublabel(count), numbers: hall.numbers, blocks, rows, width, depth, dz: 0 }] });
   }
+  let roomsUnit: Unit | null = null;
   if (rooms.length) {
     let dz = 0;
     for (const r of rooms) {
-      r.width = SIDE_AISLE + DESK_PITCH + 1.2;
+      r.width = ROOM_WIDTH;
       r.dz = dz;
       dz += r.depth + STACK_GAP;
     }
-    units.push({ rooms: true, width: rooms[0].width, depth: dz - STACK_GAP, parts: rooms });
+    roomsUnit = { rooms: true, width: ROOM_WIDTH, depth: dz - STACK_GAP, parts: rooms };
   }
 
-  // Крылья: каждый блок — в крыло, где сейчас меньше глубина (комнаты идут последними — у входа)
+  // Крылья: каждый зал — в крыло, где сейчас меньше глубина
   const wings: Unit[][] = [[], []];
   const wingDepth = [0, 0];
   for (const u of units) {
@@ -178,20 +181,44 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
     wings[w].push(u);
     wingDepth[w] += u.depth + (wings[w].length > 1 ? STACK_GAP : 0);
   }
-  const leftW = Math.max(0, ...wings[0].map((u) => u.width));
-  const rightW = Math.max(0, ...wings[1].map((u) => u.width));
-  // Комнаты — у коридора, шириной примерно в треть крыла (по плану клуба), не на всё крыло
-  wings.forEach((wing, side) => {
-    const wingW = side === 0 ? leftW : rightW;
-    for (const u of wing) {
-      if (!u.rooms) continue;
-      u.width = Math.min(wingW, Math.max(u.width, wingW * ROOM_WING_SHARE));
-      for (const part of u.parts) part.width = u.width;
-    }
-  });
+  const hallsW = wings.map((wing) => Math.max(0, ...wing.map((u) => u.width)));
+  // Комнаты — столбиком рядом с залами более короткого крыла, у внешней стены (схема не вытягивается вниз)
+  const roomsSide = wingDepth[1] <= wingDepth[0] ? 1 : 0;
+  const roomsW = [0, 0];
+  if (roomsUnit) {
+    roomsW[roomsSide] = roomsUnit.width + (hallsW[roomsSide] > 0 ? ROOMS_GAP : 0);
+    wingDepth[roomsSide] = Math.max(wingDepth[roomsSide], roomsUnit.depth);
+  }
+  const leftW = hallsW[0] + roomsW[0];
+  const rightW = hallsW[1] + roomsW[1];
   const depth = Math.max(4, ...wingDepth);
   const corridorX = leftW;
   const width = leftW + CORRIDOR + rightW;
+  // Пустого места не оставляем: залы и комнаты более короткого крыла растягиваются на всю глубину схемы
+  // (запас уходит в проход у передней стены каждого помещения)
+  wings.forEach((wing) => {
+    if (!wing.length) return;
+    const used = wing.reduce((sum, u) => sum + u.depth, 0) + STACK_GAP * (wing.length - 1);
+    // Не больше MAX_STRETCH на помещение — иначе у одинокого зала вырастает огромный пустой проход
+    const extra = Math.min(MAX_STRETCH, (depth - used) / wing.length);
+    if (extra <= 0.01) return;
+    for (const u of wing) {
+      u.depth += extra;
+      for (const part of u.parts) part.depth += extra;
+    }
+  });
+  if (roomsUnit) {
+    const extra = Math.min(MAX_STRETCH, (depth - roomsUnit.depth) / roomsUnit.parts.length);
+    let dz = 0;
+    for (const r of roomsUnit.parts) {
+      if (extra > 0.01) r.depth += extra;
+      r.dz = dz;
+      dz += r.depth + STACK_GAP;
+    }
+    roomsUnit.depth = dz - STACK_GAP;
+    // Столбик комнат: у правого крыла — справа от залов, у левого — слева
+    wings[roomsSide].push(roomsUnit);
+  }
 
   const slots: LayoutSlot[] = [];
   const zones: LayoutZone[] = [];
@@ -199,15 +226,21 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
   const aisles: NonNullable<ClubLayout["aisles"]> = [];
   wings.forEach((wing, side) => {
     let z = 0;
-    wing.forEach((u, i) => {
-      // Последний блок крыла прижат ко входу (низ схемы)
-      const z0 = i === wing.length - 1 && wing.length > 1 ? depth - u.depth : z;
-      const x0 = side === 0 ? leftW - u.width : leftW + CORRIDOR;
+    wing.forEach((u) => {
+      // Комнаты — от верха схемы, залы — друг под другом
+      const z0 = u.rooms ? 0 : z;
+      const x0 = u.rooms
+        ? side === 0
+          ? 0
+          : leftW + CORRIDOR + hallsW[1] + (hallsW[1] > 0 ? ROOMS_GAP : 0)
+        : side === 0
+          ? leftW - u.width
+          : leftW + CORRIDOR;
       for (const part of u.parts) {
         const pz = z0 + part.dz;
         const fz = pz + part.depth;
-        // Дверь — в стене со стороны коридора: у левого крыла справа, у правого — слева
-        const door = side === 0 ? "right" : "left";
+        // Дверь — в стене со стороны коридора: у левого крыла справа, у правого — слева; у комнат — спереди
+        const door: LayoutZone["door"] = u.rooms ? "front" : side === 0 ? "right" : "left";
         zones.push({ label: part.label, sublabel: part.sublabel, x: x0, z: pz, width: part.width, depth: part.depth, door });
 
         const desksW = blocksWidth(part.blocks);
@@ -215,7 +248,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
         const startX = door === "left" ? x0 + part.width - WALL_GAP - desksW : x0 + WALL_GAP;
         const roomCenter = part.numbers.length === 1 && part.rows === 1;
         const blockStarts: number[] = [];
-        let bx = roomCenter ? x0 + (door === "left" ? SIDE_AISLE : 0) + (part.width - SIDE_AISLE - DESK_PITCH) / 2 : startX;
+        let bx = roomCenter ? x0 + (part.width - DESK_PITCH) / 2 : startX;
         for (const b of part.blocks) {
           blockStarts.push(bx);
           bx += b * DESK_PITCH + CENTER_AISLE;
@@ -230,13 +263,19 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
         });
 
         // Проходы на полу: вдоль стены с двери, у передней стены, центральный
-        const sideX = door === "left" ? [x0, x0 + SIDE_AISLE - 0.15] : [x0 + part.width - SIDE_AISLE + 0.15, x0 + part.width];
-        aisles.push({ x1: sideX[0] + 0.08, z1: pz + 0.15, x2: sideX[1] - 0.08, z2: fz - 0.1 });
-        if (!roomCenter) {
-          aisles.push({ x1: x0 + 0.1, z1: fz - FRONT_AISLE + 0.15, x2: x0 + part.width - 0.1, z2: fz - 0.1 });
+        if (door !== "front") {
+          const sideX = door === "left" ? [x0, x0 + SIDE_AISLE - 0.15] : [x0 + part.width - SIDE_AISLE + 0.15, x0 + part.width];
+          aisles.push({ x1: sideX[0] + 0.08, z1: pz + 0.15, x2: sideX[1] - 0.08, z2: fz - 0.1 });
+        }
+        if (roomCenter) {
+          aisles.push({ x1: x0 + 0.2, z1: fz - 1.0, x2: x0 + part.width - 0.2, z2: fz - 0.1 });
+        } else {
+          // Передний проход — от кресел последнего ряда до передней стены
+          const frontZ = Math.min(fz - FRONT_AISLE, pz + BACK_GAP + (part.rows - 1) * ROW_PITCH + 1.25);
+          aisles.push({ x1: x0 + 0.1, z1: frontZ + 0.15, x2: x0 + part.width - 0.1, z2: fz - 0.1 });
           if (part.blocks.length > 1) {
             const cx1 = blockStarts[0] + part.blocks[0] * DESK_PITCH;
-            aisles.push({ x1: cx1 + 0.15, z1: pz + 0.15, x2: cx1 + CENTER_AISLE - 0.15, z2: fz - FRONT_AISLE + 0.15 });
+            aisles.push({ x1: cx1 + 0.15, z1: pz + 0.15, x2: cx1 + CENTER_AISLE - 0.15, z2: frontZ + 0.15 });
           }
         }
         // Большой зал (6+ рядов) делится стенкой пополам — отдельно над каждым блоком, проходы свободны
@@ -246,7 +285,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
           part.blocks.forEach((b, bi) => dividers.push({ x1: blockStarts[bi] - 0.1, x2: blockStarts[bi] + b * DESK_PITCH + 0.1, z: dz }));
         }
       }
-      z = z0 + u.depth + STACK_GAP;
+      if (!u.rooms) z = z0 + u.depth + STACK_GAP;
     });
   });
 

@@ -38,7 +38,7 @@ export default function SessionsPage() {
     <>
       <PageHeader
         title="Игровые сессии"
-        subtitle="Сессия начинается по оплаченной брони (в карточке брони или в панели менеджера)."
+        subtitle="Сессия начинается по оплаченной брони — в карточке брони."
         actions={
           <>
             <div className="flex rounded-xl border border-rn-line p-0.5" role="tablist">
