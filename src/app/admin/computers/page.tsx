@@ -316,7 +316,7 @@ function CreateComputerModal({ categories, onClose, onCreated }: { categories: C
             <input className="w-full rounded-xl border border-rn-line bg-rn-night px-3 py-2" placeholder="Например RONIN ROOMS" value={newHall} onChange={(e) => setNewHall(e.target.value)} />
           </label>
         )}
-        <p className="text-xs text-rn-muted">Зал, в котором {ROOM_MAX_PCS} ПК или меньше, на 3D-карте показывается отдельными комнатами — по комнате на каждый ПК.</p>
+        <p className="text-xs text-rn-muted">Зал со словом ROOM или «комнаты» в названии (или до {ROOM_MAX_PCS} ПК) на 3D-карте показывается отдельными комнатами — по комнате на каждый ПК.</p>
         {error && <ErrorNote>{error}</ErrorNote>}
         <div className="flex justify-end gap-2">
           <Button onClick={onClose}>Отмена</Button>

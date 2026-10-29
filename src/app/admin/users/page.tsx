@@ -227,7 +227,6 @@ export default function UsersPage() {
           >
             <option value="all">Все роли</option>
             <option value="client">Клиенты</option>
-            <option value="manager">Менеджеры</option>
             <option value="admin">Администраторы</option>
           </StyledSelect>
 

@@ -12,7 +12,7 @@ interface EditUserModalProps {
 
 const field = { background: "rgba(15,15,30,0.8)", border: "1px solid rgba(139,92,246,0.3)", color: "#fff" };
 
-/** Роль, Telegram ID (код входа в панель) и новый пароль — вместо отдельного раздела «Менеджеры». */
+/** Роль, Telegram ID (код входа в панель) и новый пароль сотрудника. */
 export function EditUserModal({ user, onClose, onSaved }: EditUserModalProps) {
   const [role, setRole] = useState(user.role);
   const [telegramChatId, setTelegramChatId] = useState(user.telegramChatId ?? "");
@@ -65,7 +65,7 @@ export function EditUserModal({ user, onClose, onSaved }: EditUserModalProps) {
             <label className="mb-2 block text-sm font-bold text-white">Роль</label>
             <StyledSelect value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-xl px-4 py-3 text-sm font-medium" style={field}>
               <option value="client">Клиент</option>
-              <option value="manager">Менеджер</option>
+              {user.role === "manager" && <option value="manager">Менеджер (старая роль)</option>}
               <option value="admin">Администратор</option>
             </StyledSelect>
           </div>

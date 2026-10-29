@@ -26,7 +26,8 @@ const COPIES = 3;
 export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", speed = 40, className = "" }: MarqueeProps) {
   const reduceMotion = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
-  const state = useRef({ x: 0, hover: false, drag: false, startX: 0, startOffset: 0, moved: false, resumeAt: 0 });
+  // v — скорость инерции после свайпа (px/с); lastX/lastT — для её расчёта
+  const state = useRef({ x: 0, hover: false, drag: false, startX: 0, startOffset: 0, moved: false, resumeAt: 0, v: 0, lastX: 0, lastT: 0 });
   const items = Children.toArray(children);
 
   useEffect(() => {
@@ -41,7 +42,13 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
       last = now;
       // Ширина одного набора карточек вместе с промежутком
       const period = track.scrollWidth / COPIES;
-      if (!reduceMotion && !s.hover && !s.drag && now >= s.resumeAt && period > 0) s.x += speed * dt;
+      // Инерция после свайпа: лента докатывается и плавно останавливается
+      if (!s.drag && s.v !== 0) {
+        s.x += s.v * dt;
+        s.v *= Math.exp(-dt * 3.2);
+        if (Math.abs(s.v) < 15) s.v = 0;
+      }
+      if (!reduceMotion && !s.hover && !s.drag && s.v === 0 && now >= s.resumeAt && period > 0) s.x += speed * dt;
       if (period > 0) s.x = ((s.x % period) + period) % period;
       track.style.transform = `translate3d(${-s.x}px,0,0)`;
       frame = requestAnimationFrame(loop);
@@ -56,6 +63,9 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
     s.moved = false;
     s.startX = e.clientX;
     s.startOffset = s.x;
+    s.v = 0;
+    s.lastX = e.clientX;
+    s.lastT = performance.now();
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const s = state.current;
@@ -65,13 +75,22 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
       s.moved = true;
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
-    if (s.moved) s.x = s.startOffset - dx;
+    if (s.moved) {
+      s.x = s.startOffset - dx;
+      const now = performance.now();
+      const dt = (now - s.lastT) / 1000;
+      if (dt > 0) s.v = Math.max(-3000, Math.min(3000, (-(e.clientX - s.lastX) / dt) * 0.6 + s.v * 0.4));
+      s.lastX = e.clientX;
+      s.lastT = now;
+    }
   };
   const endDrag = () => {
     const s = state.current;
     if (!s.drag) return;
     s.drag = false;
-    s.resumeAt = performance.now() + 1500;
+    // Палец давно стоит — без инерции; после свайпа лента сама не едет ещё 3 секунды
+    if (!s.moved || performance.now() - s.lastT > 120) s.v = 0;
+    s.resumeAt = performance.now() + 3000;
   };
   // После перетаскивания клик внутри карточки не срабатывает
   const onClickCapture = (e: React.MouseEvent) => {
