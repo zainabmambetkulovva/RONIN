@@ -81,6 +81,8 @@ const ROOM_DEPTH = 3.6; // отдельная комната на 1 ПК
 const ROOM_WING_SHARE = 0.38; // ширина комнаты — доля ширины крыла
 /** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
 export const ROOM_MAX_PCS = 3;
+/** Зал с «ROOM» / «КОМНАТ» в названии — всегда отдельные комнаты по одному ПК, сколько бы их ни было. */
+export const isRoomsHall = (name: string) => /room|комнат|бөлмө/i.test(name);
 
 const RU_PC = (n: number) => {
   const d = n % 10;
@@ -144,7 +146,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
   const rooms: Part[] = [];
   let roomNo = 1;
   for (const hall of halls.filter((h) => h.numbers.length > 0)) {
-    if (hall.numbers.length <= ROOM_MAX_PCS && halls.length > 1) {
+    if (isRoomsHall(hall.label) || (hall.numbers.length <= ROOM_MAX_PCS && halls.length > 1)) {
       for (const num of hall.numbers) {
         rooms.push({ label: `КОМНАТА ${roomNo++}`, sublabel: sublabel(1), numbers: [num], blocks: [1], rows: 1, width: 0, depth: ROOM_DEPTH, dz: 0 });
       }
