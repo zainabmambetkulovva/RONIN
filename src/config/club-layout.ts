@@ -78,6 +78,7 @@ const CENTER_AISLE = 1.4; // центральный проход между бл
 const CORRIDOR = 3.4; // коридор между левым и правым крылом
 const STACK_GAP = 0.5; // стена между помещениями одно под другим
 const ROOM_DEPTH = 3.6; // отдельная комната на 1 ПК
+const ROOM_WING_SHARE = 0.38; // ширина комнаты — доля ширины крыла
 /** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
 export const ROOM_MAX_PCS = 3;
 
@@ -177,11 +178,12 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
   }
   const leftW = Math.max(0, ...wings[0].map((u) => u.width));
   const rightW = Math.max(0, ...wings[1].map((u) => u.width));
-  // Комнаты занимают всю ширину крыла (как на плане клуба)
+  // Комнаты — у коридора, шириной примерно в треть крыла (по плану клуба), не на всё крыло
   wings.forEach((wing, side) => {
+    const wingW = side === 0 ? leftW : rightW;
     for (const u of wing) {
       if (!u.rooms) continue;
-      u.width = Math.max(u.width, side === 0 ? leftW : rightW);
+      u.width = Math.min(wingW, Math.max(u.width, wingW * ROOM_WING_SHARE));
       for (const part of u.parts) part.width = u.width;
     }
   });
