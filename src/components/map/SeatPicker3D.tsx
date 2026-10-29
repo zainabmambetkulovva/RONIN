@@ -40,13 +40,19 @@ export function SeatPicker3D({
   computers,
   selectedId,
   onSelect,
+  groupByHall = false,
+  layoutComputers,
 }: {
   computers: ComputerDTO[];
   selectedId: string | null;
   onSelect: (computer: ComputerDTO) => void;
+  /** Список — отдельной сеткой на каждый зал (бронь в админке, где видны все залы). */
+  groupByHall?: boolean;
+  /** Все ПК клуба для схемы (если computers — только один зал). */
+  layoutComputers?: ComputerDTO[] | null;
 }) {
   const { t } = useLanguage();
-  const CLUB_LAYOUT = useClubLayout();
+  const CLUB_LAYOUT = useClubLayout(layoutComputers?.length ? layoutComputers : computers);
   const [webgl, setWebgl] = useState<boolean | null>(null);
   const [view, setView] = useState<"3d" | "grid">("3d");
   const [hint, setHint] = useState<string | null>(null);
@@ -106,8 +112,33 @@ export function SeatPicker3D({
           {hint && <p className="mt-2 text-sm text-amber-300">{hint}</p>}
         </>
       ) : (
-        webgl !== null && <SeatGrid computers={computers} selectedId={selectedId} onSelect={onSelect} />
+        webgl !== null &&
+        (groupByHall ? (
+          <div className="space-y-4">
+            {groupHalls(computers).map((hall, i) => (
+              <div key={hall.name}>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rn-muted">
+                  {hall.name} · {hall.computers.length}
+                </p>
+                <SeatGrid computers={hall.computers} selectedId={selectedId} onSelect={onSelect} showLegend={i === 0} dense />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <SeatGrid computers={computers} selectedId={selectedId} onSelect={onSelect} />
+        ))
       )}
     </div>
   );
+}
+
+/** Компьютеры по залам (категориям) в порядке номеров. */
+function groupHalls(computers: ComputerDTO[]) {
+  const halls = new Map<string, ComputerDTO[]>();
+  for (const c of [...computers].sort((a, b) => a.number - b.number)) {
+    const list = halls.get(c.category.name) ?? [];
+    list.push(c);
+    halls.set(c.category.name, list);
+  }
+  return Array.from(halls, ([name, list]) => ({ name, computers: list }));
 }

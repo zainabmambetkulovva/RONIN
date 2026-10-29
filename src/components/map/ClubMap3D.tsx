@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ClubLayout } from "@/config/club-layout";
+import { useBranding } from "@/contexts/BrandingContext";
 
 export type SeatState = "free" | "busy" | "maintenance" | "unknown";
 
@@ -46,19 +47,59 @@ function makeLabel(text: string) {
   return sprite;
 }
 
-function makeFloorText(text: string) {
+/** Табличка на стене: название зала и вторая строка (сколько ПК), неоновый текст на тёмной панели. */
+function makeSign(title: string, subtitle: string) {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 128;
+  canvas.width = 640;
+  canvas.height = 204;
   const ctx = canvas.getContext("2d")!;
-  ctx.font = "bold 72px Inter, Arial, sans-serif";
+  ctx.fillStyle = "rgba(8,6,24,0.92)";
+  ctx.fillRect(0, 0, 640, 204);
+  ctx.strokeStyle = "rgba(139,92,246,0.9)";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 634, 198);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "rgba(196,181,253,0.55)";
-  ctx.fillText(text, 256, 64);
+  ctx.shadowColor = "rgba(168,85,247,0.95)";
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = "#ffffff";
+  let size = 78;
+  ctx.font = `bold ${size}px Inter, Arial, sans-serif`;
+  while (ctx.measureText(title).width > 590 && size > 30) ctx.font = `bold ${(size -= 4)}px Inter, Arial, sans-serif`;
+  ctx.fillText(title, 320, subtitle ? 78 : 102);
+  if (subtitle) {
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = "rgba(196,181,253,0.95)";
+    ctx.font = "600 44px Inter, Arial, sans-serif";
+    ctx.fillText(subtitle, 320, 150);
+  }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 1), new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }));
+  texture.anisotropy = 4;
+  return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: texture, transparent: true, toneMapped: false }));
+}
+
+/** Коврик у входа с названием клуба. */
+function makeMat(name: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#0d0b22";
+  ctx.fillRect(0, 0, 512, 256);
+  ctx.strokeStyle = "rgba(139,92,246,0.7)";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(10, 10, 492, 236);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(139,92,246,0.9)";
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = "rgba(196,181,253,0.95)";
+  ctx.font = "bold 80px Inter, Arial, sans-serif";
+  ctx.fillText(name.toUpperCase().slice(0, 12), 256, 132);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.2), new THREE.MeshBasicMaterial({ map: texture }));
   mesh.rotation.x = -Math.PI / 2;
   return mesh;
 }
@@ -68,6 +109,7 @@ function makeFloorText(text: string) {
  * цвет экрана и подсветки пола — состояние ПК. Вращение/масштаб пальцем или мышью, выбор ПК — касанием.
  */
 export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap3DProps) {
+  const brandName = useBranding().clubName;
   const hostRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<{ setStates: (s: SeatView[]) => void; setSelected: (n: number | null) => void } | null>(null);
   const onSelectRef = useRef(onSelect);
@@ -106,7 +148,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     controls.update();
 
     // Свет
-    scene.add(new THREE.AmbientLight(0x8b7cff, 0.55));
+    scene.add(new THREE.AmbientLight(0x8b7cff, 0.8));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(cx - 10, 20, cz + 10);
     scene.add(key);
@@ -129,81 +171,184 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     floor.position.set(cx, 0, cz);
     scene.add(floor);
 
-    // Помещения как в настоящем клубе: пол-ковёр с плиткой, высокие задняя и боковые стены
-    // с неоновой полосой, спереди — низкая стена с дверным проёмом (чтобы было видно, что внутри)
+    // Помещения как в настоящем клубе: пол-ковёр с плиткой, высокие задняя и боковые стены с неоновой полосой,
+    // дверь — в стене со стороны коридора; передняя стена низкая (разрез), чтобы было видно, что внутри
     const WALL_H = 2.4;
     const WALL_T = 0.14;
     const FRONT_H = 0.9;
-    const DOOR = 1.3;
+    const DOOR = 1.2;
     const carpetMat = track(new THREE.MeshStandardMaterial({ color: 0x141033, roughness: 0.95, metalness: 0 }));
     const wallMat = track(new THREE.MeshStandardMaterial({ color: 0x1d1745, roughness: 0.8, metalness: 0.1 }));
     const wallTopMat = track(new THREE.MeshStandardMaterial({ color: 0x2a2260, roughness: 0.6 }));
     const zoneNeonMat = track(new THREE.MeshBasicMaterial({ color: 0x8b5cf6, toneMapped: false }));
+    const blueNeonMat = track(new THREE.MeshBasicMaterial({ color: 0x3b82f6, toneMapped: false }));
     const baseNeonMat = track(new THREE.MeshBasicMaterial({ color: 0xd946ef, toneMapped: false, transparent: true, opacity: 0.7 }));
     const tileMat = track(new THREE.LineBasicMaterial({ color: 0x2a2260, transparent: true, opacity: 0.45 }));
     const box = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
+      if (w <= 0.001 || h <= 0.001 || d <= 0.001) return null;
       const mesh = new THREE.Mesh(track(new THREE.BoxGeometry(w, h, d)), mat);
       mesh.position.set(x, y, z);
       scene.add(mesh);
       return mesh;
     };
+    const tiles = (x0: number, z0: number, w: number, d: number, mat: THREE.LineBasicMaterial) => {
+      const pts: number[] = [];
+      for (let tx = x0 + 1; tx < x0 + w - 0.01; tx += 1) pts.push(tx, 0.008, z0, tx, 0.008, z0 + d);
+      for (let tz = z0 + 1; tz < z0 + d - 0.01; tz += 1) pts.push(x0, 0.008, tz, x0 + w, 0.008, tz);
+      const geo = track(new THREE.BufferGeometry());
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      scene.add(new THREE.LineSegments(geo, mat));
+    };
+    // Боковая стена по z от a до b; с дверным проёмом у передней части, если door
+    const sideWall = (x: number, za: number, zb: number, door: boolean) => {
+      if (!door) {
+        box(WALL_T, WALL_H, zb - za, wallMat, x, WALL_H / 2, (za + zb) / 2);
+        box(WALL_T + 0.02, 0.03, zb - za, wallTopMat, x, WALL_H + 0.015, (za + zb) / 2);
+        return;
+      }
+      const d1 = Math.max(za + 0.3, zb - 0.5 - DOOR);
+      const d2 = d1 + DOOR;
+      box(WALL_T, WALL_H, d1 - za, wallMat, x, WALL_H / 2, (za + d1) / 2);
+      box(WALL_T, WALL_H, zb - d2, wallMat, x, WALL_H / 2, (d2 + zb) / 2);
+      box(WALL_T, WALL_H - 2.1, DOOR, wallMat, x, 2.1 + (WALL_H - 2.1) / 2, (d1 + d2) / 2);
+      box(WALL_T + 0.04, 2.1, 0.07, wallTopMat, x, 1.05, d1);
+      box(WALL_T + 0.04, 2.1, 0.07, wallTopMat, x, 1.05, d2);
+      box(0.03, 0.03, DOOR - 0.1, zoneNeonMat, x, 2.06, (d1 + d2) / 2);
+      box(WALL_T + 0.02, 0.03, zb - za, wallTopMat, x, WALL_H + 0.015, (za + zb) / 2);
+    };
+
     for (const zone of CLUB_LAYOUT.zones) {
       const { x: zx, z: zz, width: zw, depth: zd } = zone;
       const mx = zx + zw / 2;
       const mz = zz + zd / 2;
+      const fz = zz + zd;
+      const door = zone.door ?? "front";
 
-      // Пол помещения и плитка 1×1 м
       const carpet = new THREE.Mesh(track(new THREE.PlaneGeometry(zw, zd)), carpetMat);
       carpet.rotation.x = -Math.PI / 2;
       carpet.position.set(mx, 0.005, mz);
       scene.add(carpet);
-      const tilePts: number[] = [];
-      for (let tx = zx + 1; tx < zx + zw - 0.01; tx += 1) tilePts.push(tx, 0.008, zz, tx, 0.008, zz + zd);
-      for (let tz = zz + 1; tz < zz + zd - 0.01; tz += 1) tilePts.push(zx, 0.008, tz, zx + zw, 0.008, tz);
-      const tileGeo = track(new THREE.BufferGeometry());
-      tileGeo.setAttribute("position", new THREE.Float32BufferAttribute(tilePts, 3));
-      scene.add(new THREE.LineSegments(tileGeo, tileMat));
+      tiles(zx, zz, zw, zd, tileMat);
 
-      // Задняя и боковые стены во всю высоту
+      // Задняя стена, неон по верху и подсветка плинтуса
       box(zw + WALL_T, WALL_H, WALL_T, wallMat, mx, WALL_H / 2, zz);
-      box(WALL_T, WALL_H, zd, wallMat, zx, WALL_H / 2, mz);
-      box(WALL_T, WALL_H, zd, wallMat, zx + zw, WALL_H / 2, mz);
-      // Верх стен и неоновая полоса по верху
       box(zw + WALL_T, 0.03, WALL_T + 0.02, wallTopMat, mx, WALL_H + 0.015, zz);
-      box(WALL_T + 0.02, 0.03, zd, wallTopMat, zx, WALL_H + 0.015, mz);
-      box(WALL_T + 0.02, 0.03, zd, wallTopMat, zx + zw, WALL_H + 0.015, mz);
       box(zw - 0.1, 0.05, 0.03, zoneNeonMat, mx, WALL_H - 0.25, zz + WALL_T / 2 + 0.02);
-      box(0.03, 0.05, zd - 0.1, zoneNeonMat, zx + WALL_T / 2 + 0.02, WALL_H - 0.25, mz);
-      box(0.03, 0.05, zd - 0.1, zoneNeonMat, zx + zw - WALL_T / 2 - 0.02, WALL_H - 0.25, mz);
-      // Подсветка плинтуса
       box(zw - 0.1, 0.03, 0.02, baseNeonMat, mx, 0.05, zz + WALL_T / 2 + 0.015);
+      // Боковые стены (дверь — со стороны коридора)
+      sideWall(zx, zz, fz, door === "left");
+      sideWall(zx + zw, zz, fz, door === "right");
+      // Вертикальные неоновые полосы в углах у задней стены
+      box(0.04, WALL_H - 0.4, 0.04, blueNeonMat, zx + WALL_T / 2 + 0.03, WALL_H / 2, zz + 0.35);
+      box(0.04, WALL_H - 0.4, 0.04, blueNeonMat, zx + zw - WALL_T / 2 - 0.03, WALL_H / 2, zz + 0.35);
 
-      // Передняя стена: низкая, с дверным проёмом посередине; у проёма — дверная коробка
-      const door = Math.min(DOOR, zw - 0.6);
-      const seg = (zw - door) / 2;
-      const fz = zz + zd;
-      box(seg + WALL_T / 2, FRONT_H, WALL_T, wallMat, zx + seg / 2 - WALL_T / 4, FRONT_H / 2, fz);
-      box(seg + WALL_T / 2, FRONT_H, WALL_T, wallMat, zx + zw - seg / 2 + WALL_T / 4, FRONT_H / 2, fz);
-      box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + seg / 2, FRONT_H + 0.015, fz);
-      box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + zw - seg / 2, FRONT_H + 0.015, fz);
-      box(0.08, 2.1, WALL_T + 0.04, wallTopMat, mx - door / 2, 1.05, fz);
-      box(0.08, 2.1, WALL_T + 0.04, wallTopMat, mx + door / 2, 1.05, fz);
-      box(door + 0.16, 0.08, WALL_T + 0.04, wallTopMat, mx, 2.14, fz);
-      box(door - 0.1, 0.03, 0.03, zoneNeonMat, mx, 2.08, fz + WALL_T / 2 + 0.02);
-
-      const label = makeFloorText(zone.label);
-      track(label.geometry);
-      track(label.material as THREE.Material);
-      if (zw < 5) {
-        // Маленькая комната: табличка на задней стене (пол перед входом закрывает соседняя комната)
-        label.rotation.x = 0;
-        label.position.set(mx, 2.0, zz + WALL_T / 2 + 0.01);
-        label.scale.setScalar(0.55);
+      // Передняя стена — низкая (разрез); дверь в ней только если зал не у коридора
+      if (door === "front") {
+        const dw = Math.min(DOOR, zw - 0.6);
+        const seg = (zw - dw) / 2;
+        box(seg, FRONT_H, WALL_T, wallMat, zx + seg / 2, FRONT_H / 2, fz);
+        box(seg, FRONT_H, WALL_T, wallMat, zx + zw - seg / 2, FRONT_H / 2, fz);
+        box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + seg / 2, FRONT_H + 0.015, fz);
+        box(seg, 0.03, WALL_T + 0.02, zoneNeonMat, zx + zw - seg / 2, FRONT_H + 0.015, fz);
       } else {
-        // Зал: название на полу перед входом (за низкой стеной его бы не было видно)
-        label.position.set(mx, 0.02, zz + zd + 0.55);
+        box(zw + WALL_T, FRONT_H, WALL_T, wallMat, mx, FRONT_H / 2, fz);
+        box(zw, 0.03, WALL_T + 0.02, zoneNeonMat, mx, FRONT_H + 0.015, fz);
       }
-      scene.add(label);
+
+      // Табличка на задней стене: название и сколько компьютеров
+      const sign = makeSign(zone.label, zone.sublabel ?? "");
+      track(sign.geometry);
+      track(sign.material as THREE.Material);
+      const sw = Math.min(zw * 0.62, 3.6);
+      sign.scale.set(sw, sw * 0.32, 1);
+      sign.position.set(mx, WALL_H - 0.55 - sw * 0.16, zz + WALL_T / 2 + 0.012);
+      scene.add(sign);
+    }
+
+    // Здание: внешние стены (спереди — низкая, со входом в коридор), коридор и коврик у входа
+    if (CLUB_LAYOUT.building) {
+      const b = CLUB_LAYOUT.building;
+      const OUT_H = 2.8;
+      const OUT_T = 0.3;
+      const outerMat = track(new THREE.MeshStandardMaterial({ color: 0x15122e, roughness: 0.85, metalness: 0.15 }));
+      const bx2 = b.x + b.width;
+      const bz2 = b.z + b.depth;
+      box(b.width + OUT_T, OUT_H, OUT_T, outerMat, b.x + b.width / 2, OUT_H / 2, b.z);
+      box(OUT_T, OUT_H, b.depth, outerMat, b.x, OUT_H / 2, b.z + b.depth / 2);
+      box(OUT_T, OUT_H, b.depth, outerMat, bx2, OUT_H / 2, b.z + b.depth / 2);
+      box(b.width, 0.04, 0.05, blueNeonMat, b.x + b.width / 2, OUT_H - 0.3, b.z + OUT_T / 2 + 0.03);
+      box(0.05, 0.04, b.depth, blueNeonMat, b.x + OUT_T / 2 + 0.03, OUT_H - 0.3, b.z + b.depth / 2);
+      box(0.05, 0.04, b.depth, blueNeonMat, bx2 - OUT_T / 2 - 0.03, OUT_H - 0.3, b.z + b.depth / 2);
+      // Неоновые панели-постеры на боковых внешних стенах
+      const posterMats = [0x8b5cf6, 0x3b82f6, 0xd946ef].map((c) =>
+        track(new THREE.MeshBasicMaterial({ color: c, toneMapped: false, transparent: true, opacity: 0.55 }))
+      );
+      let pi = 0;
+      for (let pz = b.z + 2.5; pz < bz2 - 2.5; pz += 6) {
+        for (const [px, face] of [[b.x + OUT_T / 2 + 0.02, 1], [bx2 - OUT_T / 2 - 0.02, -1]] as const) {
+          const poster = new THREE.Mesh(track(new THREE.PlaneGeometry(1.6, 1.3)), posterMats[pi++ % posterMats.length]);
+          poster.rotation.y = (face * Math.PI) / 2;
+          poster.position.set(px, 1.5, pz);
+          scene.add(poster);
+        }
+      }
+
+      const c = CLUB_LAYOUT.corridor;
+      const doorW = c ? Math.min(2.4, c.width - 0.4) : 2.4;
+      const doorX = c ? c.x + c.width / 2 : b.x + b.width / 2;
+      const leftLen = doorX - doorW / 2 - b.x;
+      const rightLen = bx2 - (doorX + doorW / 2);
+      box(leftLen, 1.0, OUT_T, outerMat, b.x + leftLen / 2, 0.5, bz2);
+      box(rightLen, 1.0, OUT_T, outerMat, bx2 - rightLen / 2, 0.5, bz2);
+      box(leftLen, 0.03, OUT_T + 0.02, blueNeonMat, b.x + leftLen / 2, 1.015, bz2);
+      box(rightLen, 0.03, OUT_T + 0.02, blueNeonMat, bx2 - rightLen / 2, 1.015, bz2);
+      // Стеклянные двери входа: рамка с неоном
+      box(0.1, 2.4, OUT_T + 0.05, wallTopMat, doorX - doorW / 2, 1.2, bz2);
+      box(0.1, 2.4, OUT_T + 0.05, wallTopMat, doorX + doorW / 2, 1.2, bz2);
+      box(doorW + 0.2, 0.12, OUT_T + 0.05, wallTopMat, doorX, 2.46, bz2);
+      box(doorW - 0.1, 0.04, 0.04, zoneNeonMat, doorX, 2.36, bz2 + OUT_T / 2 + 0.03);
+
+      if (c) {
+        const corridorFloor = new THREE.Mesh(
+          track(new THREE.PlaneGeometry(c.width, b.depth)),
+          track(new THREE.MeshStandardMaterial({ color: 0x1b1840, roughness: 0.5, metalness: 0.2 }))
+        );
+        corridorFloor.rotation.x = -Math.PI / 2;
+        corridorFloor.position.set(doorX, 0.004, b.z + b.depth / 2);
+        scene.add(corridorFloor);
+        tiles(c.x, b.z, c.width, b.depth, tileMat);
+        // Неоновые линии вдоль коридора
+        box(0.05, 0.02, b.depth - 0.4, zoneNeonMat, c.x + 0.25, 0.02, b.z + b.depth / 2);
+        box(0.05, 0.02, b.depth - 0.4, zoneNeonMat, c.x + c.width - 0.25, 0.02, b.z + b.depth / 2);
+      }
+      // Коврик с названием клуба перед входом
+      const mat = makeMat(brandName);
+      track(mat.geometry);
+      track(mat.material as THREE.Material);
+      mat.position.set(doorX, 0.02, bz2 + 1.1);
+      scene.add(mat);
+    }
+
+    // Проходы в залах: светлая дорожка с тонкой неоновой окантовкой — видно, где пройти к месту
+    if (CLUB_LAYOUT.aisles?.length) {
+      const aisleMat = track(new THREE.MeshStandardMaterial({ color: 0x332c6e, roughness: 0.5, metalness: 0.15 }));
+      const edgeMat = track(new THREE.MeshBasicMaterial({ color: 0x22d3ee, toneMapped: false, transparent: true, opacity: 0.65 }));
+      for (const a of CLUB_LAYOUT.aisles) {
+        const w = a.x2 - a.x1;
+        const d = a.z2 - a.z1;
+        if (w <= 0.05 || d <= 0.05) continue;
+        const strip = new THREE.Mesh(track(new THREE.PlaneGeometry(w, d)), aisleMat);
+        strip.rotation.x = -Math.PI / 2;
+        strip.position.set(a.x1 + w / 2, 0.011, a.z1 + d / 2);
+        scene.add(strip);
+        const along = d >= w;
+        for (const off of [-1, 1]) {
+          const line = new THREE.Mesh(track(new THREE.PlaneGeometry(along ? 0.035 : w, along ? d : 0.035)), edgeMat);
+          line.rotation.x = -Math.PI / 2;
+          line.position.set(a.x1 + w / 2 + (along ? (off * w) / 2 : 0), 0.013, a.z1 + d / 2 + (along ? 0 : (off * d) / 2));
+          scene.add(line);
+        }
+      }
     }
 
     // Перегородки посередине залов (как в клубе: ряды разделены стенкой с неоновой полосой)
@@ -224,7 +369,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     const n = slots.length;
     const inst = (geo: THREE.BufferGeometry, mat: THREE.Material) => new THREE.InstancedMesh(track(geo), track(mat), n);
     const dark = () => new THREE.MeshStandardMaterial({ color: 0x14112b, roughness: 0.45, metalness: 0.35 });
-    const desks = inst(new THREE.BoxGeometry(1.15, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: 0x221d40, roughness: 0.35, metalness: 0.2 }));
+    const desks = inst(new THREE.BoxGeometry(1.3, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: 0x221d40, roughness: 0.35, metalness: 0.2 }));
     const legs = inst(new THREE.BoxGeometry(1.05, 0.72, 0.03), dark());
     const frames = inst(new THREE.BoxGeometry(0.76, 0.45, 0.035), dark());
     const monitors = inst(new THREE.PlaneGeometry(0.72, 0.41), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
@@ -344,7 +489,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     let lastPortrait: boolean | null = null;
     const frameCamera = (aspect: number) => {
       const portrait = aspect < 0.9;
-      const tilt = (52 * Math.PI) / 180; // угол над полом
+      const tilt = (58 * Math.PI) / 180; // угол над полом
       const spanH = (portrait ? CLUB_LAYOUT.depth : CLUB_LAYOUT.width) + 4;
       const spanV = (portrait ? CLUB_LAYOUT.width : CLUB_LAYOUT.depth) + 4;
       const vfov = (camera.fov * Math.PI) / 180;
@@ -421,7 +566,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
       host.removeChild(renderer.domElement);
       apiRef.current = null;
     };
-  }, [layout]);
+  }, [layout, brandName]);
 
   // Новая сцена (смена схемы) получает текущие цвета и выбор
   const seatsRef = useRef(seats);
@@ -431,7 +576,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
   useEffect(() => {
     apiRef.current?.setStates(seatsRef.current);
     apiRef.current?.setSelected(selectedRef.current);
-  }, [layout]);
+  }, [layout, brandName]);
   useEffect(() => apiRef.current?.setStates(seats), [seats]);
   useEffect(() => apiRef.current?.setSelected(selected), [selected]);
 

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { UserPlus, Search } from "lucide-react";
 import { adminApi } from "@/lib/admin-api";
 import { api, ApiClientError } from "@/lib/api-client";
-import { SeatGrid } from "@/components/cabinet/SeatGrid";
+import { SeatPicker3D } from "@/components/map/SeatPicker3D";
+import { KG_PHONE_ERROR, PERSON_NAME_ERROR, isValidPersonName, normalizeKgPhone } from "@/lib/phone";
 import type { BookingDTO, CategoryDTO, ClientDTO, ComputerDTO, TariffDTO } from "@/types/api";
 import { BookingActions } from "./BookingActions";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -23,6 +24,10 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
   const [client, setClient] = useState<{ id: string; name: string; phone: string | null } | null>(null);
   const [newClient, setNewClient] = useState({ name: "", phone: "" });
   const [creatingClient, setCreatingClient] = useState(false);
+  const [touched, setTouched] = useState({ name: false, phone: false });
+  const nameError = newClient.name && !isValidPersonName(newClient.name) ? PERSON_NAME_ERROR : null;
+  const phoneError = newClient.phone && !normalizeKgPhone(newClient.phone) ? KG_PHONE_ERROR : null;
+  const newClientValid = isValidPersonName(newClient.name) && normalizeKgPhone(newClient.phone) !== null;
 
   const [categories, setCategories] = useState<CategoryDTO[]>([]);
   const [tariffs, setTariffs] = useState<TariffDTO[]>([]);
@@ -53,6 +58,7 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
     if (hallTariffs.length && !hallTariffs.some((t) => t.id === tariffId)) setTariffId(hallTariffs[0].id);
   }, [hallTariffs, tariffId]);
   const tariff = hallTariffs.find((t) => t.id === tariffId);
+  const selectedPc = computers?.find((c) => c.id === computerId) ?? null;
 
   // Поиск клиента
   useEffect(() => {
@@ -64,20 +70,43 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
     return () => clearTimeout(id);
   }, [q, open]);
 
-  // Свободные ПК на выбранный интервал
+  // Все ПК клуба (все залы) и их занятость на выбранный интервал
   useEffect(() => {
-    if (!open || !categoryId || !tariff || !start) return;
-    setComputers(null);
+    if (!open || !tariff || !start) return;
+    let alive = true;
     api
-      .computers({ categoryId, start: new Date(start).toISOString(), durationMinutes: tariff.durationMinutes })
-      .then((r) => setComputers(r.computers))
-      .catch(() => setComputers([]));
-  }, [open, categoryId, tariff, start]);
+      .computers({ start: new Date(start).toISOString(), durationMinutes: tariff.durationMinutes })
+      .then((r) => alive && setComputers(r.computers))
+      .catch(() => alive && setComputers([]));
+    return () => {
+      alive = false;
+    };
+  }, [open, tariff, start]);
+
+  // Выбранный ПК занят на новое время — снимаем выбор
+  useEffect(() => {
+    if (!computerId || !computers) return;
+    const pc = computers.find((c) => c.id === computerId);
+    if (!pc || pc.availableForSlot === false || pc.status === "maintenance") setComputerId(null);
+  }, [computers, computerId]);
+
+  // ПК можно выбрать в любом зале: зал (и тарифы) переключаются на зал этого ПК
+  const pickComputer = (pc: ComputerDTO) => {
+    setComputerId(pc.id);
+    if (pc.category.id !== categoryId) setCategoryId(pc.category.id);
+  };
+  const changeHall = (id: string) => {
+    setCategoryId(id);
+    const pc = computers?.find((c) => c.id === computerId);
+    if (pc && pc.category.id !== id) setComputerId(null);
+  };
 
   const reset = () => {
     setQ("");
     setClient(null);
     setNewClient({ name: "", phone: "" });
+    setTouched({ name: false, phone: false });
+    setCreatingClient(false);
     setComputerId(null);
     setCreated(null);
     setError(null);
@@ -89,10 +118,13 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
   };
 
   const addClient = async () => {
+    setTouched({ name: true, phone: true });
+    const phone = normalizeKgPhone(newClient.phone);
+    if (!isValidPersonName(newClient.name) || !phone) return;
     setBusy(true);
     setError(null);
     try {
-      const { client } = await adminApi.createClient(newClient);
+      const { client } = await adminApi.createClient({ name: newClient.name.trim(), phone });
       setClient(client);
       setCreatingClient(false);
     } catch (e) {
@@ -125,7 +157,7 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
   };
 
   return (
-    <Modal open={open} onClose={close} title={created ? "Бронь создана" : "Новая бронь в клубе"} wide>
+    <Modal open={open} onClose={close} title={created ? "Бронь создана" : "Новая бронь в клубе"} wide={created ? true : "xl"}>
       {created ? (
         <div className="space-y-4">
           <p className="text-sm text-rn-muted">Примите оплату, чтобы подтвердить бронь. Неоплаченная бронь держит компьютер ограниченное время.</p>
@@ -149,11 +181,39 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
                 </Button>
               </div>
             ) : creatingClient ? (
-              <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                <input className="rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-sm outline-none focus:border-rn-cyan" placeholder="Имя" value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} />
-                <input className="rounded-xl border border-rn-line bg-rn-night px-3 py-2 text-sm outline-none focus:border-rn-cyan" placeholder="+996 …" value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} />
-                <Button variant="primary" loading={busy} onClick={addClient} disabled={!newClient.name || !newClient.phone}>
+              <div className="grid items-start gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
+                <div className="min-w-0">
+                  <input
+                    className={`w-full rounded-xl border bg-rn-night px-3 py-2 text-sm outline-none ${touched.name && nameError ? "border-rose-500/70" : "border-rn-line focus:border-rn-cyan"}`}
+                    placeholder="Имя клиента"
+                    autoComplete="off"
+                    value={newClient.name}
+                    aria-invalid={Boolean(touched.name && nameError)}
+                    onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                    onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                  />
+                  {touched.name && nameError && <p className="mt-1 text-xs text-rose-300">{nameError}</p>}
+                </div>
+                <div className="min-w-0">
+                  <input
+                    className={`w-full rounded-xl border bg-rn-night px-3 py-2 text-sm outline-none ${touched.phone && phoneError ? "border-rose-500/70" : "border-rn-line focus:border-rn-cyan"}`}
+                    placeholder="+996 555 123 456"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="off"
+                    maxLength={18}
+                    value={newClient.phone}
+                    aria-invalid={Boolean(touched.phone && phoneError)}
+                    onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                    onChange={(e) => setNewClient({ ...newClient, phone: e.target.value.replace(/[^\d+\s()-]/g, "") })}
+                  />
+                  {touched.phone && phoneError && <p className="mt-1 text-xs text-rose-300">{phoneError}</p>}
+                </div>
+                <Button variant="primary" loading={busy} onClick={addClient} disabled={!newClientValid}>
                   Добавить
+                </Button>
+                <Button variant="ghost" onClick={() => setCreatingClient(false)}>
+                  Отмена
                 </Button>
               </div>
             ) : (
@@ -184,22 +244,22 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
           </section>
 
           {/* Зал, тариф, время */}
-          <section className="grid gap-3 sm:grid-cols-3">
-            <label className="text-sm">
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)]">
+            <label className="min-w-0 text-sm">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">2. Зал</span>
-              <Dropdown label="Зал" value={categoryId} onChange={setCategoryId} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
+              <Dropdown label="Зал" value={categoryId} onChange={changeHall} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
             </label>
-            <label className="text-sm">
+            <label className="min-w-0 text-sm">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">Тариф</span>
               <Dropdown label="Тариф" value={tariffId} onChange={setTariffId} options={hallTariffs.map((t) => ({ value: t.id, label: `${t.name} — ${fmtMoney(t.price)}` }))} />
             </label>
-            <label className="text-sm">
+            <label className="min-w-0 text-sm sm:col-span-2 lg:col-span-1">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-rn-muted">Начало</span>
-              <div className="grid grid-cols-[1fr_auto] gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_9rem] gap-2">
                 <DatePicker label="День" value={start.slice(0, 10)} min={toDayKey(new Date())} onChange={(d) => setStart(`${d}T${start.slice(11, 16)}`)} />
                 <Dropdown
                   label="Время"
-                  className="w-28"
+                  className="w-full"
                   value={start.slice(11, 16)}
                   onChange={(time) => setStart(`${start.slice(0, 10)}T${time}`)}
                   options={timeOptions(start.slice(11, 16))}
@@ -210,8 +270,19 @@ export function NewBookingModal({ open, onClose, onCreated }: { open: boolean; o
 
           {/* ПК */}
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rn-muted">3. Компьютер</h3>
-            {computers === null ? <p className="text-sm text-rn-muted">Проверяем свободные ПК…</p> : <SeatGrid computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />}
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-rn-muted">
+              3. Компьютер <span className="normal-case tracking-normal">— любой зал; зал и тарифы переключатся сами</span>
+            </h3>
+            {computers === null ? (
+              <p className="text-sm text-rn-muted">Проверяем свободные ПК…</p>
+            ) : (
+              <SeatPicker3D computers={computers} selectedId={computerId} onSelect={pickComputer} groupByHall />
+            )}
+            {selectedPc && (
+              <p className="mt-2 text-sm">
+                Выбран: <span className="font-semibold">ПК № {selectedPc.number}</span> <span className="text-rn-muted">· {selectedPc.category.name}</span>
+              </p>
+            )}
           </section>
 
           {error && <ErrorNote>{error}</ErrorNote>}

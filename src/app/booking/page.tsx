@@ -49,6 +49,11 @@ export default function BookingPage() {
     `${String(initialSlot.getHours()).padStart(2, "0")}:${String(initialSlot.getMinutes()).padStart(2, "0")}`
   );
   const [computers, setComputers] = useState<ComputerDTO[] | null>(null);
+  // Все ПК клуба — только для схемы 3D (другие залы показаны тёмными)
+  const [clubComputers, setClubComputers] = useState<ComputerDTO[] | null>(null);
+  useEffect(() => {
+    api.computers().then((r) => setClubComputers(r.computers)).catch(() => setClubComputers(null));
+  }, []);
   const [computerId, setComputerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,7 +287,7 @@ export default function BookingPage() {
                 <p className="mb-4 text-sm text-rn-muted">
                   {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {computers.length}
                 </p>
-                <SeatPicker3D computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
+                <SeatPicker3D computers={computers} layoutComputers={clubComputers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
               </>
             )}
             {computers && computers.length > 0 && freeCount === 0 && <p className="mt-4 text-sm text-rn-pink">{t("cab.book.noneFree")}</p>}

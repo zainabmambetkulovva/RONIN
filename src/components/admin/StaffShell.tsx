@@ -13,7 +13,6 @@ import {
   Users,
   Wallet,
   Tags,
-  UserCog,
   ShieldCheck,
   LogOut,
   Menu,
@@ -59,7 +58,6 @@ const NAV: NavItem[] = [
   { href: "/admin/clients", label: "Клиенты", icon: Users, roles: ["admin", "manager"], group: "work" },
   { href: "/admin/payments", label: "Платежи", icon: Wallet, roles: ["admin"], group: "manage" },
   { href: "/admin/tariffs", label: "Тарифы", icon: Tags, roles: ["admin"], group: "manage" },
-  { href: "/admin/managers", label: "Менеджеры", icon: UserCog, roles: ["admin"], group: "manage" },
   { href: "/admin/users", label: "Аккаунты", icon: ShieldCheck, roles: ["admin"], group: "manage" },
   { href: "/admin/settings", label: "Настройки", icon: Settings, roles: ["admin"], group: "manage" },
 ];

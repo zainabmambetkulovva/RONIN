@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Trash2, Ban, CheckCircle, Mail, Phone, Calendar } from "lucide-react";
+import { Trash2, Ban, CheckCircle, Mail, Phone, Calendar, Pencil, Send } from "lucide-react";
 import { format } from "date-fns";
 import { ru, enUS } from "date-fns/locale";
 import { UserAvatar } from "@/components/cabinet/UserAvatar";
@@ -17,14 +17,16 @@ interface UserCardProps {
     status: string;
     avatar: string | null;
     image?: string | null;
+    telegramChatId?: string | null;
     createdAt: string;
   };
+  onEdit?: (userId: string) => void;
   avatars?: AvatarDTO[];
   onDelete: (userId: string) => void;
   onBlock: (userId: string, currentStatus: string) => void;
 }
 
-export function UserCard({ user, avatars, onDelete, onBlock }: UserCardProps) {
+export function UserCard({ user, avatars, onDelete, onBlock, onEdit }: UserCardProps) {
   const { t, language } = useLanguage();
   
   const roleColors: Record<string, string> = {
@@ -132,6 +134,12 @@ export function UserCard({ user, avatars, onDelete, onBlock }: UserCardProps) {
             <span>{user.phone}</span>
           </div>
         )}
+        {user.role !== "client" && (
+          <div className={`flex items-center gap-2 text-sm ${user.telegramChatId ? "text-emerald-400" : "text-amber-400"}`}>
+            <Send className="w-4 h-4 flex-shrink-0" />
+            <span>{user.telegramChatId ? "Telegram подключён" : "Telegram не подключён — вход в панель невозможен"}</span>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Calendar className="w-4 h-4 flex-shrink-0" />
           <span>
@@ -169,6 +177,17 @@ export function UserCard({ user, avatars, onDelete, onBlock }: UserCardProps) {
             </>
           )}
         </button>
+        {onEdit && (
+          <button
+            onClick={() => onEdit(user.id)}
+            aria-label="Изменить"
+            title="Роль, Telegram, пароль"
+            className="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all hover:scale-105"
+            style={{ background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.35)", color: "#c4b5fd" }}
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
         <button
           onClick={() => onDelete(user.id)}
           className="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all hover:scale-105"

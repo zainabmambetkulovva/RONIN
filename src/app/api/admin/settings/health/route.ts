@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { handle } from "@/server/http";
 import { requireAdmin } from "@/server/auth/staff";
-import { getGeminiService } from "@/lib/gemini";
+import { describeGeminiKey, getGeminiService } from "@/lib/gemini";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +20,15 @@ export const GET = handle(async (req) => {
     ai = { ok: false, message: "Не задан GEMINI_API_KEY" };
   } else {
     const res = await getGeminiService().generateContent("Ответь одним словом: ок");
-    ai = res.error ? { ok: false, message: `${res.error}: ${res.text}`.slice(0, 200) } : { ok: true, message: "Отвечает" };
+    ai = res.error ? { ok: false, message: `${res.error} · ${describeGeminiKey()}`.slice(0, 300) } : { ok: true, message: "Отвечает" };
   }
 
   return NextResponse.json({
     origin,
     checks: [
-      { key: "ai", label: "ИИ-чат (Gemini)", ...ai, fix: "Vercel → Settings → Environment Variables → GEMINI_API_KEY (ключ из aistudio.google.com), затем Redeploy" },
+      { key: "ai", label: "ИИ-чат (Gemini)", ...ai, fix:
+          "Если «are blocked» / API_KEY_SERVICE_BLOCKED: Google Cloud → проект из ошибки (projects/номер) → APIs & Services → Library → Generative Language API → Enable; Credentials → этот ключ → Application restrictions: None, API restrictions: Generative Language API или Don't restrict. Если ключ не задан или заменён — Vercel → Environment Variables → GEMINI_API_KEY, затем Redeploy",
+      },
       {
         key: "google",
         label: "Вход через Google",

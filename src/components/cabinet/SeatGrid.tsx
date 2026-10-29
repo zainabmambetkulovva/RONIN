@@ -12,23 +12,29 @@ export function SeatGrid({
   computers,
   selectedId,
   onSelect,
+  showLegend = true,
+  dense = false,
 }: {
   computers: ComputerDTO[];
   selectedId: string | null;
   onSelect: (computer: ComputerDTO) => void;
+  /** Легенда цветов над сеткой (выключается, когда сеток несколько — по залам). */
+  showLegend?: boolean;
+  /** Мелкие кнопки — когда показаны все ПК клуба. */
+  dense?: boolean;
 }) {
   const { t } = useLanguage();
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-4 text-xs text-rn-muted">
+      {showLegend && <div className="mb-4 flex flex-wrap gap-4 text-xs text-rn-muted">
         <Legend className="border-rn-cyan/60 bg-rn-cyan/10" label={t("cab.seat.free")} />
         <Legend className="border-rn-pink/50 bg-rn-pink/15" label={t("cab.seat.busy")} />
         <Legend className="border-rn-line bg-white/[0.03]" label={t("cab.seat.maintenance")} />
         <Legend className="border-transparent bg-gradient-to-br from-rn-violet to-rn-magenta" label={t("cab.seat.selected")} />
-      </div>
+      </div>}
 
-      <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-10" role="listbox" aria-label={t("cab.book.step3")}>
+      <div className={dense ? "grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))] gap-1.5" : "grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-10"} role="listbox" aria-label={t("cab.book.step3")}>
         {computers.map((pc) => {
           const maintenance = pc.status === "maintenance";
           const free = pc.availableForSlot === true;

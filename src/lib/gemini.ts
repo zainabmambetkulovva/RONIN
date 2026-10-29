@@ -114,7 +114,11 @@ class GeminiService {
         if (response.status === 404) return { text: '', error: 'model_not_found' };
         // Ключ не принят (401/403, кроме лимитов) — текст ошибки Google без самого ключа
         if (((response.status === 401 || response.status === 403) && !/quota/i.test(errorMessage)) || errorMessage.includes('API key not valid')) {
-          return { text: `${response.status} ${data.error?.status ?? ''} ${errorMessage}`.trim(), error: 'auth_rejected' };
+          // Причина и проект из ответа Google (например API_KEY_SERVICE_BLOCKED, projects/123) — помогают найти, какой ключ в Vercel
+          const details: Array<{ reason?: string; metadata?: Record<string, string> }> = data.error?.details ?? [];
+          const info = details.find((d) => d.reason);
+          const extra = info?.metadata?.consumer ?? '';
+          return { text: `${response.status} ${info?.reason ?? data.error?.status ?? ''}${extra ? ` (${extra})` : ''}`.trim(), error: 'auth_rejected' };
         }
         
         // Provide user-friendly error messages
@@ -282,6 +286,13 @@ ${facts}
 
 // Singleton instance
 let geminiService: GeminiService | null = null;
+
+/** Безопасное описание ключа для диагностики: первые символы и длина, без самого ключа. */
+export function describeGeminiKey(): string {
+  const key = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+  if (!key) return 'ключ не задан';
+  return `ключ «${key.slice(0, 4)}…», ${key.length} симв.`;
+}
 
 export function getGeminiService(config?: Partial<GeminiConfig>): GeminiService {
   if (!geminiService) {

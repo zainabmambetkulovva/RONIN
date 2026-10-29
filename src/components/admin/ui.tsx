@@ -135,7 +135,7 @@ export function BookingBadges({ booking }: { booking: Pick<BookingDTO, "status" 
   );
 }
 
-export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
+export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean | "xl" }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -146,7 +146,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
       <button className="absolute inset-0 bg-black/70" onClick={onClose} aria-label="Закрыть" />
-      <div className={`relative max-h-[90vh] w-full overflow-y-auto rounded-t-3xl border border-rn-line bg-rn-night p-5 sm:rounded-3xl sm:p-6 ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"}`}>
+      <div className={`relative max-h-[90vh] w-full overflow-y-auto overflow-x-hidden rounded-t-3xl border border-rn-line bg-rn-night p-5 sm:rounded-3xl sm:p-6 ${wide === "xl" ? "sm:max-w-5xl" : wide ? "sm:max-w-3xl" : "sm:max-w-lg"}`}>
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="font-display text-lg font-bold uppercase">{title}</h2>
           <button onClick={onClose} className="text-rn-muted hover:text-white" aria-label="Закрыть">

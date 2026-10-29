@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { StyledSelect } from "@/components/ui/StyledSelect";
 import { X } from "lucide-react";
+import { KG_PHONE_ERROR, PERSON_NAME_ERROR, isValidPersonName, normalizeKgPhone } from "@/lib/phone";
 
 interface CreateUserModalProps {
   onClose: () => void;
@@ -15,7 +16,10 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
     email: "",
     phone: "",
     role: "client",
+    password: "",
+    telegramChatId: "",
   });
+  const isStaff = formData.role !== "client";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,14 +27,28 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
     e.preventDefault();
     setError("");
 
-    if (!formData.name.trim()) {
-      setError("Введите имя");
+    if (!isValidPersonName(formData.name)) {
+      setError(PERSON_NAME_ERROR);
       return;
     }
 
     if (!formData.email && !formData.phone) {
       setError("Укажите email или телефон");
       return;
+    }
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      setError("Некорректный email");
+      return;
+    }
+    if (formData.phone && !normalizeKgPhone(formData.phone)) {
+      setError(KG_PHONE_ERROR);
+      return;
+    }
+    // Сотрудник входит в панель: email + пароль, затем код в Telegram
+    if (isStaff) {
+      if (!formData.email) return setError("Для сотрудника укажите email — по нему вход в панель");
+      if (formData.password.length < 8) return setError("Пароль сотрудника — не короче 8 символов");
+      if (formData.telegramChatId && !/^-?\d{4,20}$/.test(formData.telegramChatId.trim())) return setError("Telegram ID — только цифры");
     }
 
     setLoading(true);
@@ -39,7 +57,9 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(
+          isStaff ? formData : { name: formData.name, email: formData.email, phone: formData.phone, role: formData.role }
+        ),
       });
 
       if (res.ok) {
@@ -63,7 +83,7 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl p-8"
+        className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl p-8"
         style={{
           background: "linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%)",
           border: "1px solid rgba(139,92,246,0.3)",
@@ -166,6 +186,39 @@ export function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
               <option value="admin">Администратор</option>
             </StyledSelect>
           </div>
+
+          {isStaff && (
+            <>
+              <div>
+                <label className="block text-white font-bold text-sm mb-2">
+                  Пароль <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Не короче 8 символов"
+                  className="w-full px-4 py-3 rounded-xl text-sm transition-all"
+                  style={{ background: "rgba(15,15,30,0.8)", border: "1px solid rgba(139,92,246,0.3)", color: "#fff" }}
+                />
+              </div>
+              <div>
+                <label className="block text-white font-bold text-sm mb-2">Telegram ID</label>
+                <input
+                  inputMode="numeric"
+                  value={formData.telegramChatId}
+                  onChange={(e) => setFormData({ ...formData, telegramChatId: e.target.value.replace(/[^\d-]/g, "") })}
+                  placeholder="Например 123456789"
+                  className="w-full px-4 py-3 rounded-xl text-sm transition-all"
+                  style={{ background: "rgba(15,15,30,0.8)", border: "1px solid rgba(139,92,246,0.3)", color: "#fff" }}
+                />
+                <p className="mt-1.5 text-xs text-gray-400">
+                  Сюда приходит код входа в панель. Узнать ID: написать боту @userinfobot; затем нажать «Start» в боте клуба.
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Error */}
           {error && (

@@ -13,6 +13,10 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // Сотрудник: второй шаг на этой же странице — код из Telegram (без повторного ввода email и пароля)
+  const [step, setStep] = useState<"credentials" | "code">("credentials");
+  const [code, setCode] = useState("");
+  const [sessionToken, setSessionToken] = useState("");
 
   // Check for OAuth errors in URL
   useEffect(() => {
@@ -52,9 +56,18 @@ export function LoginForm() {
         throw new Error(loginData.error || t("auth.invalidCredentials") || "Неверный email или пароль");
       }
 
-      // Сотрудники работают в админке: туда отдельный вход с кодом из Telegram (2FA)
+      // Сотрудники работают в админке: сразу отправляем код в Telegram (2FA) и спрашиваем его здесь же
       if (loginData.user?.role === "admin" || loginData.user?.role === "manager") {
-        window.location.href = "/admin/login";
+        const res = await fetch("/api/admin/auth/send-2fa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.sessionToken) throw new Error(data.error || "Не удалось отправить код в Telegram");
+        setSessionToken(data.sessionToken);
+        setCode("");
+        setStep("code");
         return;
       }
 
@@ -71,6 +84,104 @@ export function LoginForm() {
     }
   };
 
+  // Шаг 2 (сотрудник): код из Telegram → сразу в панель управления
+  const handleCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!/^\d{6}$/.test(code)) {
+      setError("Код должен содержать 6 цифр");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/admin/auth/verify-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionToken, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Неверный код");
+      window.location.href = "/admin";
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const errorBox = error && (
+    <div
+      className="p-4 rounded-lg text-sm"
+      style={{
+        background: "rgba(239,68,68,0.1)",
+        border: "1px solid rgba(239,68,68,0.3)",
+        color: "#ef4444",
+      }}
+    >
+      {error}
+    </div>
+  );
+
+  if (step === "code") {
+    return (
+      <div
+        className="rounded-2xl p-8 space-y-6"
+        style={{
+          background: "linear-gradient(135deg, rgba(7,7,26,0.95), rgba(13,13,36,0.95))",
+          border: "1px solid rgba(59,130,246,0.2)",
+          boxShadow: "0 0 40px rgba(59,130,246,0.15)",
+        }}
+      >
+        <form onSubmit={handleCodeSubmit} className="space-y-6">
+          {errorBox}
+          <div>
+            <label htmlFor="code" className="block text-sm font-bold text-white mb-2">
+              Код из Telegram
+            </label>
+            <p className="mb-3 text-sm text-gray-400">Мы отправили 6-значный код в Telegram-бот клуба.</p>
+            <input
+              id="code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+              className="w-full px-4 py-3 rounded-lg text-center text-2xl font-bold tracking-[0.5em] text-white placeholder-gray-600 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+              style={{
+                background: "rgba(15,15,30,0.6)",
+                border: "1px solid rgba(59,130,246,0.2)",
+              }}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading || code.length !== 6}
+            className="w-full py-3 rounded-xl font-black uppercase tracking-wider text-white transition-all hover:scale-105 disabled:opacity-50"
+            style={{
+              background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
+              boxShadow: "0 0 24px rgba(59,130,246,0.5)",
+            }}
+          >
+            {isLoading ? t("auth.checking") || "Проверка..." : "Подтвердить"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("credentials");
+              setError("");
+              setCode("");
+            }}
+            className="w-full text-sm text-gray-400 transition-colors hover:text-white"
+          >
+            ← Назад
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div
       className="rounded-2xl p-8 space-y-6"
@@ -81,18 +192,7 @@ export function LoginForm() {
       }}
     >
       <form onSubmit={handleCredentialsSubmit} className="space-y-6">
-          {error && (
-            <div
-              className="p-4 rounded-lg text-sm"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                color: "#ef4444",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {errorBox}
 
           <div>
             <label htmlFor="email" className="block text-sm font-bold text-white mb-2">
