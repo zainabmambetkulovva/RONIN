@@ -36,6 +36,8 @@ export interface ClubLayout {
   /** Здание целиком (внешние стены) и коридор между залами со входом снизу. */
   building?: { x: number; z: number; width: number; depth: number };
   corridor?: { x: number; width: number };
+  /** Проходы внутри залов (подсвечиваются на полу): прямоугольники x1..x2, z1..z2. */
+  aisles?: Array<{ x1: number; z1: number; x2: number; z2: number }>;
 }
 
 /** Зал для схемы: название и реальные номера ПК (из базы или из настроек зон). */
@@ -66,12 +68,16 @@ export const DEFAULT_ZONES: ZoneConfig[] = [
   { label: "КОМНАТА 3", count: 1, columns: 1 },
 ];
 
-const DESK_PITCH = 1.3; // шаг столов в ряду
-const ROW_PITCH = 2.3; // шаг рядов (стол + кресло + проход)
-const PADDING = 1.2;
+const DESK_PITCH = 1.3; // ширина места за общим столом (столы блока стоят вплотную)
+const ROW_PITCH = 2.7; // шаг рядов: стол + кресло + проход за креслами
+const BACK_GAP = 1.0; // от задней стены до центра первого ряда столов
+const FRONT_AISLE = 1.4; // проход у передней стены зала (от двери к рядам)
+const SIDE_AISLE = 1.3; // проход вдоль стены с дверью
+const WALL_GAP = 0.45; // от дальней боковой стены до крайнего места
+const CENTER_AISLE = 1.4; // центральный проход между блоками столов
 const CORRIDOR = 3.4; // коридор между левым и правым крылом
 const STACK_GAP = 0.5; // стена между помещениями одно под другим
-const ROOM_SIZE = 3.4; // отдельная комната на 1 ПК
+const ROOM_DEPTH = 3.6; // отдельная комната на 1 ПК
 /** Зал из стольких ПК или меньше — это отдельные комнаты по одному ПК. */
 export const ROOM_MAX_PCS = 3;
 
@@ -104,44 +110,61 @@ export function hallsFromZones(zones: ZoneConfig[]): HallInput[] {
     .map((z) => ({ label: z.label, columns: z.columns, numbers: Array.from({ length: z.count }, () => n++) }));
 }
 
+interface Part {
+  label: string;
+  sublabel: string;
+  numbers: number[];
+  /** Сколько мест в ряду в каждом блоке (между блоками — центральный проход). */
+  blocks: number[];
+  rows: number;
+  width: number;
+  depth: number;
+  dz: number;
+}
+
 interface Unit {
   /** Столбик отдельных комнат — растягивается на ширину крыла. */
   rooms?: boolean;
   width: number;
   depth: number;
   /** Помещения внутри блока (у комнат — несколько, одна под другой). */
-  parts: Array<{ label: string; sublabel: string; numbers: number[]; cols: number; rows: number; width: number; depth: number; dz: number }>;
+  parts: Part[];
 }
 
+const blocksWidth = (blocks: number[]) => blocks.reduce((s, b) => s + b * DESK_PITCH, 0) + (blocks.length - 1) * CENTER_AISLE;
+
 /**
- * Схема как в настоящем клубе: левое и правое крыло, между ними коридор со входом снизу;
- * большие залы стоят друг под другом, маленькие залы — отдельные комнаты по одному ПК, столбиком у входа.
+ * Схема как в настоящем клубе: левое и правое крыло, между ними коридор со входом снизу.
+ * В зале ряды общих столов разделены центральным проходом, вдоль стены с дверью и у передней стены — проходы,
+ * между рядами — место пройти за креслами. Маленькие залы — отдельные комнаты по одному ПК, столбиком у входа.
  */
 export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: number) => string = RU_PC): ClubLayout {
   const units: Unit[] = [];
-  const rooms: Unit["parts"] = [];
+  const rooms: Part[] = [];
   let roomNo = 1;
   for (const hall of halls.filter((h) => h.numbers.length > 0)) {
     if (hall.numbers.length <= ROOM_MAX_PCS && halls.length > 1) {
       for (const num of hall.numbers) {
-        rooms.push({ label: `КОМНАТА ${roomNo++}`, sublabel: sublabel(1), numbers: [num], cols: 1, rows: 1, width: ROOM_SIZE, depth: ROOM_SIZE, dz: 0 });
+        rooms.push({ label: `КОМНАТА ${roomNo++}`, sublabel: sublabel(1), numbers: [num], blocks: [1], rows: 1, width: 0, depth: ROOM_DEPTH, dz: 0 });
       }
       continue;
     }
     const count = hall.numbers.length;
-    const cols = Math.min(count, hall.columns ?? Math.max(4, Math.min(10, Math.ceil(Math.sqrt(count * 2)))));
+    const cols = Math.min(count, hall.columns ?? Math.max(4, Math.min(12, Math.ceil(Math.sqrt(count * 2.2)))));
     const rows = Math.ceil(count / cols);
-    const width = (cols - 1) * DESK_PITCH + PADDING * 2;
-    const depth = (rows - 1) * ROW_PITCH + PADDING * 2 + 1;
-    units.push({ width, depth, parts: [{ label: hall.label, sublabel: sublabel(count), numbers: hall.numbers, cols, rows, width, depth, dz: 0 }] });
+    const blocks = cols >= 6 ? [Math.ceil(cols / 2), cols - Math.ceil(cols / 2)] : [cols];
+    const width = SIDE_AISLE + blocksWidth(blocks) + WALL_GAP;
+    const depth = BACK_GAP + (rows - 1) * ROW_PITCH + 1.2 + FRONT_AISLE;
+    units.push({ width, depth, parts: [{ label: hall.label, sublabel: sublabel(count), numbers: hall.numbers, blocks, rows, width, depth, dz: 0 }] });
   }
   if (rooms.length) {
     let dz = 0;
     for (const r of rooms) {
+      r.width = SIDE_AISLE + DESK_PITCH + 1.2;
       r.dz = dz;
       dz += r.depth + STACK_GAP;
     }
-    units.push({ rooms: true, width: ROOM_SIZE, depth: dz - STACK_GAP, parts: rooms });
+    units.push({ rooms: true, width: rooms[0].width, depth: dz - STACK_GAP, parts: rooms });
   }
 
   // Крылья: каждый блок — в крыло, где сейчас меньше глубина (комнаты идут последними — у входа)
@@ -169,6 +192,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
   const slots: LayoutSlot[] = [];
   const zones: LayoutZone[] = [];
   const dividers: ClubLayout["dividers"] = [];
+  const aisles: NonNullable<ClubLayout["aisles"]> = [];
   wings.forEach((wing, side) => {
     let z = 0;
     wing.forEach((u, i) => {
@@ -177,17 +201,45 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
       const x0 = side === 0 ? leftW - u.width : leftW + CORRIDOR;
       for (const part of u.parts) {
         const pz = z0 + part.dz;
-        zones.push({ label: part.label, sublabel: part.sublabel, x: x0, z: pz, width: part.width, depth: part.depth, door: side === 0 ? "right" : "left" });
-        const inset = (part.width - ((part.cols - 1) * DESK_PITCH + PADDING * 2)) / 2;
+        const fz = pz + part.depth;
+        // Дверь — в стене со стороны коридора: у левого крыла справа, у правого — слева
+        const door = side === 0 ? "right" : "left";
+        zones.push({ label: part.label, sublabel: part.sublabel, x: x0, z: pz, width: part.width, depth: part.depth, door });
+
+        const desksW = blocksWidth(part.blocks);
+        // Места прижаты к дальней стене, проход — у стены с дверью
+        const startX = door === "left" ? x0 + part.width - WALL_GAP - desksW : x0 + WALL_GAP;
+        const roomCenter = part.numbers.length === 1 && part.rows === 1;
+        const blockStarts: number[] = [];
+        let bx = roomCenter ? x0 + (door === "left" ? SIDE_AISLE : 0) + (part.width - SIDE_AISLE - DESK_PITCH) / 2 : startX;
+        for (const b of part.blocks) {
+          blockStarts.push(bx);
+          bx += b * DESK_PITCH + CENTER_AISLE;
+        }
+        const perRow = part.blocks.reduce((s, b) => s + b, 0);
         part.numbers.forEach((num, k) => {
-          const row = Math.floor(k / part.cols);
-          const col = k % part.cols;
-          slots.push({ number: num, x: x0 + inset + PADDING + col * DESK_PITCH, z: pz + PADDING + row * ROW_PITCH, rotation: 0 });
+          const row = Math.floor(k / perRow);
+          let col = k % perRow;
+          let block = 0;
+          while (col >= part.blocks[block]) col -= part.blocks[block++];
+          slots.push({ number: num, x: blockStarts[block] + DESK_PITCH / 2 + col * DESK_PITCH, z: pz + BACK_GAP + row * ROW_PITCH, rotation: 0 });
         });
-        // Большой зал (6+ рядов) делится стенкой пополам, как в клубе
+
+        // Проходы на полу: вдоль стены с двери, у передней стены, центральный
+        const sideX = door === "left" ? [x0, x0 + SIDE_AISLE - 0.15] : [x0 + part.width - SIDE_AISLE + 0.15, x0 + part.width];
+        aisles.push({ x1: sideX[0] + 0.08, z1: pz + 0.15, x2: sideX[1] - 0.08, z2: fz - 0.1 });
+        if (!roomCenter) {
+          aisles.push({ x1: x0 + 0.1, z1: fz - FRONT_AISLE + 0.15, x2: x0 + part.width - 0.1, z2: fz - 0.1 });
+          if (part.blocks.length > 1) {
+            const cx1 = blockStarts[0] + part.blocks[0] * DESK_PITCH;
+            aisles.push({ x1: cx1 + 0.15, z1: pz + 0.15, x2: cx1 + CENTER_AISLE - 0.15, z2: fz - FRONT_AISLE + 0.15 });
+          }
+        }
+        // Большой зал (6+ рядов) делится стенкой пополам — отдельно над каждым блоком, проходы свободны
         if (part.rows >= 6) {
           const r = Math.floor(part.rows / 2) - 1;
-          dividers.push({ x1: x0 + 0.3, x2: x0 + part.width - 0.3, z: pz + PADDING + r * ROW_PITCH + 1.65 });
+          const dz = pz + BACK_GAP + r * ROW_PITCH + 1.65;
+          part.blocks.forEach((b, bi) => dividers.push({ x1: blockStarts[bi] - 0.1, x2: blockStarts[bi] + b * DESK_PITCH + 0.1, z: dz }));
         }
       }
       z = z0 + u.depth + STACK_GAP;
@@ -198,6 +250,7 @@ export function buildLayoutFromHalls(halls: HallInput[], sublabel: (count: numbe
     slots,
     zones,
     dividers,
+    aisles,
     width,
     depth,
     building: { x: -0.6, z: -0.6, width: width + 1.2, depth: depth + 1.2 },

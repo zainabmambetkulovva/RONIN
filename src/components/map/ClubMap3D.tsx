@@ -329,6 +329,28 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
       scene.add(mat);
     }
 
+    // Проходы в залах: светлая дорожка с тонкой неоновой окантовкой — видно, где пройти к месту
+    if (CLUB_LAYOUT.aisles?.length) {
+      const aisleMat = track(new THREE.MeshStandardMaterial({ color: 0x332c6e, roughness: 0.5, metalness: 0.15 }));
+      const edgeMat = track(new THREE.MeshBasicMaterial({ color: 0x22d3ee, toneMapped: false, transparent: true, opacity: 0.65 }));
+      for (const a of CLUB_LAYOUT.aisles) {
+        const w = a.x2 - a.x1;
+        const d = a.z2 - a.z1;
+        if (w <= 0.05 || d <= 0.05) continue;
+        const strip = new THREE.Mesh(track(new THREE.PlaneGeometry(w, d)), aisleMat);
+        strip.rotation.x = -Math.PI / 2;
+        strip.position.set(a.x1 + w / 2, 0.011, a.z1 + d / 2);
+        scene.add(strip);
+        const along = d >= w;
+        for (const off of [-1, 1]) {
+          const line = new THREE.Mesh(track(new THREE.PlaneGeometry(along ? 0.035 : w, along ? d : 0.035)), edgeMat);
+          line.rotation.x = -Math.PI / 2;
+          line.position.set(a.x1 + w / 2 + (along ? (off * w) / 2 : 0), 0.013, a.z1 + d / 2 + (along ? 0 : (off * d) / 2));
+          scene.add(line);
+        }
+      }
+    }
+
     // Перегородки посередине залов (как в клубе: ряды разделены стенкой с неоновой полосой)
     const glassMat = track(new THREE.MeshStandardMaterial({ color: 0x1c1640, roughness: 0.25, metalness: 0.4, transparent: true, opacity: 0.85 }));
     const neonMat = track(new THREE.MeshBasicMaterial({ color: 0x8b5cf6, toneMapped: false }));
@@ -347,7 +369,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     const n = slots.length;
     const inst = (geo: THREE.BufferGeometry, mat: THREE.Material) => new THREE.InstancedMesh(track(geo), track(mat), n);
     const dark = () => new THREE.MeshStandardMaterial({ color: 0x14112b, roughness: 0.45, metalness: 0.35 });
-    const desks = inst(new THREE.BoxGeometry(1.15, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: 0x221d40, roughness: 0.35, metalness: 0.2 }));
+    const desks = inst(new THREE.BoxGeometry(1.3, 0.05, 0.7), new THREE.MeshStandardMaterial({ color: 0x221d40, roughness: 0.35, metalness: 0.2 }));
     const legs = inst(new THREE.BoxGeometry(1.05, 0.72, 0.03), dark());
     const frames = inst(new THREE.BoxGeometry(0.76, 0.45, 0.035), dark());
     const monitors = inst(new THREE.PlaneGeometry(0.72, 0.41), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
@@ -467,7 +489,7 @@ export default function ClubMap3D({ layout, seats, selected, onSelect }: ClubMap
     let lastPortrait: boolean | null = null;
     const frameCamera = (aspect: number) => {
       const portrait = aspect < 0.9;
-      const tilt = (52 * Math.PI) / 180; // угол над полом
+      const tilt = (58 * Math.PI) / 180; // угол над полом
       const spanH = (portrait ? CLUB_LAYOUT.depth : CLUB_LAYOUT.width) + 4;
       const spanV = (portrait ? CLUB_LAYOUT.width : CLUB_LAYOUT.depth) + 4;
       const vfov = (camera.fov * Math.PI) / 180;
