@@ -256,9 +256,10 @@ export default function ForgotPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="w-full text-sm text-gray-400 hover:text-white transition-colors"
+                  className="flex w-full items-center justify-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                 >
-                  ← Изменить email
+                  <ArrowLeft className="w-4 h-4" />
+                  Изменить email
                 </button>
               </form>
             </>
