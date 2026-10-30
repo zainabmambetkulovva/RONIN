@@ -222,7 +222,7 @@ export default function ForgotPasswordPage() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     maxLength={6}
-                    className="w-full px-4 py-4 bg-white/5 border border-purple-500/30 rounded-xl text-white text-center text-2xl font-black tracking-widest placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-4 py-4 bg-white/5 border border-purple-500/30 rounded-xl text-white text-center text-2xl font-black tracking-widest indent-[0.1em] placeholder-gray-600 focus:placeholder:text-transparent focus:outline-none focus:border-purple-500 transition-colors"
                     placeholder="000000"
                     autoFocus
                   />

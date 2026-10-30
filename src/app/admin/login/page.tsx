@@ -226,7 +226,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     required
                     maxLength={6}
-                    className="w-full px-4 py-4 rounded-xl text-white text-center text-2xl font-black tracking-widest transition-all"
+                    className="w-full px-4 py-4 rounded-xl text-white text-center text-2xl font-black tracking-widest indent-[0.1em] placeholder:text-gray-600 focus:placeholder:text-transparent transition-all"
                     style={{
                       background: "rgba(15, 15, 30, 0.8)",
                       border: "1px solid rgba(139, 92, 246, 0.3)",
