@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGeminiService } from "@/lib/gemini";
+import { getAIService } from "@/lib/ai";
 
 /**
  * POST /api/ai/recommend-games
@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { genres, playedGames, pcCategory } = body;
 
-    const gemini = getGeminiService();
-    const response = await gemini.recommendGames({
+    const ai = getAIService();
+    const response = await ai.recommendGames({
       genres: genres || [],
       playedGames: playedGames || [],
       pcCategory: pcCategory || undefined

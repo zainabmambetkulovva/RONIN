@@ -9,7 +9,7 @@
 ### Для пользователей
 - 🎯 **Онлайн бронирование** - выбор ПК, тарифа и времени
 - 💳 **FINIK Pay** - удобная онлайн оплата
-- 🤖 **AI Ассистент** (Gemini) - помощь с выбором игр и тарифов
+- 🤖 **AI Ассистент** (Groq) - помощь с выбором игр и тарифов
 - 📱 **Мобильная версия** - адаптивный дизайн
 - 🎨 **Киберпанк дизайн** - неоновый стиль, анимации
 - 🌐 **Мультиязычность** - русский, кыргызский, английский
@@ -42,7 +42,7 @@
 - **Neon PostgreSQL** - serverless база данных
 
 ### AI & Integrations
-- **Google Gemini API** - AI chatbot и рекомендации
+- **Groq API** - AI chatbot и рекомендации
 - **FINIK Pay API** - платежная система
 - **Telegram Bot API** - 2FA и уведомления
 - **QR Code** - генерация чеков
@@ -85,8 +85,8 @@ GOOGLE_CLIENT_SECRET="..."
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_ADMIN_CHAT_ID="..."
 
-# Gemini AI (опционально)
-GEMINI_API_KEY="..."
+# Groq AI (опционально)
+GROQ_API_KEY="..."
 
 # FINIK Pay (опционально)
 FINIK_API_KEY="..."
@@ -114,14 +114,14 @@ npm run dev
 
 ---
 
-## 🤖 AI Integration (Gemini)
+## 🤖 AI Integration (Groq)
 
 ### Быстрый старт
 
-1. Получи API key: https://makersuite.google.com/app/apikey
+1. Получи API key: https://console.groq.com/keys
 2. Добавь в `.env`:
    ```env
-   GEMINI_API_KEY="AIzaSy..."
+   GROQ_API_KEY="gsk_..."
    ```
 3. Готово! API endpoints работают:
    - `/api/ai/chat` - chatbot
@@ -173,7 +173,7 @@ ronin/
 │   │   ├── auth/           # Auth forms
 │   │   └── ui/             # UI primitives
 │   ├── lib/                # Utilities
-│   │   ├── gemini.ts       # 🤖 AI service
+│   │   ├── ai.ts           # 🤖 AI service (Groq)
 │   │   ├── prisma.ts       # Prisma client
 │   │   ├── telegram.ts     # Telegram notifications
 │   │   └── finik.ts        # FINIK Pay client
@@ -294,7 +294,7 @@ curl -X POST http://localhost:3000/api/ai/chat \
 
 ## 📚 Документация
 
-- [AI Integration](./AI_INTEGRATION.md) - Gemini AI setup & usage
+- [AI Integration](./AI_INTEGRATION.md) - Groq AI setup & usage
 - [AI Quick Start](./AI_QUICKSTART.md) - 5-minute AI guide
 - [AI TODO](./AI_TODO.md) - AI features roadmap
 - [Telegram Setup](./TELEGRAM_SETUP.md) - Bot configuration
@@ -339,7 +339,7 @@ Proprietary - © 2024 RONIN Gaming Club
 - [x] Admin панель
 - [x] Google OAuth
 - [x] Telegram 2FA
-- [x] AI Backend (Gemini)
+- [x] AI Backend (Groq)
 
 ### v1.1 (In Progress) 🚧
 - [ ] AI Chatbot Widget (UI)

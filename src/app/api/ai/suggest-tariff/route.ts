@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGeminiService } from "@/lib/gemini";
+import { getAIService } from "@/lib/ai";
 
 /**
  * POST /api/ai/suggest-tariff
@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { duration, budget, timeOfDay, frequency } = body;
 
-    const gemini = getGeminiService();
-    const response = await gemini.suggestTariff({
+    const ai = getAIService();
+    const response = await ai.suggestTariff({
       duration: duration || undefined,
       budget: budget || undefined,
       timeOfDay: timeOfDay || undefined,
