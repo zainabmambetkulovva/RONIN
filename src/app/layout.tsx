@@ -30,10 +30,11 @@ const DESCRIPTION = "Круглосуточный компьютерный кл�
  * Название — из настроек бренда, картинка — /api/og (собирается из названия, цветов и логотипа клуба).
  */
 export async function generateMetadata(): Promise<Metadata> {
-  // Адрес сайта для абсолютных ссылок в превью: NEXT_PUBLIC_APP_URL, иначе основной адрес проекта на Vercel (с доменом клуба, если он подключён)
+  // Адрес сайта для абсолютных ссылок в превью. На Vercel — основной адрес этого проекта (с доменом клуба, если он подключён):
+  // Vercel задаёт его сам, и он не устаревает, как NEXT_PUBLIC_APP_URL, оставшийся от старого сайта
   const site =
-    process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) ||
+    process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXTAUTH_URL ||
     (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
     "http://localhost:3000";
