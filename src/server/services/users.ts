@@ -1,15 +1,16 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { badRequest, conflict } from "@/server/http";
+import { KG_PHONE_ERROR, normalizeKgPhone } from "@/lib/phone";
 
 /** Поля профиля, которые пользователь может менять сам. Роль, статус, email — нет. */
 export const profileUpdateSchema = z.object({
-  name: z.string().trim().min(1, "Имя обязательно").max(100, "Имя слишком длинное").optional(),
+  // В профиле можно ник с цифрами (в клубе это обычно) — только не пустое и не из одного символа
+  name: z.string().trim().min(2, "Имя — от 2 символов").max(100, "Имя слишком длинное").optional(),
   phone: z
     .string()
     .trim()
-    .max(20, "Телефон слишком длинный")
-    .regex(/^\+?[0-9\s()-]*$/, "Некорректный номер телефона")
+    .refine((v) => normalizeKgPhone(v) !== null, KG_PHONE_ERROR)
     .optional()
     .or(z.literal("")),
   avatar: z.string().trim().max(50).optional().or(z.literal("")),
@@ -25,7 +26,7 @@ export async function updateOwnProfile(userId: string, input: ProfileUpdate) {
   if (input.name !== undefined) data.name = input.name;
 
   if (input.phone !== undefined) {
-    const phone = input.phone || null;
+    const phone = input.phone ? normalizeKgPhone(input.phone) : null;
     if (phone) {
       const taken = await prisma.users.findFirst({ where: { phone, id: { not: userId } }, select: { id: true } });
       if (taken) throw conflict("Этот номер телефона уже используется");

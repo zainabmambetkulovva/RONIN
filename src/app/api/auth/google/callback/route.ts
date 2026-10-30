@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { createUserSession } from "@/server/auth/session";
-import { GOOGLE_STATE_COOKIE, googleRedirectUri, readGoogleState } from "../oauth";
+import { GOOGLE_STATE_COOKIE, finishGoogleAuth, googleRedirectUri, readGoogleState } from "../oauth";
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
   
   try {
     const searchParams = req.nextUrl.searchParams;
+    const saved = readGoogleState(req);
+    const popup = saved?.popup ?? false;
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     
@@ -22,18 +24,17 @@ export async function GET(req: NextRequest) {
     
     if (error) {
       console.error('[Google OAuth Callback] OAuth error from Google:', error);
-      return NextResponse.redirect(new URL(`/login?error=${error}`, req.url));
+      return finishGoogleAuth(req, popup, `/login?error=${error}`);
     }
     
     if (!code) {
       console.error('[Google OAuth Callback] No code provided');
-      return NextResponse.redirect(new URL('/login?error=no_code', req.url));
+      return finishGoogleAuth(req, popup, '/login?error=no_code');
     }
 
-    const saved = readGoogleState(req);
     if (!saved || saved.state !== searchParams.get('state')) {
       console.error('[Google OAuth Callback] State mismatch');
-      return NextResponse.redirect(new URL('/login?error=state', req.url));
+      return finishGoogleAuth(req, popup, '/login?error=state');
     }
 
     console.log('[Google OAuth Callback] Exchanging code for tokens...');
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('[Google OAuth Callback] Token exchange failed:', errorText);
-      return NextResponse.redirect(new URL('/login?error=token_exchange', req.url));
+      return finishGoogleAuth(req, popup, '/login?error=token_exchange');
     }
 
     const tokens = await tokenResponse.json();
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest) {
 
     if (!userResponse.ok) {
       console.error('[Google OAuth Callback] User info fetch failed');
-      return NextResponse.redirect(new URL('/login?error=user_info', req.url));
+      return finishGoogleAuth(req, popup, '/login?error=user_info');
     }
 
     const googleUser = await userResponse.json();
@@ -102,20 +103,20 @@ export async function GET(req: NextRequest) {
 
     if (user.status !== 'active') {
       console.error('[Google OAuth Callback] User is not active:', user.id);
-      return NextResponse.redirect(new URL('/login?error=account_blocked', req.url));
+      return finishGoogleAuth(req, popup, '/login?error=account_blocked');
     }
 
     console.log('[Google OAuth Callback] Creating session...');
     await createUserSession(user);
 
     // В личный кабинет (или туда, откуда пришли); незаполненный профиль middleware отправит на setup-profile
-    const res = NextResponse.redirect(new URL(saved.callbackUrl, req.url));
+    const res = finishGoogleAuth(req, popup, saved.callbackUrl);
     res.cookies.delete({ name: GOOGLE_STATE_COOKIE, path: '/api/auth/google' });
     return res;
     
   } catch (error: any) {
     console.error('[Google OAuth Callback] Fatal error:', error.message);
     console.error('[Google OAuth Callback] Stack:', error.stack);
-    return NextResponse.redirect(new URL('/login?error=oauth_error', req.url));
+    return finishGoogleAuth(req, readGoogleState(req)?.popup ?? false, '/login?error=oauth_error');
   }
 }

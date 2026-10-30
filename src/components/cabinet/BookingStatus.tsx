@@ -35,18 +35,18 @@ export function bookingView(b: BookingDTO, now = Date.now()): BookingView {
 const STYLES: Record<BookingView, string> = {
   awaiting_payment: "border-amber-400/40 bg-amber-400/10 text-amber-300",
   payment_failed: "border-rn-pink/40 bg-rn-pink/10 text-rn-pink",
-  hold_expired: "border-rn-line bg-white/[0.03] text-rn-muted",
+  hold_expired: "border-zinc-400/40 bg-zinc-400/10 text-zinc-300",
   confirmed: "border-rn-cyan/40 bg-rn-cyan/10 text-rn-cyan",
   active: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
-  completed: "border-rn-line bg-white/[0.03] text-rn-muted",
-  cancelled: "border-rn-line bg-white/[0.03] text-rn-muted",
+  completed: "border-rn-violet/40 bg-rn-violet/10 text-rn-purple",
+  cancelled: "border-rose-400/40 bg-rose-400/10 text-rose-300",
   needs_attention: "border-amber-400/40 bg-amber-400/10 text-amber-300",
 };
 
 export function StatusChip({ view }: { view: BookingView }) {
   const { t } = useLanguage();
   return (
-    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${STYLES[view]}`}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider ${STYLES[view]}`}>
       {t(`cab.status.${view}`)}
     </span>
   );

@@ -102,7 +102,8 @@ export function Marquee({ children, ariaLabel, itemClassName = "w-[260px]", spee
   };
 
   const slide = (child: ReactNode, key: string, hidden: boolean) => (
-    <div key={key} className={`shrink-0 ${itemClassName}`} style={{ marginRight: GAP }} aria-hidden={hidden || undefined} {...((hidden ? { inert: "" } : {}) as object)}>
+    // Повторы скрыты от скринридеров, но нажимаются: лента едет, и под пальцем часто оказывается именно повтор
+    <div key={key} className={`shrink-0 ${itemClassName}`} style={{ marginRight: GAP }} aria-hidden={hidden || undefined}>
       {child}
     </div>
   );

@@ -11,6 +11,7 @@ import { signOut } from "@/hooks/useSession";
 import { api, ApiClientError } from "@/lib/api-client";
 import { formatDate } from "@/lib/format";
 import type { AvatarDTO, BookingDTO, CurrentUserDTO } from "@/types/api";
+import { normalizeKgPhone } from "@/lib/phone";
 
 export default function ProfilePage() {
   const { t, language } = useLanguage();
@@ -20,7 +21,8 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", avatar: "" });
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  // Успех храним ключом перевода — текст меняется вместе с языком сайта
+  const [message, setMessage] = useState<{ ok: boolean; text?: string; key?: string } | null>(null);
 
   useEffect(() => {
     api.me().then(({ user }) => {
@@ -33,13 +35,16 @@ export default function ProfilePage() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setMessage(null);
+    if (form.name.trim().length < 2) return setMessage({ ok: false, key: "cab.profile.nameInvalid" });
+    if (form.phone.trim() && !normalizeKgPhone(form.phone)) return setMessage({ ok: false, key: "cab.profile.phoneInvalid" });
+    setSaving(true);
     try {
-      const { user } = await api.updateProfile({ name: form.name, phone: form.phone, avatar: form.avatar });
+      const phone = form.phone.trim() ? normalizeKgPhone(form.phone)! : "";
+      const { user } = await api.updateProfile({ name: form.name.trim(), phone, avatar: form.avatar });
       setUser(user);
       setEditing(false);
-      setMessage({ ok: true, text: t("cab.profile.saved") });
+      setMessage({ ok: true, key: "cab.profile.saved" });
     } catch (err) {
       setMessage({ ok: false, text: err instanceof ApiClientError ? err.message : t("cab.book.errorGeneric") });
     } finally {
@@ -127,7 +132,7 @@ export default function ProfilePage() {
                 </div>
               </form>
             )}
-            {message && <p className={`mt-4 text-sm ${message.ok ? "text-emerald-300" : "text-rn-pink"}`}>{message.text}</p>}
+            {message && <p className={`mt-4 text-sm ${message.ok ? "text-emerald-300" : "text-rn-pink"}`}>{message.key ? t(message.key) : message.text}</p>}
           </Panel>
 
           <div className="space-y-6">

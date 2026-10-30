@@ -58,8 +58,13 @@ async function fetchSession(): Promise<Session | null> {
 function getSession(force = false): Promise<Session | null> {
   if (force || !shared || Date.now() - shared.at > 30_000) {
     const promise = fetchSession();
-    shared = { at: Date.now(), promise };
-    promise.then((s) => listeners.forEach((l) => l(s)));
+    const entry = { at: Date.now(), promise };
+    shared = entry;
+    promise.then((s) => {
+      // «Не вошёл» не запоминаем: сразу после входа шапка и меню должны увидеть сессию
+      if (!s && shared === entry) shared = null;
+      listeners.forEach((l) => l(s));
+    });
   }
   return shared.promise;
 }

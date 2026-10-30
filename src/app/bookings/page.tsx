@@ -11,6 +11,7 @@ import { api, ApiClientError } from "@/lib/api-client";
 import { formatDate, formatMoney, formatTimeRange } from "@/lib/format";
 import { BOOKING_HOLD_MINUTES } from "@/server/config";
 import type { BookingDTO } from "@/types/api";
+import { translateTariffName } from "@/lib/tariff-name";
 
 type Tab = "upcoming" | "active" | "history";
 
@@ -170,14 +171,18 @@ function BookingCard({ booking, onChanged }: { booking: BookingDTO; onChanged: (
       animate={{ opacity: 1, y: 0 }}
       className={`rounded-3xl border bg-rn-surface/80 p-5 backdrop-blur sm:p-6 ${view === "active" ? "border-emerald-400/40 shadow-[0_0_30px_rgba(52,211,153,0.15)]" : "border-rn-line"}`}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 font-display text-lg font-bold uppercase">
-            <Monitor className="h-5 w-5 text-rn-purple" />
-            {t("cab.seat.pc")} № {booking.computer.number}
-            <span className="text-sm font-normal normal-case text-rn-muted">· {booking.computer.category.name}</span>
+      {/* Статус — всегда справа в той же строке, что и номер ПК (раньше переносился под заголовок) */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2 font-display text-lg font-bold uppercase">
+            <Monitor className="h-5 w-5 shrink-0 text-rn-purple" />
+            <span className="whitespace-nowrap">
+              {t("cab.seat.pc")} № {booking.computer.number}
+            </span>
           </div>
-          <p className="mt-1 text-xs text-rn-muted">№ {booking.bookingNumber}</p>
+          <p className="mt-1 truncate text-xs text-rn-muted">
+            {booking.computer.category.name} · № {booking.bookingNumber}
+          </p>
         </div>
         <StatusChip view={view} />
       </div>
@@ -185,7 +190,7 @@ function BookingCard({ booking, onChanged }: { booking: BookingDTO; onChanged: (
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-4">
         <Info icon={<CalendarDays className="h-4 w-4" />} value={formatDate(booking.startAt, language, { weekday: "short" })} />
         <Info icon={<Clock className="h-4 w-4" />} value={formatTimeRange(booking.startAt, booking.endAt, language)} />
-        <Info icon={<Receipt className="h-4 w-4" />} value={booking.tariff.name} />
+        <Info icon={<Receipt className="h-4 w-4" />} value={translateTariffName(booking.tariff.name, language)} />
         <div className="font-display text-lg font-bold text-white sm:text-right">{formatMoney(booking.price)}</div>
       </div>
 

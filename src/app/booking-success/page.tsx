@@ -14,6 +14,7 @@ import { api, ApiClientError } from "@/lib/api-client";
 import { formatDate, formatMoney, formatTimeRange } from "@/lib/format";
 import { club } from "@/config/club";
 import type { BookingDTO } from "@/types/api";
+import { translateTariffName } from "@/lib/tariff-name";
 
 /** Сколько ждать подтверждения оплаты от Finik, прежде чем показать «пока не подтверждено». */
 const POLL_MS = 3000;
@@ -332,7 +333,7 @@ export default function BookingSuccessPage() {
               <Item label={t("cab.seat.pc")} value={`№ ${booking.computer.number}`} />
               <Item label={t("cab.book.date")} value={formatDate(booking.startAt, language, { weekday: "short" })} />
               <Item label={t("cab.book.time")} value={formatTimeRange(booking.startAt, booking.endAt, language)} />
-              <Item label={t("cab.book.tariff")} value={booking.tariff.name} />
+              <Item label={t("cab.book.tariff")} value={translateTariffName(booking.tariff.name, language)} />
               <Item label={t("cab.receipt.amount")} value={formatMoney(booking.price)} />
               {booking.paidAt && <Item label={t("cab.receipt.paidAt")} value={formatDate(booking.paidAt, language, { hour: "2-digit", minute: "2-digit" })} />}
               {booking.paymentMethod && <Item label={t("cab.receipt.method")} value={t(`cab.method.${booking.paymentMethod.replace("offline:", "")}`)} />}

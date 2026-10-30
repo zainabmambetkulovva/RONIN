@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Clock, MapPin, Phone, CreditCard, Banknote, ArrowLeftRight, QrCode, ExternalLink, Instagram } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
 import { useBranding } from "@/contexts/BrandingContext";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { TikTokIcon, WhatsAppIcon } from "./brand-icons";
+
+/** Карта 2GIS без карточки организации, на языке сайта (2GIS может не знать язык — тогда покажет свой). */
+function twoGisMapUrl(language: "ru" | "en" | "ky") {
+  const options = { pos: club.twoGis.pos, opt: { city: "bishkek", lang: language } };
+  return `https://widgets.2gis.com/widget?type=firmsonmap&options=${encodeURIComponent(JSON.stringify(options))}`;
+}
 
 const PAY_ICONS = { card: CreditCard, cash: Banknote, transfer: ArrowLeftRight, qr: QrCode } as const;
 
@@ -51,12 +57,13 @@ export function ContactsSection() {
 
           <Reveal delay={0.12}>
             <InfoCard icon={<CreditCard className="h-5 w-5 text-rn-purple" />} label={t("contacts.paymentLabel")}>
-              <ul className="grid grid-cols-2 gap-1.5">
+              {/* Просто список, без рамок: это не кнопки */}
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-2">
                 {club.paymentMethods.map((method) => {
                   const Icon = PAY_ICONS[method];
                   return (
-                    <li key={method} className="flex items-center gap-1.5 rounded-lg border border-transparent bg-white/[0.03] px-2 py-1.5 text-xs text-white/85 transition-all duration-300 hover:border-rn-violet/40 hover:bg-white/[0.06] hover:text-white">
-                      <Icon className="h-3.5 w-3.5 shrink-0 text-rn-muted" />
+                    <li key={method} className="flex items-center gap-2 text-sm text-white/85">
+                      <Icon className="h-4 w-4 shrink-0 text-rn-purple" />
                       {t(`contacts.pay.${method}`)}
                     </li>
                   );
@@ -88,16 +95,32 @@ export function ContactsSection() {
           </Reveal>
         </div>
 
-        {/* На десктопе карта ровно по высоте блока карточек */}
+        {/* На десктопе карта ровно по высоте блока карточек. Карта — без большой карточки 2GIS: метка клуба своя,
+            по нажатию открывается 2GIS (карта не двигается, поэтому метка всегда на месте) */}
         <Reveal delay={0.1} className="h-full">
-          <div className="relative h-[260px] overflow-hidden rounded-2xl border border-rn-line bg-rn-surface sm:h-[300px] lg:h-full lg:min-h-[280px]">
+          <a
+            href={club.twoGis.firmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("contacts.open2gis")}
+            className="group relative block h-[260px] overflow-hidden rounded-2xl border border-rn-line bg-rn-surface sm:h-[300px] lg:h-full lg:min-h-[280px]"
+          >
             <iframe
-              src={club.twoGis.widgetSrc}
+              key={language}
+              src={twoGisMapUrl(language)}
               title={t("contacts.mapTitle")}
               loading="lazy"
-              className="absolute inset-0 h-full w-full border-0 [filter:saturate(0.9)]"
+              tabIndex={-1}
+              className="pointer-events-none absolute inset-0 h-full w-full border-0 [filter:saturate(0.9)]"
             />
-          </div>
+            <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center" aria-hidden>
+              <span className="rounded-full bg-rn-night/90 px-2.5 py-1 font-display text-[11px] font-bold text-white shadow-lg ring-1 ring-rn-violet/60">{brand.clubName}</span>
+              <MapPin className="mt-0.5 h-8 w-8 fill-rn-magenta text-white drop-shadow-[0_4px_10px_rgba(217,70,239,0.7)]" />
+            </span>
+            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-rn-night/90 px-3 py-1.5 text-xs font-semibold text-rn-cyan ring-1 ring-rn-line transition group-hover:text-white">
+              {t("contacts.open2gis")} <ExternalLink className="h-3.5 w-3.5" />
+            </span>
+          </a>
         </Reveal>
       </div>
     </Section>
@@ -134,18 +157,7 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
   );
 }
 
-/** Ориентиры: одна строка, по кнопке — полностью. */
+/** Ориентиры — всегда целиком: текста немного, кнопка «Показать» прятала всего пару слов. */
 function Landmarks({ text }: { text: string }) {
-  const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="mt-1">
-      <p className={`text-[11px] text-rn-muted/80 ${open ? "" : "line-clamp-1"}`}>{text}</p>
-      {text.length > 50 && (
-        <button type="button" onClick={() => setOpen(!open)} className="text-[11px] font-semibold text-rn-cyan hover:text-white">
-          {open ? t("contacts.less") : t("contacts.more")}
-        </button>
-      )}
-    </div>
-  );
+  return <p className="mt-1.5 text-xs leading-relaxed text-rn-muted/90">{text}</p>;
 }

@@ -111,13 +111,20 @@ export function AdvantagesSection() {
           <Wallet className="h-6 w-6 text-rn-magenta" />
           <h3 className="mt-6 font-display text-lg font-bold uppercase text-white">{t("adv.payment.title")}</h3>
           <p className="mt-2 text-sm text-rn-muted">{t("adv.payment.text")}</p>
-          <div className="mt-6 grid grid-cols-4 gap-2" aria-hidden>
-            {[CreditCard, Banknote, ArrowLeftRight, QrCode].map((Icon, i) => (
-              <span key={i} className="flex aspect-square items-center justify-center rounded-xl border border-rn-line bg-white/[0.03]">
-                <Icon className="h-5 w-5 text-white/80" />
-              </span>
+          {/* Иконки с подписями, без рамок — чтобы не выглядели как кнопки */}
+          <ul className="mt-5 grid grid-cols-2 gap-x-3 gap-y-2">
+            {([
+              [CreditCard, "card"],
+              [Banknote, "cash"],
+              [ArrowLeftRight, "transfer"],
+              [QrCode, "qr"],
+            ] as const).map(([Icon, key]) => (
+              <li key={key} className="flex items-center gap-2 text-sm text-white/80">
+                <Icon className="h-4 w-4 shrink-0 text-rn-magenta" />
+                {t(`contacts.pay.${key}`)}
+              </li>
             ))}
-          </div>
+          </ul>
         </AdvCard>
 
         {/* 6. Атмосфера — фото зала */}

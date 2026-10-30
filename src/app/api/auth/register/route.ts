@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendNewUserNotification } from "@/lib/telegram";
 import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
 import { createUserSession } from "@/server/auth/session";
+import { KG_PHONE_ERROR, normalizeKgPhone } from "@/lib/phone";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +17,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, password, phone } = await req.json();
+    const { name, email, password, phone: rawPhone } = await req.json();
+    // Телефон — только кыргызский номер, в базе в виде +996XXXXXXXXX
+    const phone = rawPhone ? normalizeKgPhone(String(rawPhone)) : null;
+    if (rawPhone && !phone) {
+      return NextResponse.json({ error: KG_PHONE_ERROR }, { status: 400 });
+    }
 
     // Валидация
     if (!name || !password) {

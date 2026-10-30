@@ -10,6 +10,7 @@ import { Marquee } from "@/components/ui/Marquee";
 import type { TariffDTO, TariffType } from "@/types/api";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { formatDuration, formatPrice, useClubData } from "./useClubData";
+import { durationInName, translateTariffName } from "@/lib/tariff-name";
 
 const GENERAL = "__general__";
 
@@ -124,7 +125,8 @@ export function TariffsSection() {
 }
 
 function TariffCard({ tariff }: { tariff: TariffDTO }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const name = translateTariffName(tariff.name, language);
   const style = TYPE_STYLE[tariff.type];
   const Icon = style.icon;
   const timeWindow = tariff.type === "night" ? club.tariffWindows.night : tariff.type === "morning" ? club.tariffWindows.morning : null;
@@ -134,7 +136,7 @@ function TariffCard({ tariff }: { tariff: TariffDTO }) {
     <Link
       href={bookingHref}
       draggable={false}
-      aria-label={`${tariff.name} — ${formatPrice(tariff.price)} ${t("tariffs.currency")}`}
+      aria-label={`${name} — ${formatPrice(tariff.price)} ${t("tariffs.currency")}`}
       className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-rn-line bg-rn-surface p-4 transition-all duration-500 hover:border-rn-violet/60 hover:shadow-[0_10px_30px_-12px_rgba(139,92,246,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rn-cyan sm:p-5"
     >
       <div className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl transition-opacity duration-500 ${style.glow} opacity-60 group-hover:opacity-100`} aria-hidden />
@@ -147,11 +149,13 @@ function TariffCard({ tariff }: { tariff: TariffDTO }) {
         </span>
       </div>
 
-      <h3 className="relative mt-4 font-display text-base font-bold uppercase leading-tight text-white sm:text-lg">{tariff.name}</h3>
-      <p className="relative mt-1 text-xs text-rn-muted">
-        {formatDuration(tariff.durationMinutes, t)}
-        {timeWindow ? ` · ${timeWindow}` : ""}
-      </p>
+      <h3 className="relative mt-4 font-display text-base font-bold uppercase leading-tight text-white sm:text-lg">{name}</h3>
+      {/* Длительность — только если её нет в названии («1 час» → без «1 ч») */}
+      {(!durationInName(tariff.name, tariff.durationMinutes) || timeWindow) && (
+        <p className="relative mt-1 text-xs text-rn-muted">
+          {[!durationInName(tariff.name, tariff.durationMinutes) && formatDuration(tariff.durationMinutes, t), timeWindow].filter(Boolean).join(" · ")}
+        </p>
+      )}
 
       <div className="relative mt-auto pt-5">
         <div className="flex items-baseline gap-2">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { GOOGLE_STATE_COOKIE, googleRedirectUri, safeCallbackUrl } from "./oauth";
+import { GOOGLE_STATE_COOKIE, finishGoogleAuth, googleRedirectUri, safeCallbackUrl } from "./oauth";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,10 +13,12 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  // popup=1 — вход в отдельном окне (основная вкладка не получает страниц Google в историю)
+  const popup = req.nextUrl.searchParams.get('popup') === '1';
 
   if (!clientId) {
     console.error('[Google OAuth Init] Missing GOOGLE_CLIENT_ID');
-    return NextResponse.redirect(new URL('/login?error=config', req.url));
+    return finishGoogleAuth(req, popup, '/login?error=config');
   }
 
   const state = crypto.randomBytes(16).toString('hex');
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
   }).toString()}`;
 
   const res = NextResponse.redirect(authUrl);
-  res.cookies.set(GOOGLE_STATE_COOKIE, JSON.stringify({ state, callbackUrl }), {
+  res.cookies.set(GOOGLE_STATE_COOKIE, JSON.stringify({ state, callbackUrl, popup }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { startGoogleSignIn } from "@/lib/google-signin";
 
 export function LoginForm() {
   const router = useRouter();
@@ -274,8 +275,7 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => {
-              const callbackUrl = searchParams.get("callbackUrl");
-              window.location.href = `/api/auth/google${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`;
+              startGoogleSignIn(searchParams.get("callbackUrl"));
             }}
             className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
             style={{
