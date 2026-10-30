@@ -51,11 +51,6 @@ export default function BookingPage() {
   );
   const [computers, setComputers] = useState<ComputerDTO[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  // Все ПК клуба — только для схемы 3D (другие залы показаны тёмными)
-  const [clubComputers, setClubComputers] = useState<ComputerDTO[] | null>(null);
-  useEffect(() => {
-    api.computers().then((r) => setClubComputers(r.computers)).catch(() => setClubComputers(null));
-  }, []);
   const [computerId, setComputerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +128,8 @@ export default function BookingPage() {
     const id = ++requestRef.current;
     setRefreshing(true);
     try {
-      const res = await api.computers({ categoryId, start: startIso, durationMinutes: tariff.durationMinutes });
+      // Все залы сразу: ПК можно выбрать в любом зале, зал и тарифы переключатся сами (как в админке)
+      const res = await api.computers({ start: startIso, durationMinutes: tariff.durationMinutes });
       if (id === requestRef.current) setComputers(res.computers);
     } catch {
       if (id === requestRef.current) {
@@ -156,8 +152,16 @@ export default function BookingPage() {
     if (computerId && computers && !computers.some((c) => c.id === computerId && c.availableForSlot)) setComputerId(null);
   }, [computers, computerId]);
 
+  // Выбран ПК другого зала (с 3D-карты или ссылкой с главной) — зал и тарифы этого ПК
+  useEffect(() => {
+    const pc = computers?.find((c) => c.id === computerId);
+    if (pc && pc.category.id !== categoryId) setCategoryId(pc.category.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [computers, computerId]);
+
   const computer = computers?.find((c) => c.id === computerId) ?? null;
-  const freeCount = computers?.filter((c) => c.availableForSlot).length ?? 0;
+  const hallComputers = computers?.filter((c) => c.category.id === categoryId) ?? [];
+  const freeCount = hallComputers.filter((c) => c.availableForSlot).length;
 
   const days = useMemo(() => {
     const list: Date[] = [];
@@ -216,7 +220,11 @@ export default function BookingPage() {
               {halls.map((h) => (
                 <button
                   key={h.id}
-                  onClick={() => setCategoryId(h.id)}
+                  onClick={() => {
+                    setCategoryId(h.id);
+                    // Зал сменили вручную — ПК из другого зала больше не выбран
+                    if (computer && computer.category.id !== h.id) setComputerId(null);
+                  }}
                   aria-pressed={h.id === categoryId}
                   className={`shrink-0 rounded-full px-5 py-2.5 font-display text-xs font-bold uppercase tracking-widest transition ${
                     h.id === categoryId
@@ -296,10 +304,10 @@ export default function BookingPage() {
             {computers && computers.length > 0 && (
               <>
                 <p className="mb-4 flex items-center gap-2 text-sm text-rn-muted">
-                  {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {computers.length}
+                  {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {hallComputers.length}
                   {refreshing && <Loader2 className="h-4 w-4 animate-spin" aria-label={t("cab.book.checking")} />}
                 </p>
-                <SeatPicker3D computers={computers} layoutComputers={clubComputers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
+                <SeatPicker3D computers={computers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} groupByHall />
               </>
             )}
             {computers && computers.length > 0 && freeCount === 0 && <p className="mt-4 text-sm text-rn-pink">{t("cab.book.noneFree")}</p>}

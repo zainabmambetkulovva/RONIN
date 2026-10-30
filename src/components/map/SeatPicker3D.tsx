@@ -106,7 +106,10 @@ export function SeatPicker3D({
           <div className="mt-3 flex flex-wrap gap-3 text-xs text-rn-muted">
             <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />{t("map.free")}</span>
             <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />{t("map.busy")}</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />{t("map.otherHall")}</span>
+            {/* «Другой зал» — только если на схеме есть ПК, которых нет в выборе */}
+            {seats.some((seat) => seat.state === "unknown") && (
+              <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />{t("map.otherHall")}</span>
+            )}
             <span className="w-full">{t("map.hint")}</span>
           </div>
           {hint && <p className="mt-2 text-sm text-amber-300">{hint}</p>}

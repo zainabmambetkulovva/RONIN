@@ -85,19 +85,20 @@ export default function MyBookingsPage() {
         </Panel>
       )}
 
-      <div role="tablist" className="rn-no-scrollbar -mx-2 mb-4 flex gap-2 overflow-x-auto px-2 py-2">
+      {/* Три вкладки одинаковой ширины в один ряд — ни одна не обрезается */}
+      <div role="tablist" className="mb-4 grid grid-cols-3 gap-1.5 py-2 sm:flex sm:gap-2">
         {tabs.map((key) => (
           <button
             key={key}
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`relative shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === key ? "text-white" : "text-rn-muted hover:text-white"}`}
+            className={`relative min-w-0 rounded-full px-2 py-2.5 text-[13px] font-semibold transition sm:shrink-0 sm:px-5 sm:text-sm ${tab === key ? "text-white" : "text-rn-muted hover:text-white"}`}
           >
             {tab === key && <motion.span layoutId="bookings-tab" className="absolute inset-0 rounded-full bg-white/[0.08] ring-1 ring-rn-violet/50" />}
-            <span className="relative">
+            <span className="relative flex items-center justify-center gap-1.5 whitespace-nowrap">
               {t(`cab.bookings.tab.${key}`)}
-              {bookings && <span className="ml-2 text-xs text-rn-muted">{grouped[key].length}</span>}
+              {bookings && <span className="text-xs text-rn-muted">{grouped[key].length}</span>}
             </span>
           </button>
         ))}

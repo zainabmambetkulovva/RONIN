@@ -139,26 +139,35 @@ export default function BookingSuccessPage() {
       backgroundColor: "#0b0818",
       scale: 2,
       useCORS: true,
-      // html2canvas рисует текст во flex-«таблетках» ниже, чем браузер, — выравниваем в копии для PDF
+      // html2canvas рисует текст во flex-элементах ниже, чем браузер. В копии для PDF плашки статуса и круг с буквой
+      // центрируем через line-height = высоте элемента (так html2canvas ставит текст ровно по центру)
       onclone: (doc) => {
         doc.querySelectorAll<HTMLElement>("[data-receipt] span.rounded-full").forEach((el) => {
-          el.style.display = "inline-block";
-          el.style.lineHeight = "1";
-          el.style.paddingTop = "4px";
-          el.style.paddingBottom = "8px";
+          const cs = doc.defaultView!.getComputedStyle(el);
+          const h = el.getBoundingClientRect().height;
+          const inner = h - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth);
+          // html2canvas ставит глифы примерно на 0,43 размера шрифта ниже — поднимаем строку отступом снизу
+          const lift = parseFloat(cs.fontSize) * 0.86;
+          el.style.display = cs.display.includes("inline") ? "inline-block" : "block";
+          el.style.height = `${h}px`;
+          el.style.paddingTop = "0";
+          el.style.paddingBottom = `${lift}px`;
+          el.style.lineHeight = `${Math.max(0, inner - lift)}px`;
+          el.style.textAlign = "center";
+          el.style.whiteSpace = "nowrap";
         });
         doc.querySelectorAll<HTMLElement>("[data-receipt] .font-display").forEach((el) => {
-          el.style.lineHeight = "1.15";
+          if (!el.closest("span.rounded-full")) el.style.lineHeight = "1.15";
         });
       },
     });
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a5" });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const margin = 8;
-    const w = pageW - margin * 2;
+    // Страница PDF — ровно по размеру чека (без белого поля и без обрезки снизу)
+    const margin = 6;
+    const w = 148 - margin * 2;
     const h = (canvas.height / canvas.width) * w;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [148, h + margin * 2] });
     pdf.setFillColor(11, 8, 24);
-    pdf.rect(0, 0, pageW, pdf.internal.pageSize.getHeight(), "F");
+    pdf.rect(0, 0, 148, h + margin * 2, "F");
     pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, w, h);
     return pdf.output("blob");
   };
