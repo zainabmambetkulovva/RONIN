@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getGeminiService } from "@/lib/gemini";
+import { getAIService } from "@/lib/ai";
 import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
 import { ApiError, handle, parseJson } from "@/server/http";
 import { buildClubFacts } from "@/server/services/club-facts";
@@ -35,7 +35,7 @@ export const POST = handle(async (req) => {
   const lastUser = [...history].reverse().find((m) => m.role === "user")?.content ?? "";
 
   const facts = await buildClubFacts(lastUser);
-  const response = await getGeminiService().chat(history, facts);
+  const response = await getAIService().chat(history, facts);
 
   if (response.error) {
     return NextResponse.json({ error: response.error, text: response.text }, { status: 503 });

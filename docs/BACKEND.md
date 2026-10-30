@@ -108,4 +108,4 @@ src/lib/api-client.ts       типизированный клиент API для
 `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET` (обязательна — без неё сессии не выдаются),
 `NEXTAUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_ADMIN_CHAT_ID`, `CRON_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, `REDIS_URL` (рекомендуется),
-`FINIK_*`, `GEMINI_API_KEY`. Значения хранятся только в Vercel / локальном `.env`, не в Git.
+`FINIK_*`, `GROQ_API_KEY`. Значения хранятся только в Vercel / локальном `.env`, не в Git.

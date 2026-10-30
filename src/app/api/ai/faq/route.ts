@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGeminiService } from "@/lib/gemini";
+import { getAIService } from "@/lib/ai";
 import { buildClubFacts } from "@/server/services/club-facts";
 
 /**
@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const gemini = getGeminiService();
-    const response = await gemini.answerFAQ(question.slice(0, 1000), await buildClubFacts(question));
+    const ai = getAIService();
+    const response = await ai.answerFAQ(question.slice(0, 1000), await buildClubFacts(question));
 
     if (response.error) {
       return NextResponse.json(
