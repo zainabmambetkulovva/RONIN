@@ -8,12 +8,6 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { TikTokIcon, WhatsAppIcon } from "./brand-icons";
 
-/** Карта 2GIS без карточки организации, на языке сайта (2GIS может не знать язык — тогда покажет свой). */
-function twoGisMapUrl(language: "ru" | "en" | "ky") {
-  const options = { pos: club.twoGis.pos, opt: { city: "bishkek", lang: language } };
-  return `https://widgets.2gis.com/widget?type=firmsonmap&options=${encodeURIComponent(JSON.stringify(options))}`;
-}
-
 const PAY_ICONS = { card: CreditCard, cash: Banknote, transfer: ArrowLeftRight, qr: QrCode } as const;
 
 export function ContactsSection() {
@@ -95,8 +89,8 @@ export function ContactsSection() {
           </Reveal>
         </div>
 
-        {/* На десктопе карта ровно по высоте блока карточек. Карта — без большой карточки 2GIS: метка клуба своя,
-            по нажатию открывается 2GIS (карта не двигается, поэтому метка всегда на месте) */}
+        {/* На десктопе карта ровно по высоте блока карточек. Виджет 2GIS с меткой клуба; нажать внутри него нельзя,
+            поэтому большая карточка организации не открывается — по нажатию открывается сам 2GIS */}
         <Reveal delay={0.1} className="h-full">
           <a
             href={club.twoGis.firmUrl}
@@ -106,17 +100,12 @@ export function ContactsSection() {
             className="group relative block h-[260px] overflow-hidden rounded-2xl border border-rn-line bg-rn-surface sm:h-[300px] lg:h-full lg:min-h-[280px]"
           >
             <iframe
-              key={language}
-              src={twoGisMapUrl(language)}
+              src={club.twoGis.widgetSrc}
               title={t("contacts.mapTitle")}
               loading="lazy"
               tabIndex={-1}
               className="pointer-events-none absolute inset-0 h-full w-full border-0 [filter:saturate(0.9)]"
             />
-            <span className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center" aria-hidden>
-              <span className="rounded-full bg-rn-night/90 px-2.5 py-1 font-display text-[11px] font-bold text-white shadow-lg ring-1 ring-rn-violet/60">{brand.clubName}</span>
-              <MapPin className="mt-0.5 h-8 w-8 fill-rn-magenta text-white drop-shadow-[0_4px_10px_rgba(217,70,239,0.7)]" />
-            </span>
             <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-rn-night/90 px-3 py-1.5 text-xs font-semibold text-rn-cyan ring-1 ring-rn-line transition group-hover:text-white">
               {t("contacts.open2gis")} <ExternalLink className="h-3.5 w-3.5" />
             </span>
