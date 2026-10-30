@@ -74,7 +74,7 @@ export function HeroSection() {
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-rn-night" />
       </div>
 
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8">
         {/* Текст */}
         <div className="relative z-10">
           <motion.p
@@ -92,14 +92,14 @@ export function HeroSection() {
               initial={{ opacity: 0, y: reduce ? 0 : 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="rn-text-gradient block text-[clamp(4.5rem,16vw,11.5rem)] drop-shadow-[0_0_40px_rgba(168,85,247,0.35)]"
+              className="rn-text-gradient block text-[clamp(4.5rem,16vw,11.5rem)] lg:text-[clamp(5rem,9vw,9rem)] drop-shadow-[0_0_40px_rgba(168,85,247,0.35)]"
             >
               {brand.clubName}
             </motion.span>
             {/* Контурное «эхо» заголовка для глубины */}
             <span
               aria-hidden
-              className="pointer-events-none absolute left-1 top-2 -z-10 block select-none text-[clamp(4.5rem,16vw,11.5rem)] text-transparent [-webkit-text-stroke:1px_rgba(34,211,238,0.35)]"
+              className="pointer-events-none absolute left-1 top-2 -z-10 block select-none text-[clamp(4.5rem,16vw,11.5rem)] lg:text-[clamp(5rem,9vw,9rem)] text-transparent [-webkit-text-stroke:1px_rgba(34,211,238,0.35)]"
             >
               {brand.clubName}
             </span>
@@ -176,8 +176,8 @@ export function HeroSection() {
           transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={`relative mx-auto w-full ${
             isPortrait
-              ? "aspect-[4/5] max-w-[320px] sm:max-w-[440px] lg:max-w-[540px]"
-              : "aspect-square max-w-[300px] sm:max-w-[420px] lg:max-w-[520px]"
+              ? "aspect-[4/5] max-w-[320px] sm:max-w-[440px] lg:max-w-[640px]"
+              : "aspect-square max-w-[300px] sm:max-w-[420px] lg:max-w-[620px]"
           }`}
         >
           <div className="absolute left-1/2 top-[6%] aspect-square w-[92%] -translate-x-1/2" aria-hidden>
@@ -196,7 +196,7 @@ export function HeroSection() {
               unoptimized={character.startsWith("/api/")}
               fill
               priority
-              sizes="(min-width: 1024px) 540px, (min-width: 640px) 440px, 320px"
+              sizes="(min-width: 1024px) 640px, (min-width: 640px) 440px, 320px"
               className={`object-contain ${isPortrait ? "object-bottom [mask-image:linear-gradient(to_bottom,black_72%,transparent_98%)]" : "p-[16%]"}`}
             />
           </div>

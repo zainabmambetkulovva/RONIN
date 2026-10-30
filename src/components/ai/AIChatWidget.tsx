@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Bot, Loader2 } from "lucide-react";
+import { X, Send, Bot } from "lucide-react";
 import { club } from "@/config/club";
 
 interface Message {
@@ -249,8 +249,13 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
                   className="flex justify-start"
                 >
                   <div className="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                    <span className="text-gray-400 text-sm">Думаю...</span>
+                    {/* Как в мессенджерах: «печатает» с тремя прыгающими точками */}
+                    <span className="flex items-end gap-1" aria-hidden>
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" style={{ animationDelay: `${i * 0.15}s` }} />
+                      ))}
+                    </span>
+                    <span className="text-gray-400 text-sm">Печатает…</span>
                   </div>
                 </motion.div>
               )}
