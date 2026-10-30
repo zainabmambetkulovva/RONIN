@@ -46,6 +46,9 @@ class GeminiService {
    * Базовый запрос к Gemini API
    */
   async generateContent(prompt: string): Promise<GeminiResponse> {
+    // Есть ключ Groq — отвечает Groq, иначе Gemini
+    const groqKey = getGroqKey();
+    if (groqKey) return generateWithGroq(groqKey, prompt, this.temperature, this.maxTokens);
     // gemini-1.5-* сняты Google с поддержки; если модель недоступна (404), пробуем следующую
     const models = Array.from(new Set([this.model, 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash']));
     // Ключ в заголовке x-goog-api-key (так в документации Google). Новые ключи AI Studio «AQ.…»
@@ -284,12 +287,64 @@ ${facts}
   }
 }
 
+/** Ключ Groq: GROQ_API_KEY или ключ «gsk_…», вставленный в GEMINI_API_KEY. */
+function getGroqKey(): string {
+  const clean = (v?: string) => (v || '').trim().replace(/^["']|["']$/g, '');
+  const groq = clean(process.env.GROQ_API_KEY);
+  if (groq) return groq;
+  const gemini = clean(process.env.GEMINI_API_KEY);
+  return gemini.startsWith('gsk_') ? gemini : '';
+}
+
+export function isGroqConfigured(): boolean {
+  return Boolean(getGroqKey());
+}
+
+/** Groq — OpenAI-совместимый API (https://console.groq.com/docs/api-reference). */
+async function generateWithGroq(apiKey: string, prompt: string, temperature: number, maxTokens: number): Promise<GeminiResponse> {
+  // Если модель снята с поддержки, пробуем следующую
+  const models = Array.from(new Set([process.env.GROQ_MODEL || 'llama-3.3-70b-versatile', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant']));
+  let last: GeminiResponse = { text: 'AI временно недоступен. Попробуйте позже.', error: 'No model available' };
+  for (const model of models) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature, max_tokens: maxTokens }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message: string = data.error?.message || `HTTP ${response.status}`;
+        console.error('Groq API error response:', { model, status: response.status, error: message });
+        if (response.status === 401 || response.status === 403) {
+          return { text: 'AI недоступен: Groq не принял ключ. Проверьте GROQ_API_KEY.', error: `Ключ отклонён Groq: ${response.status} ${message}`.slice(0, 300) };
+        }
+        if (response.status === 429) {
+          return { text: 'AI временно недоступен из-за превышения лимита запросов. Попробуйте позже.', error: 'Quota exceeded' };
+        }
+        // Модель не найдена или снята — следующая
+        if (response.status === 404 || /model/i.test(message)) {
+          last = { text: 'AI временно недоступен. Попробуйте позже.', error: `Groq: ${message}`.slice(0, 300) };
+          continue;
+        }
+        return { text: 'Произошла ошибка при обращении к AI.', error: `Groq: ${response.status} ${message}`.slice(0, 300) };
+      }
+      const text: string = data.choices?.[0]?.message?.content?.trim() || 'Нет ответа';
+      return { text, tokens: data.usage?.total_tokens };
+    } catch (error: any) {
+      console.error('Groq API error:', error);
+      return { text: 'Произошла ошибка при обращении к AI. Проверьте подключение к интернету.', error: error.message };
+    }
+  }
+  return last;
+}
+
 // Singleton instance
 let geminiService: GeminiService | null = null;
 
 /** Безопасное описание ключа для диагностики: первые символы и длина, без самого ключа. */
 export function describeGeminiKey(): string {
-  const key = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+  const key = getGroqKey() || (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
   if (!key) return 'ключ не задан';
   return `ключ «${key.slice(0, 4)}…», ${key.length} симв.`;
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { handle } from "@/server/http";
 import { requireAdmin } from "@/server/auth/staff";
-import { describeGeminiKey, getGeminiService } from "@/lib/gemini";
+import { describeGeminiKey, getGeminiService, isGroqConfigured } from "@/lib/gemini";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +16,8 @@ export const GET = handle(async (req) => {
   const origin = req.nextUrl.origin;
 
   let ai: { ok: boolean; message: string };
-  if (!has("GEMINI_API_KEY")) {
-    ai = { ok: false, message: "Не задан GEMINI_API_KEY" };
+  if (!has("GEMINI_API_KEY") && !isGroqConfigured()) {
+    ai = { ok: false, message: "Не задан GROQ_API_KEY или GEMINI_API_KEY" };
   } else {
     const res = await getGeminiService().generateContent("Ответь одним словом: ок");
     ai = res.error ? { ok: false, message: `${res.error} · ${describeGeminiKey()}`.slice(0, 300) } : { ok: true, message: "Отвечает" };
@@ -26,8 +26,9 @@ export const GET = handle(async (req) => {
   return NextResponse.json({
     origin,
     checks: [
-      { key: "ai", label: "ИИ-чат (Gemini)", ...ai, fix:
-          "Если «are blocked» / API_KEY_SERVICE_BLOCKED: Google Cloud → проект из ошибки (projects/номер) → APIs & Services → Library → Generative Language API → Enable; Credentials → этот ключ → Application restrictions: None, API restrictions: Generative Language API или Don't restrict. Если ключ не задан или заменён — Vercel → Environment Variables → GEMINI_API_KEY, затем Redeploy",
+      { key: "ai", label: isGroqConfigured() ? "ИИ-чат (Groq)" : "ИИ-чат (Gemini)", ...ai, fix: isGroqConfigured()
+        ? "Groq: console.groq.com → API Keys → создайте ключ «gsk_…» и вставьте в Vercel → Environment Variables → GROQ_API_KEY (Production), затем Redeploy"
+        : "Если «are blocked» / API_KEY_SERVICE_BLOCKED: Google Cloud → проект из ошибки (projects/номер) → APIs & Services → Library → Generative Language API → Enable; Credentials → этот ключ → Application restrictions: None, API restrictions: Generative Language API или Don't restrict. Если ключ не задан или заменён — Vercel → Environment Variables → GEMINI_API_KEY, затем Redeploy",
       },
       {
         key: "google",
