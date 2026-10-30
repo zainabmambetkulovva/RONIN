@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Instagram, MapPin, Phone, Clock, ArrowUp } from "lucide-react";
+import { Instagram, Clock, ArrowUp } from "lucide-react";
 import { useSession } from "@/hooks/useSession";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
@@ -23,7 +23,7 @@ export function CyberFooter() {
   const brand = useBranding();
   // Нижнее меню на телефоне есть только после входа — только тогда нужен запас снизу
   const { status } = useSession();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const year = new Date().getFullYear();
 
   const socials = [
@@ -95,28 +95,12 @@ export function CyberFooter() {
 
         <div className="col-span-2 lg:col-span-1">
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white md:mb-4">{t("footer.contacts")}</h4>
-          <ul className="space-y-3 text-sm text-rn-muted">
-            <li className="flex gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-rn-magenta" />
-              <span>
-                {club.address[language]}
-                <br />
-                {club.district[language]}
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-rn-cyan" />
-              <a href={`tel:${club.phone.tel}`} className="transition hover:text-white">
-                {club.phone.display}
-              </a>
-            </li>
-            <li className="flex gap-3">
-              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-rn-purple" />
-              {t("contacts.hoursValue")}
-            </li>
-          </ul>
-          {/* Соцсети — под контактами */}
-          <div className="mt-5 flex gap-3 md:mt-6">
+          {/* Адрес и телефон — в блоке «Контакты» на странице; здесь только часы и соцсети */}
+          <p className="flex items-center gap-3 text-sm text-rn-muted">
+            <Clock className="h-4 w-4 shrink-0 text-rn-purple" />
+            {t("contacts.hoursValue")}
+          </p>
+          <div className="mt-3 flex gap-3">
             {socials.filter((s) => s.href).map((s) => (
               <a
                 key={s.label}

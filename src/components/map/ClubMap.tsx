@@ -186,7 +186,7 @@ export function ClubMap({ mode = "public", onOpenBooking, className = "", compac
             <Dropdown label={t("map.hour")} value={hour} onChange={setHour} options={HOURS} className="w-28" />
           </>
         )}
-        <div className="ml-auto flex flex-wrap items-center gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-3 text-xs sm:ml-auto">
           <Legend color="bg-emerald-500" label={`${t("map.free")} · ${counts.free}`} />
           <Legend color="bg-rose-500" label={`${t("map.busy")} · ${counts.busy}`} />
           {counts.maintenance > 0 && <Legend color="bg-zinc-500" label={`${t("map.service")} · ${counts.maintenance}`} />}

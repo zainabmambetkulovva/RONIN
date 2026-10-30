@@ -1,14 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Clock, MapPin, Phone, CreditCard, Banknote, ArrowLeftRight, QrCode, ExternalLink, Instagram } from "lucide-react";
+import { Clock, MapPin, Phone, ExternalLink, Instagram } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { club } from "@/config/club";
 import { useBranding } from "@/contexts/BrandingContext";
 import { Reveal, Section, SectionHeading } from "./primitives";
 import { TikTokIcon, WhatsAppIcon } from "./brand-icons";
 
-const PAY_ICONS = { card: CreditCard, cash: Banknote, transfer: ArrowLeftRight, qr: QrCode } as const;
 
 export function ContactsSection() {
   const { t, language } = useLanguage();
@@ -49,24 +48,7 @@ export function ContactsSection() {
             </InfoCard>
           </Reveal>
 
-          <Reveal delay={0.12}>
-            <InfoCard icon={<CreditCard className="h-5 w-5 text-rn-purple" />} label={t("contacts.paymentLabel")}>
-              {/* Просто список, без рамок: это не кнопки */}
-              <ul className="grid grid-cols-2 gap-x-3 gap-y-2">
-                {club.paymentMethods.map((method) => {
-                  const Icon = PAY_ICONS[method];
-                  return (
-                    <li key={method} className="flex items-center gap-2 text-sm text-white/85">
-                      <Icon className="h-4 w-4 shrink-0 text-rn-purple" />
-                      {t(`contacts.pay.${method}`)}
-                    </li>
-                  );
-                })}
-              </ul>
-            </InfoCard>
-          </Reveal>
-
-          <Reveal delay={0.18}>
+          <Reveal delay={0.12} className="sm:col-span-2">
             <InfoCard icon={<Instagram className="h-5 w-5 text-rn-pink" />} label={t("contacts.socialsLabel")}>
               <div className="flex flex-wrap gap-2">
                 {brand.socials.instagram && (
