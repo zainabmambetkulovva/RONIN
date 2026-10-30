@@ -161,7 +161,7 @@ export function CyberNavbar() {
             </nav>
 
             <div className="mt-8 flex flex-col gap-3">
-              {session ? (
+              {status === "loading" ? null : session ? (
                 <Link href="/profile" onClick={() => setOpen(false)} className="rounded-2xl border border-rn-line py-4 text-center font-semibold text-white">
                   {t("nav.profile")}
                 </Link>

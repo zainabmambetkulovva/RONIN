@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { startGoogleSignIn } from "@/lib/google-signin";
 
 export function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -319,7 +320,7 @@ export function RegisterForm() {
         type="button"
         onClick={() => {
           // Тот же серверный OAuth-поток, что и на странице входа
-          window.location.href = "/api/auth/google";
+          startGoogleSignIn();
         }}
         className="w-full py-3 rounded-xl font-bold uppercase tracking-wider text-white transition-all hover:scale-105 flex items-center justify-center gap-3"
         style={{

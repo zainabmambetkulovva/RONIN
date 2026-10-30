@@ -45,6 +45,8 @@ export const club = {
     reviewsUrl: "https://2gis.kg/bishkek/firm/70000001083373538/tab/reviews",
     widgetSrc:
       "https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lat%22%3A42.87661267975688%2C%22lon%22%3A74.60592836141588%2C%22zoom%22%3A16%7D%2C%22opt%22%3A%7B%22city%22%3A%22bishkek%22%7D%2C%22org%22%3A%2270000001083373538%22%7D",
+    /** Точка клуба на карте (центр виджета). */
+    pos: { lat: 42.87661267975688, lon: 74.60592836141588, zoom: 16 },
     rating: 4.7,
     ratingsCount: 594,
   },

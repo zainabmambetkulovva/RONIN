@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, Clock, Monitor, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
@@ -10,6 +10,7 @@ import { useSession } from "@/hooks/useSession";
 import { api, ApiClientError } from "@/lib/api-client";
 import { combineDayTime, dayKey, formatDate, formatMoney, formatTimeRange } from "@/lib/format";
 import { formatDuration } from "@/components/landing/useClubData";
+import { durationInName, translateTariffName } from "@/lib/tariff-name";
 import { BOOKING_HOLD_MINUTES } from "@/server/config";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { SeatPicker3D } from "@/components/map/SeatPicker3D";
@@ -49,6 +50,7 @@ export default function BookingPage() {
     `${String(initialSlot.getHours()).padStart(2, "0")}:${String(initialSlot.getMinutes()).padStart(2, "0")}`
   );
   const [computers, setComputers] = useState<ComputerDTO[] | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   // Все ПК клуба — только для схемы 3D (другие залы показаны тёмными)
   const [clubComputers, setClubComputers] = useState<ComputerDTO[] | null>(null);
   useEffect(() => {
@@ -119,18 +121,27 @@ export default function BookingPage() {
   const startIso = start.toISOString();
 
   // Доступность компьютеров на выбранный интервал
+  // Прежний список не сбрасываем: иначе 3D-сцена удаляется и строится заново (на телефоне — 1–3 с при смене зала)
+  const requestRef = useRef(0);
   const loadComputers = useCallback(async () => {
-    if (!categoryId || !tariff || startInPast) {
+    // Пока у нового зала выбирается тариф (миг между рендерами) — просто ждём, список не сбрасываем
+    if (!categoryId || !tariff) return;
+    if (startInPast) {
       setComputers(null);
       return;
     }
-    setComputers(null);
+    const id = ++requestRef.current;
+    setRefreshing(true);
     try {
       const res = await api.computers({ categoryId, start: startIso, durationMinutes: tariff.durationMinutes });
-      setComputers(res.computers);
+      if (id === requestRef.current) setComputers(res.computers);
     } catch {
-      setComputers([]);
-      setError(t("cab.book.errorLoad"));
+      if (id === requestRef.current) {
+        setComputers([]);
+        setError(t("cab.book.errorLoad"));
+      }
+    } finally {
+      if (id === requestRef.current) setRefreshing(false);
     }
     // t не в зависимостях: функция перевода пересоздаётся при каждом рендере и вызвала бы повторные запросы
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,8 +239,8 @@ export default function BookingPage() {
                     tr.id === tariffId ? "border-rn-magenta bg-rn-magenta/10 shadow-[0_0_24px_rgba(217,70,239,0.25)]" : "border-rn-line hover:border-rn-violet/60"
                   }`}
                 >
-                  <div className="text-sm font-semibold text-white">{tr.name}</div>
-                  <div className="mt-1 text-xs text-rn-muted">{formatDuration(tr.durationMinutes, t)}</div>
+                  <div className="text-sm font-semibold text-white">{translateTariffName(tr.name, language)}</div>
+                  {!durationInName(tr.name, tr.durationMinutes) && <div className="mt-1 text-xs text-rn-muted">{formatDuration(tr.durationMinutes, t)}</div>}
                   <div className="mt-3 font-display text-lg font-bold text-white">{formatMoney(tr.price)}</div>
                 </button>
               ))}
@@ -284,8 +295,9 @@ export default function BookingPage() {
             )}
             {computers && computers.length > 0 && (
               <>
-                <p className="mb-4 text-sm text-rn-muted">
+                <p className="mb-4 flex items-center gap-2 text-sm text-rn-muted">
                   {t("cab.book.freeInSlot")}: <span className="font-semibold text-white">{freeCount}</span> / {computers.length}
+                  {refreshing && <Loader2 className="h-4 w-4 animate-spin" aria-label={t("cab.book.checking")} />}
                 </p>
                 <SeatPicker3D computers={computers} layoutComputers={clubComputers} selectedId={computerId} onSelect={(c) => setComputerId(c.id)} />
               </>
@@ -303,7 +315,13 @@ export default function BookingPage() {
               <Row icon={<Monitor className="h-4 w-4" />} label={t("cab.seat.pc")} value={computer ? `№ ${computer.number}` : t("cab.book.notSelected")} />
               <Row icon={<CalendarDays className="h-4 w-4" />} label={t("cab.book.date")} value={formatDate(start, language, { weekday: "long" })} />
               <Row icon={<Clock className="h-4 w-4" />} label={t("cab.book.time")} value={end ? formatTimeRange(startIso, end.toISOString(), language) : "—"} />
-              <Row icon={<Clock className="h-4 w-4" />} label={t("cab.book.tariff")} value={tariff ? `${tariff.name} · ${formatDuration(tariff.durationMinutes, t)}` : "—"} />
+              <Row icon={<Clock className="h-4 w-4" />} label={t("cab.book.tariff")} value={
+                  tariff
+                    ? durationInName(tariff.name, tariff.durationMinutes)
+                      ? translateTariffName(tariff.name, language)
+                      : `${translateTariffName(tariff.name, language)} · ${formatDuration(tariff.durationMinutes, t)}`
+                    : "—"
+                } />
             </dl>
             <div className="my-5 h-px bg-rn-line" />
             <div className="flex items-baseline justify-between">

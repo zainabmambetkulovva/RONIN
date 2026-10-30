@@ -176,10 +176,9 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 rounded-2xl overflow-hidden shadow-2xl"
+            // Телефон: панель снизу во всю ширину (над нижним меню), крестик — в заголовке; компьютер — над кнопкой
+            className="fixed inset-x-2 bottom-[5.5rem] z-[61] flex h-[calc(100svh-7.5rem)] max-h-[640px] flex-col overflow-hidden rounded-2xl shadow-2xl sm:static sm:mb-4 sm:h-auto sm:w-[400px] sm:max-h-[min(600px,calc(100vh-8rem))]"
             style={{
-              width: "min(400px, calc(100vw - 2rem))",
-              maxHeight: "600px",
               background: "linear-gradient(135deg, rgba(7,7,26,0.98), rgba(13,13,36,0.98))",
               border: "1px solid rgba(59,130,246,0.3)",
               boxShadow: "0 0 60px rgba(59,130,246,0.3)"
@@ -217,7 +216,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
             </div>
 
             {/* Messages */}
-            <div className="h-[400px] overflow-y-auto p-4 space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4 sm:h-[400px] sm:flex-none">
               {messages.map((msg, idx) => (
                 <motion.div
                   key={idx}
@@ -330,7 +329,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
         onPointerCancel={() => (drag.current = null)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setIsOpen((o) => !o))}
         aria-label="AI"
-        className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden touch-none cursor-grab active:cursor-grabbing"
+        className={`w-14 h-14 rounded-full items-center justify-center shadow-2xl relative overflow-hidden touch-none cursor-grab active:cursor-grabbing ${isOpen ? "hidden sm:flex" : "flex"}`}
         style={{
           background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
           boxShadow: "0 0 40px rgba(59,130,246,0.6)"

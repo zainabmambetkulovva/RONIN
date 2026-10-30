@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ExternalLink, Quote, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { ExternalLink, Quote, Star, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Marquee } from "@/components/ui/Marquee";
 import { club } from "@/config/club";
@@ -54,7 +55,7 @@ export function ReviewsSection() {
             className="group relative flex h-full flex-col rounded-2xl border border-rn-line bg-rn-surface p-5 transition hover:border-rn-violet/60"
           >
             <Quote className="h-6 w-6 text-rn-violet/60" aria-hidden />
-            <ReviewText text={review.text} />
+            <ReviewText text={review.text} author={review.author} meta={`${formatDate(review.date)} · ${review.source}`} />
             <figcaption className="mt-4 flex items-center gap-3 border-t border-rn-line pt-3">
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${ACCENTS[i % ACCENTS.length]} font-display text-sm font-bold text-white`}
@@ -76,19 +77,62 @@ export function ReviewsSection() {
   );
 }
 
-/** Текст отзыва: по умолчанию 4 строки, длинный можно развернуть. */
-function ReviewText({ text }: { text: string }) {
+/** Текст отзыва: 4 строки; длинный открывается целиком в окне (карточка не растягивается и не сдвигает ленту). */
+function ReviewText({ text, author, meta }: { text: string; author: string; meta: string }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const long = text.length > 140;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, [open]);
+
   return (
     <div className="mt-3 flex-1">
-      <blockquote className={`text-sm leading-relaxed text-white/85 ${open ? "" : "line-clamp-4"}`}>{text}</blockquote>
+      <blockquote className="line-clamp-4 text-sm leading-relaxed text-white/85">{text}</blockquote>
       {long && (
-        <button type="button" onClick={() => setOpen(!open)} className="mt-2 text-xs font-semibold text-rn-cyan hover:text-white">
-          {open ? t("reviews.less") : t("reviews.more")}
+        <button type="button" onClick={() => setOpen(true)} className="mt-2 text-xs font-semibold text-rn-cyan hover:text-white">
+          {t("reviews.more")}
         </button>
       )}
+      {/* Окно — в body: лента двигается через transform, внутри неё fixed-окно съехало бы */}
+      {open &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label={author}
+            // События из портала всплывают по дереву React до ленты — не даём им двигать её
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+          >
+            <button className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} aria-label={t("reviews.less")} />
+            <figure className="relative max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border border-rn-line bg-rn-night p-6 sm:max-w-lg sm:rounded-3xl">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <Quote className="h-7 w-7 text-rn-violet/70" aria-hidden />
+                <button type="button" onClick={() => setOpen(false)} className="text-rn-muted hover:text-white" aria-label={t("reviews.less")}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <blockquote className="whitespace-pre-line text-base leading-relaxed text-white/90">{text}</blockquote>
+              <figcaption className="mt-5 border-t border-rn-line pt-3">
+                <span className="block font-semibold text-white">{author}</span>
+                <span className="block text-xs text-rn-muted">{meta}</span>
+              </figcaption>
+            </figure>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
