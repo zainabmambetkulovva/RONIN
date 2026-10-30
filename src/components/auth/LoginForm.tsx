@@ -149,7 +149,7 @@ export function LoginForm() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
-              className="w-full px-4 py-3 rounded-lg text-center text-2xl font-bold tracking-[0.5em] text-white placeholder-gray-600 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 rounded-lg text-center text-2xl font-bold tracking-[0.5em] indent-[0.5em] text-white placeholder-gray-600 focus:placeholder:text-transparent outline-none transition-all focus:ring-2 focus:ring-blue-500"
               style={{
                 background: "rgba(15,15,30,0.6)",
                 border: "1px solid rgba(59,130,246,0.2)",
