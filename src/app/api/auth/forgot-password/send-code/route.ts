@@ -49,7 +49,8 @@ export async function POST(req: NextRequest) {
         const { Resend } = require("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        await resend.emails.send({
+        // Resend не бросает исключение, а возвращает { error } — например, если домен отправителя не подтверждён
+        const { error: sendError } = await resend.emails.send({
           from: process.env.EMAIL_FROM || "noreply@ronin.kg",
           to: email,
           subject: "Код для сброса пароля - RONIN",
@@ -67,9 +68,16 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         });
-      } catch (emailError) {
+        if (sendError) throw new Error(sendError.message || String(sendError));
+      } catch (emailError: any) {
         console.error("Failed to send email:", emailError);
+        return NextResponse.json(
+          { error: `Не удалось отправить письмо с кодом. Попробуйте позже или свяжитесь с клубом. (${emailError?.message ?? "ошибка почты"})` },
+          { status: 502 }
+        );
       }
+    } else if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Отправка писем на сайте ещё не настроена. Свяжитесь с клубом." }, { status: 503 });
     }
 
     return NextResponse.json({

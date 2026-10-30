@@ -70,16 +70,21 @@ export function CyberFooter() {
                 {t("nav.book")}
               </Link>
             </li>
-            <li>
-              <Link href="/login" className="text-sm text-rn-muted transition hover:text-white">
-                {t("nav.login")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/register" className="text-sm text-rn-muted transition hover:text-white">
-                {t("nav.register")}
-              </Link>
-            </li>
+            {/* Вход и регистрация — только тем, кто ещё не вошёл */}
+            {status === "unauthenticated" && (
+              <>
+                <li>
+                  <Link href="/login" className="text-sm text-rn-muted transition hover:text-white">
+                    {t("nav.login")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="text-sm text-rn-muted transition hover:text-white">
+                    {t("nav.register")}
+                  </Link>
+                </li>
+              </>
+            )}
             <li>
               <Link href="/profile" className="text-sm text-rn-muted transition hover:text-white">
                 {t("nav.profile")}

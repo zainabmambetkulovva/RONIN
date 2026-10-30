@@ -31,7 +31,9 @@ export function LoadingScreen() {
           }}
         >
           {/* Animated circles - centered */}
-          <div className="relative flex items-center justify-center">
+          {/* Кольца и логотип — в квадрате фиксированного размера, всё по центру через inset-0 + m-auto
+              (без translate: его перезаписал бы transform анимации вращения) */}
+          <div className="relative h-56 w-56 sm:h-80 sm:w-80">
             <motion.div
               animate={{
                 rotate: 360,
@@ -41,9 +43,8 @@ export function LoadingScreen() {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute"
+              className="absolute inset-0 m-auto h-48 w-48 rounded-full border-4 border-transparent border-r-pink-500 border-t-purple-500 sm:h-64 sm:w-64"
             >
-              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500" />
             </motion.div>
 
             <motion.div
@@ -55,9 +56,8 @@ export function LoadingScreen() {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute"
+              className="absolute inset-0 m-auto h-56 w-56 rounded-full border-4 border-transparent border-b-blue-500 border-l-purple-500 sm:h-80 sm:w-80"
             >
-              <div className="w-56 h-56 sm:w-80 sm:h-80 rounded-full border-4 border-transparent border-b-blue-500 border-l-purple-500" />
             </motion.div>
 
             {/* Logo - perfectly centered */}
@@ -70,7 +70,7 @@ export function LoadingScreen() {
                 damping: 15,
                 duration: 1,
               }}
-              className="relative z-10"
+              className="absolute inset-0 z-10 m-auto h-24 w-24 sm:h-32 sm:w-32"
             >
               <motion.div
                 animate={{

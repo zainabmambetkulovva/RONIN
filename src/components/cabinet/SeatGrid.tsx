@@ -27,7 +27,8 @@ export function SeatGrid({
 
   return (
     <div>
-      {showLegend && <div className="mb-4 flex flex-wrap gap-4 text-xs text-rn-muted">
+      {/* Легенда сеткой: на телефоне 2 колонки, квадратики ровно друг под другом */}
+      {showLegend && <div className="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-rn-muted sm:flex sm:flex-wrap sm:gap-4">
         <Legend className="border-rn-cyan/60 bg-rn-cyan/10" label={t("cab.seat.free")} />
         <Legend className="border-rn-pink/50 bg-rn-pink/15" label={t("cab.seat.busy")} />
         <Legend className="border-rn-line bg-white/[0.03]" label={t("cab.seat.maintenance")} />

@@ -101,7 +101,7 @@ export default function SetupProfilePage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="relative min-h-screen overflow-hidden flex items-center justify-center px-4"
       style={{ background: "#03030a" }}
     >
       {/* Background effects */}
