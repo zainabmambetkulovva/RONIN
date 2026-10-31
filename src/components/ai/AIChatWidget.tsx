@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Bot } from "lucide-react";
+import { X, Send, Bot, Trash2 } from "lucide-react";
 import { club } from "@/config/club";
 
 interface Message {
@@ -14,17 +14,41 @@ interface AIChatWidgetProps {
   position?: "bottom-right" | "bottom-left";
 }
 
+const GREETING: Message = {
+  role: "assistant",
+  content: "Привет! Я AI помощник RONIN Gaming Club. Чем могу помочь?"
+};
+
+/** Ответ ИИ: **жирный** выделяем, переносы строк сохраняем (раньше звёздочки показывались как есть). */
+function FormattedText({ text }: { text: string }) {
+  return (
+    <span className="whitespace-pre-line">
+      {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+        part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
+          <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>
+        ) : (
+          part
+        )
+      )}
+    </span>
+  );
+}
+
 export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Привет! Я AI помощник RONIN Gaming Club. Чем могу помочь?"
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Номер текущего разговора: после «Очистить» опоздавший ответ на старый вопрос не вернёт прежнюю переписку
+  const chatIdRef = useRef(0);
+
+  const clearChat = () => {
+    chatIdRef.current += 1;
+    setMessages([GREETING]);
+    setInput("");
+    setIsLoading(false);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,6 +76,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+    const chatId = chatIdRef.current;
 
     try {
       const response = await fetch("/api/ai/chat", {
@@ -61,6 +86,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
       });
 
       const data = await response.json();
+      if (chatId !== chatIdRef.current) return;
 
       if (!response.ok || data.error) {
         throw new Error(data.error || data.text || "Ошибка AI");
@@ -71,6 +97,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
         { role: "assistant", content: data.text }
       ]);
     } catch (error: any) {
+      if (chatId !== chatIdRef.current) return;
       console.error("AI chat error:", error);
       
       let errorMessage = "Извините, произошла ошибка. ";
@@ -89,7 +116,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
         }
       ]);
     } finally {
-      setIsLoading(false);
+      if (chatId === chatIdRef.current) setIsLoading(false);
     }
   };
 
@@ -207,12 +234,24 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
                   <p className="text-gray-400 text-xs">RONIN Gaming Club</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={clearChat}
+                  disabled={messages.length === 1 && !isLoading}
+                  title="Очистить чат"
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-gray-400 transition-colors hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Очистить
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Закрыть"
+                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -237,7 +276,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
                         : "none"
                     }}
                   >
-                    {msg.content}
+                    {msg.role === "assistant" ? <FormattedText text={msg.content} /> : msg.content}
                   </div>
                 </motion.div>
               ))}
