@@ -67,6 +67,11 @@ export const club = {
    * и укажите путь здесь. Пока null — показывается логотип.
    */
   heroCharacter: "/brand/samurai.png" as string | null,
+  /**
+   * Готовая картинка-превью ссылки (Open Graph) 1200×630 в public. Если null — превью собирается
+   * автоматически в /api/og из названия, цветов, логотипа и персонажа клуба.
+   */
+  ogImage: "/brand/og-cover.jpg" as string | null,
 } as const;
 
 export type ClubLanguage = "ru" | "en" | "ky";

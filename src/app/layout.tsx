@@ -8,6 +8,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import type { Metadata } from "next";
 import { getBranding } from "@/server/services/branding";
+import { club } from "@/config/club";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -27,7 +28,7 @@ const DESCRIPTION = "Круглосуточный компьютерный кл�
 
 /**
  * Open Graph и Twitter Card: превью ссылки в Telegram, WhatsApp, Instagram, Facebook.
- * Название — из настроек бренда, картинка — /api/og (собирается из названия, цветов и логотипа клуба).
+ * Название — из настроек бренда, картинка — club.ogImage, а если её нет — /api/og (собирается из названия, цветов и логотипа клуба).
  */
 export async function generateMetadata(): Promise<Metadata> {
   // Адрес сайта для абсолютных ссылок в превью. На Vercel — основной адрес этого проекта (с доменом клуба, если он подключён):
@@ -46,6 +47,8 @@ export async function generateMetadata(): Promise<Metadata> {
     new Promise<string>((resolve) => setTimeout(() => resolve("RONIN"), 1500)),
   ]).catch(() => "RONIN");
   const title = `${name} — компьютерный клуб в Бишкеке`;
+  // Готовая картинка клуба, если есть, иначе автоматическая
+  const ogImage = club.ogImage ?? "/api/og";
   return {
     metadataBase: new URL(site),
     title,
@@ -59,13 +62,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description: DESCRIPTION,
       locale: "ru_RU",
       alternateLocale: ["ky_KG", "en_US"],
-      images: [{ url: "/api/og", width: 1200, height: 630, alt: title }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: DESCRIPTION,
-      images: ["/api/og"],
+      images: [ogImage],
     },
   };
 }
