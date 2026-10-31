@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: DESCRIPTION,
       locale: "ru_RU",
       alternateLocale: ["ky_KG", "en_US"],
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      images: [{ url: ogImage, alt: title }],
     },
     twitter: {
       card: "summary_large_image",

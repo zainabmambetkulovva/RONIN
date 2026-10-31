@@ -15,8 +15,35 @@ interface AIResponse {
 }
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-// Если модель снята с поддержки, пробуем следующую
-const FALLBACK_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+const GROQ_MODELS_URL = 'https://api.groq.com/openai/v1/models';
+// Известные модели Groq; если все недоступны (сняты или закрыты для проекта) — берём из списка моделей аккаунта
+const FALLBACK_MODELS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'meta-llama/llama-4-scout-17b-16e-instruct'];
+// Какие модели из списка аккаунта предпочитать для чата (по порядку)
+const PREFERRED = [/gpt-oss-120b/i, /llama-4/i, /llama-3\.3-70b/i, /qwen/i, /gpt-oss/i, /kimi/i, /llama/i, /gemma|mistral|mixtral|deepseek/i];
+// Не текстовые модели: распознавание речи, озвучка, фильтры безопасности, агенты
+const NOT_CHAT = /whisper|tts|playai|orpheus|guard|safeguard|compound|allam/i;
+
+// Модель, которая уже ответила, — чтобы не перебирать список на каждом сообщении
+let workingModel: string | null = null;
+
+/** Модели, доступные этому ключу, в порядке предпочтения для чата. */
+async function listGroqChatModels(apiKey: string): Promise<string[]> {
+  try {
+    const res = await fetch(GROQ_MODELS_URL, { headers: { Authorization: `Bearer ${apiKey}` } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const ids: string[] = (data.data ?? [])
+      .filter((m: { id?: string; active?: boolean }) => m.id && m.active !== false && !NOT_CHAT.test(m.id))
+      .map((m: { id: string }) => m.id);
+    const rank = (id: string) => {
+      const i = PREFERRED.findIndex((re) => re.test(id));
+      return i === -1 ? PREFERRED.length : i;
+    };
+    return ids.sort((x, y) => rank(x) - rank(y));
+  } catch {
+    return [];
+  }
+}
 
 /** Ключ из Vercel мог прийти с пробелами или кавычками — убираем их. */
 function getGroqKey(): string {
@@ -48,45 +75,67 @@ class AIService {
       return { text: 'AI временно недоступен: не настроен ключ GROQ_API_KEY.', error: 'Не задан GROQ_API_KEY' };
     }
 
-    const models = Array.from(new Set([process.env.GROQ_MODEL?.trim() || FALLBACK_MODELS[0], ...FALLBACK_MODELS]));
+    // Сначала модель, которая уже отвечала, GROQ_MODEL и известные модели; если все недоступны — модели из списка аккаунта
+    const tried = new Set<string>();
     let last: AIResponse = { text: 'AI временно недоступен. Попробуйте позже.', error: 'No model available' };
-    for (const model of models) {
-      try {
-        const response = await fetch(GROQ_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: prompt }],
-            temperature: this.temperature,
-            max_tokens: this.maxTokens,
-          }),
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const message: string = data.error?.message || `HTTP ${response.status}`;
-          console.error('Groq API error response:', { model, status: response.status, error: message });
-          if (response.status === 401 || response.status === 403) {
-            return { text: 'AI недоступен: Groq не принял ключ. Проверьте GROQ_API_KEY.', error: `Ключ отклонён Groq: ${response.status} ${message}`.slice(0, 300) };
-          }
-          if (response.status === 429) {
-            return { text: 'AI временно недоступен из-за превышения лимита запросов. Попробуйте позже.', error: 'Quota exceeded' };
-          }
-          // Модель не найдена или снята — следующая
-          if (response.status === 404 || /model/i.test(message)) {
-            last = { text: 'AI временно недоступен. Попробуйте позже.', error: `Groq: ${message}`.slice(0, 300) };
-            continue;
-          }
-          return { text: 'Произошла ошибка при обращении к AI.', error: `Groq: ${response.status} ${message}`.slice(0, 300) };
+    const tryModels = async (models: Array<string | null | undefined>): Promise<AIResponse | null> => {
+      for (const model of models) {
+        if (!model || tried.has(model)) continue;
+        tried.add(model);
+        const result = await this.callGroq(apiKey, model, prompt);
+        if (result.error !== 'model_unavailable') {
+          if (!result.error) workingModel = model;
+          return result;
         }
-        const text: string = data.choices?.[0]?.message?.content?.trim() || 'Нет ответа';
-        return { text, tokens: data.usage?.total_tokens };
-      } catch (error: any) {
-        console.error('Groq API error:', error);
-        return { text: 'Произошла ошибка при обращении к AI. Проверьте подключение к интернету.', error: error.message };
+        last = { text: 'AI временно недоступен. Попробуйте позже.', error: result.text };
       }
+      return null;
+    };
+
+    const known = await tryModels([workingModel, process.env.GROQ_MODEL?.trim(), ...FALLBACK_MODELS]);
+    if (known) return known;
+    const available = (await listGroqChatModels(apiKey)).filter((m) => !tried.has(m));
+    if (!available.length) return { ...last, error: `${last.error} · Groq не вернул других доступных моделей`.slice(0, 300) };
+    return (await tryModels(available.slice(0, 4))) ?? last;
+  }
+
+  /** Один запрос к одной модели. error: 'model_unavailable' — модель снята или закрыта, можно пробовать другую. */
+  private async callGroq(apiKey: string, model: string, prompt: string): Promise<AIResponse> {
+    try {
+      const response = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: this.temperature,
+          max_tokens: this.maxTokens,
+          // gpt-oss «размышляет» перед ответом и тратит на это лимит токенов; для чата хватит минимума
+          ...(/gpt-oss/i.test(model) && { reasoning_effort: 'low' }),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message: string = data.error?.message || `HTTP ${response.status}`;
+        console.error('Groq API error response:', { model, status: response.status, error: message });
+        // Модель снята или закрыта для проекта (Groq может ответить и 403) — пробуем другую
+        if (response.status === 404 || /model/i.test(message)) {
+          return { text: `Groq: ${message}`.slice(0, 300), error: 'model_unavailable' };
+        }
+        if (response.status === 401 || response.status === 403) {
+          return { text: 'AI недоступен: Groq не принял ключ. Проверьте GROQ_API_KEY.', error: `Ключ отклонён Groq: ${response.status} ${message}`.slice(0, 300) };
+        }
+        if (response.status === 429) {
+          return { text: 'AI временно недоступен из-за превышения лимита запросов. Попробуйте позже.', error: 'Quota exceeded' };
+        }
+        return { text: 'Произошла ошибка при обращении к AI.', error: `Groq: ${response.status} ${message}`.slice(0, 300) };
+      }
+      const text: string = data.choices?.[0]?.message?.content?.trim() || 'Нет ответа';
+      return { text, tokens: data.usage?.total_tokens };
+    } catch (error: any) {
+      console.error('Groq API error:', error);
+      return { text: 'Произошла ошибка при обращении к AI. Проверьте подключение к интернету.', error: error.message };
     }
-    return last;
   }
 
   /**
