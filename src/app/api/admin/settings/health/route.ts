@@ -27,7 +27,7 @@ export const GET = handle(async (req) => {
     origin,
     checks: [
       { key: "ai", label: "ИИ-чат (Groq)", ...ai, fix:
-          "console.groq.com → API Keys → Create API Key (ключ «gsk_…»). Vercel → Settings → Environment Variables → GROQ_API_KEY, окружение Production, без кавычек и пробелов → Redeploy. Если «Ключ отклонён Groq: 401» — ключ удалён или скопирован не полностью",
+          "console.groq.com → API Keys → Create API Key (ключ «gsk_…»). Vercel → Settings → Environment Variables → GROQ_API_KEY, окружение Production, без кавычек и пробелов → Redeploy. Если «Ключ отклонён Groq: 401» — ключ удалён или скопирован не полностью. Если «does not exist or you do not have access» / «не вернул других доступных моделей» — console.groq.com → Settings → Projects → ваш проект → Limits / Model permissions: разрешите хотя бы одну текстовую модель (например llama или gpt-oss), затем «Проверить снова»",
       },
       {
         key: "google",
