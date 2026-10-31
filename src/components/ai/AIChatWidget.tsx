@@ -211,9 +211,9 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
               boxShadow: "0 0 60px rgba(59,130,246,0.3)"
             }}
           >
-            {/* Header */}
+            {/* Header — не сжимается: при нехватке высоты уменьшается область сообщений */}
             <div
-              className="flex items-center justify-between p-4"
+              className="flex shrink-0 items-center justify-between p-4"
               style={{
                 background: "linear-gradient(90deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2))",
                 borderBottom: "1px solid rgba(59,130,246,0.2)"
@@ -255,7 +255,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
             </div>
 
             {/* Messages */}
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4 sm:h-[400px] sm:flex-none">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4 sm:flex-[0_1_400px]">
               {messages.map((msg, idx) => (
                 <motion.div
                   key={idx}
@@ -304,7 +304,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
 
             {/* Quick Replies */}
             {messages.length === 1 && !isLoading && (
-              <div className="px-4 pb-2">
+              <div className="shrink-0 px-4 pb-2">
                 <p className="text-xs text-gray-400 mb-2">Быстрые вопросы:</p>
                 <div className="grid grid-cols-2 gap-2">
                   {quickReplies.map((reply, idx) => (
@@ -327,7 +327,7 @@ export function AIChatWidget({ position = "bottom-right" }: AIChatWidgetProps) {
 
             {/* Input */}
             <div
-              className="p-4"
+              className="shrink-0 p-4"
               style={{
                 borderTop: "1px solid rgba(59,130,246,0.2)"
               }}
