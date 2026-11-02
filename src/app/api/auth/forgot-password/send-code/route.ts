@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { issueResetCode } from "@/server/services/password-reset";
 import { checkRateLimit, rateLimitError } from "@/lib/rate-limiter";
+import { mailProvider, sendMail } from "@/lib/mailer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,15 +44,10 @@ export async function POST(req: NextRequest) {
       console.log(`[DEV] Password reset code for ${email}: ${code}`);
     }
 
-    // В production отправить через Resend
-    if (process.env.RESEND_API_KEY) {
+    // Письмо с кодом: через Gmail (или Resend, если Gmail не настроен) — см. src/lib/mailer.ts
+    if (mailProvider()) {
       try {
-        const { Resend } = require("resend");
-        const resend = new Resend(process.env.RESEND_API_KEY);
-
-        // Resend не бросает исключение, а возвращает { error } — например, если домен отправителя не подтверждён
-        const { error: sendError } = await resend.emails.send({
-          from: process.env.EMAIL_FROM || "noreply@ronin.kg",
+        await sendMail({
           to: email,
           subject: "Код для сброса пароля - RONIN",
           html: `
@@ -68,7 +64,6 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         });
-        if (sendError) throw new Error(sendError.message || String(sendError));
       } catch (emailError: any) {
         console.error("Failed to send email:", emailError);
         return NextResponse.json(
