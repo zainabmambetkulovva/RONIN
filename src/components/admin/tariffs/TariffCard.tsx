@@ -126,20 +126,24 @@ export function TariffCard({ tariff, onEdit, onToggle, onDelete }: TariffCardPro
           <Edit2 className="w-4 h-4" />
           Изменить
         </button>
+        {/* Переключатель показывает текущее состояние: включён — тариф активен, выключен — неактивен */}
         <button
           onClick={() => onToggle(tariff.id, tariff.isActive)}
+          role="switch"
+          aria-checked={tariff.isActive}
+          title={tariff.isActive ? "Активен — нажмите, чтобы выключить" : "Неактивен — нажмите, чтобы включить"}
           className="px-4 py-2 rounded-lg font-bold text-xs transition-all hover:scale-105"
           style={{
             background: tariff.isActive
-              ? "rgba(107,114,128,0.2)"
-              : "rgba(16,185,129,0.2)",
+              ? "rgba(16,185,129,0.2)"
+              : "rgba(107,114,128,0.2)",
             border: tariff.isActive
-              ? "1px solid rgba(107,114,128,0.3)"
-              : "1px solid rgba(16,185,129,0.3)",
-            color: tariff.isActive ? "#6b7280" : "#10b981",
+              ? "1px solid rgba(16,185,129,0.3)"
+              : "1px solid rgba(107,114,128,0.3)",
+            color: tariff.isActive ? "#10b981" : "#6b7280",
           }}
         >
-          {tariff.isActive ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
+          {tariff.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
         </button>
         <button
           onClick={() => onDelete(tariff.id)}
