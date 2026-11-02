@@ -55,7 +55,7 @@ export function ReviewsSection() {
             className="group relative flex h-full flex-col rounded-2xl border border-rn-line bg-rn-surface p-5 transition hover:border-rn-violet/60"
           >
             <Quote className="h-6 w-6 text-rn-violet/60" aria-hidden />
-            <ReviewText text={review.text} author={review.author} meta={`${formatDate(review.date)} · ${review.source}`} />
+            <ReviewText text={language === "ru" ? review.text : review.translations?.[language] ?? review.text} author={review.author} meta={`${formatDate(review.date)} · ${review.source}`} />
             <figcaption className="mt-4 flex items-center gap-3 border-t border-rn-line pt-3">
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${ACCENTS[i % ACCENTS.length]} font-display text-sm font-bold text-white`}

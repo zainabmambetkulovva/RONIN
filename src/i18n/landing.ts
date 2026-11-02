@@ -203,7 +203,7 @@ const en: Dict = {
 
   "reviews.eyebrow": "Reviews",
   "reviews.title": "What guests say",
-  "reviews.subtitle": "Verified reviews from 2GIS (in original language).",
+  "reviews.subtitle": "Verified reviews from 2GIS, translated from Russian.",
   "reviews.all": "All reviews on 2GIS",
   "reviews.ratings": "ratings",
   "reviews.more": "Read more",
@@ -322,7 +322,7 @@ const ky: Dict = {
 
   "reviews.eyebrow": "Пикирлер",
   "reviews.title": "Коноктор эмне дешет",
-  "reviews.subtitle": "2GIS'тен тастыкталган пикирлер (түп нускада).",
+  "reviews.subtitle": "2GIS'тен тастыкталган пикирлер, орус тилинен которулган.",
   "reviews.all": "2GIS'теги бардык пикирлер",
   "reviews.ratings": "баа",
   "reviews.more": "Толук окуу",
