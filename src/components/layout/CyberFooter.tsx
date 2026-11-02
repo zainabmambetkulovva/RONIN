@@ -51,7 +51,8 @@ export function CyberFooter() {
 
         <div>
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white md:mb-4">{t("footer.navigation")}</h4>
-          <ul className="space-y-2">
+          {/* На компьютере — две колонки по 3 пункта: высота как у соседних блоков, без пустого места под ними */}
+          <ul className="space-y-2 lg:grid lg:grid-flow-col lg:grid-rows-3 lg:gap-x-8 lg:gap-y-2 lg:space-y-0">
             {NAV.map(({ id, key }) => (
               <li key={id}>
                 <a href={`/#${id}`} className="text-sm text-rn-muted transition hover:text-white">
