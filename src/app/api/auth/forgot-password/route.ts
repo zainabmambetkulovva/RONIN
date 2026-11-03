@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import { Resend } from 'resend';
+import { sendMail } from '@/lib/mailer';
 import { checkRateLimit, rateLimitError } from '@/lib/rate-limiter';
 
 
@@ -57,14 +57,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Отправить email (клиент создаётся при запросе: без ключа сборка не должна падать)
+    // Отправить email: через Gmail (или Resend, если Gmail не настроен) — см. src/lib/mailer.ts
     try {
-      if (!process.env.RESEND_API_KEY) {
-        throw new Error("RESEND_API_KEY is not configured");
-      }
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@ronin.kg',
+      await sendMail({
         to: email,
         subject: 'RONIN - Восстановление пароля',
         html: `

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { handle } from "@/server/http";
 import { requireAdmin } from "@/server/auth/staff";
 import { describeAIKey, getAIService, isAIConfigured } from "@/lib/ai";
+import { checkMail } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,8 @@ export const GET = handle(async (req) => {
     ai = res.error ? { ok: false, message: `${res.error} · ${describeAIKey()}`.slice(0, 300) } : { ok: true, message: "Отвечает" };
   }
 
+  const mail = await checkMail();
+
   return NextResponse.json({
     origin,
     checks: [
@@ -39,7 +42,7 @@ export const GET = handle(async (req) => {
       { key: "finik", label: "Оплата Finik", ok: has("FINIK_API_KEY") && has("FINIK_ACCOUNT_ID"), message: has("FINIK_API_KEY") && has("FINIK_ACCOUNT_ID") ? "Ключи заданы" : "Не заданы FINIK_API_KEY / FINIK_ACCOUNT_ID", fix: "Vercel → Environment Variables" },
       { key: "telegram", label: "Telegram (коды входа в админку)", ok: has("TELEGRAM_BOT_TOKEN"), message: has("TELEGRAM_BOT_TOKEN") ? "Бот задан" : "Не задан TELEGRAM_BOT_TOKEN", fix: "Vercel → Environment Variables; у сотрудников — Telegram chat ID" },
       { key: "cron", label: "Автоотмена неоплаченных броней", ok: has("CRON_SECRET"), message: has("CRON_SECRET") ? "CRON_SECRET задан" : "Не задан CRON_SECRET", fix: "Vercel → Environment Variables → CRON_SECRET (любая длинная строка)" },
-      { key: "email", label: "Письма (восстановление пароля)", ok: has("RESEND_API_KEY"), message: has("RESEND_API_KEY") ? "Ключ задан" : "Не задан RESEND_API_KEY", fix: "Vercel → Environment Variables" },
+      { key: "email", label: "Письма (восстановление пароля)", ...mail, fix: "Gmail: myaccount.google.com → Безопасность → включите двухэтапную проверку → «Пароли приложений» → создайте пароль. Vercel → Environment Variables: GMAIL_USER (адрес Gmail) и GMAIL_APP_PASSWORD (пароль приложения из 16 букв), окружение Production → Redeploy" },
     ],
   });
 });
