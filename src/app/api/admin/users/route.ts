@@ -32,6 +32,9 @@ export const GET = handle(async (req) => {
   if (status && status !== "all") {
     if (!STATUSES.includes(status as (typeof STATUSES)[number])) throw badRequest("Некорректный статус");
     where.status = status as (typeof STATUSES)[number];
+  } else {
+    // Удалённые (мягкое удаление) в списке не показываем — иначе после обновления страницы они «возвращаются»
+    where.status = { not: "deleted" };
   }
   if (q) {
     where.OR = [
